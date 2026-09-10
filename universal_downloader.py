@@ -21,7 +21,6 @@ def download_video(url, output):
         size = os.path.getsize(output) / (1024 * 1024)
         print("[+] Downloaded: " + str(round(size, 1)) + " MB")
         return True
-    print("[!] Download failed")
     return False
 
 
