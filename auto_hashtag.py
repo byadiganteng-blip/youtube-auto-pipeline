@@ -64,7 +64,6 @@ class AutoHashtag:
         return ' '.join(tags[:count])
 
     def _extract_part_number(self, filename):
-        # FIX: pakai [0-9] dan [.] biar tidak ada warning invalid escape sequence
         patterns = [
             'part[-_ ]*([0-9]+)',
             'episode[-_ ]*([0-9]+)',
