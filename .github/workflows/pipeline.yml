@@ -4,12 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       video_url:
-        description: "URL Video"
+        description: "URL Video (YouTube, FB, TikTok, IG)"
         required: true
         type: string
       privacy:
-        description: "Privacy"
-        required: false
+        description: "Privacy Status"
+        required: true
         default: "public"
         type: choice
         options:
@@ -17,25 +17,49 @@ on:
           - unlisted
           - private
       method:
-        description: "Metode remove watermark"
-        required: false
+        description: "Metode Remove Watermark"
+        required: true
         default: "blur"
         type: choice
         options:
           - blur
           - inpaint
       part_duration:
-        description: "Durasi per part (detik)"
-        required: false
+        description: "Durasi per Part (detik)"
+        required: true
         default: "300"
-      auto_upload:
-        description: "Auto upload ke YouTube?"
+        type: string
+      samples:
+        description: "Sample frame deteksi watermark"
         required: false
+        default: "30"
+        type: string
+      auto_upload:
+        description: "Auto Upload ke YouTube?"
+        required: true
         default: "false"
         type: choice
         options:
           - "true"
           - "false"
+      upload_type:
+        description: "Tipe Upload: Reels/Shorts atau Video Biasa"
+        required: true
+        default: "video"
+        type: choice
+        options:
+          - video
+          - reels
+      upload_delay:
+        description: "Delay antar upload (detik)"
+        required: false
+        default: "60"
+        type: string
+      start_part:
+        description: "Mulai dari part ke berapa"
+        required: false
+        default: "1"
+        type: string
 
 jobs:
   pipeline:
@@ -43,67 +67,91 @@ jobs:
     timeout-minutes: 360
     permissions:
       contents: write
+
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
-      with:
-        python-version: "3.11"
-    - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y ffmpeg libsm6 libxext6 libgl1 wget
-        pip install opencv-python-headless numpy yt-dlp
-        pip install google-auth google-auth-oauthlib google-api-python-client
-    - name: Download video
-      run: |
-        python universal_downloader.py --url "${{ github.event.inputs.video_url }}" --output "input/video.mp4"
-    - name: Remove watermark + Split per part
-      run: |
-        mkdir -p output
-        python watermark_remover.py \
-          --input input/video.mp4 \
-          --output-dir output \
-          --method "${{ github.event.inputs.method }}" \
-          --part-duration "${{ github.event.inputs.part_duration }}" \
-          --samples 30
-        ls -la output/
-    - name: Generate title & hashtag per part
-      run: |
-        for video in output/*.mp4; do
-          echo "=========================================="
-          echo "Processing: $video"
-          echo "=========================================="
-          python auto_hashtag.py "$video"
-          echo ""
-        done
-    - name: Upload per part to YouTube
-      if: github.event.inputs.auto_upload == 'true'
-      env:
-        YOUTUBE_TOKEN: ${{ secrets.YOUTUBE_TOKEN }}
-      run: |
-        echo "$YOUTUBE_TOKEN" > token.pickle
-        python upload_per_part.py \
-          --input-dir output \
-          --privacy "${{ github.event.inputs.privacy }}" \
-          --delay 60
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: pipeline-result
-        path: output/*.mp4
-        retention-days: 30
-        overwrite: true
-    - name: Create Release per Part
-      if: success()
-      uses: softprops/action-gh-release@v2
-      with:
-        files: output/*.mp4
-        tag_name: parts-v${{ github.run_number }}
-        name: Parts v${{ github.run_number }}
-        body: |
-          Video split & watermark removed
-          Part duration: ${{ github.event.inputs.part_duration }}s
-          Source: ${{ github.event.inputs.video_url }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg libsm6 libxext6 libgl1 wget curl
+
+      - name: Install Python Dependencies
+        run: |
+          pip install --upgrade pip
+          pip install opencv-python-headless numpy yt-dlp requests
+          pip install google-auth google-auth-oauthlib google-api-python-client
+          pip install PyNaCl
+
+      - name: Download Video
+        run: |
+          mkdir -p input output
+          python universal_downloader.py \
+            --url "${{ github.event.inputs.video_url }}" \
+            --output "input/video.mp4"
+          ls -lah input/
+
+      - name: Remove Watermark + Split
+        run: |
+          python watermark_remover.py \
+            --input "input/video.mp4" \
+            --output-dir "output" \
+            --method "${{ github.event.inputs.method }}" \
+            --part-duration "${{ github.event.inputs.part_duration }}" \
+            --samples "${{ github.event.inputs.samples }}"
+          ls -lah output/
+
+      - name: Generate Metadata per Part
+        run: |
+          for video in output/*.mp4; do
+            if [ -f "$video" ]; then
+              python auto_hashtag.py "$video" "${{ github.event.inputs.upload_type }}" || true
+            fi
+          done
+
+      - name: Upload per Part to YouTube
+        if: github.event.inputs.auto_upload == 'true'
+        env:
+          YOUTUBE_TOKEN: ${{ secrets.YOUTUBE_TOKEN }}
+        run: |
+          if [ -z "$YOUTUBE_TOKEN" ]; then
+            echo "ERROR: YOUTUBE_TOKEN tidak ditemukan!"
+            exit 1
+          fi
+          echo "$YOUTUBE_TOKEN" | base64 -d > token.pickle
+          python upload_per_part.py \
+            --input-dir "output" \
+            --privacy "${{ github.event.inputs.privacy }}" \
+            --delay "${{ github.event.inputs.upload_delay }}" \
+            --start-part "${{ github.event.inputs.start_part }}" \
+            --upload-type "${{ github.event.inputs.upload_type }}"
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pipeline-result-${{ github.run_number }}
+          path: output/*.mp4
+          retention-days: 30
+          overwrite: true
+
+      - name: Create Release
+        if: success()
+        uses: softprops/action-gh-release@v2
+        with:
+          files: output/*.mp4
+          tag_name: parts-v${{ github.run_number }}
+          name: "Parts v${{ github.run_number }}"
+          body: |
+            Source: ${{ github.event.inputs.video_url }}
+            Method: ${{ github.event.inputs.method }}
+            Part Duration: ${{ github.event.inputs.part_duration }}s
+            Upload Type: ${{ github.event.inputs.upload_type }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
