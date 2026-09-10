@@ -120,7 +120,6 @@ def upload_single(youtube, video_path, title, description, tags, privacy='public
 
 
 def extract_part_from_filename(filename):
-    # FIX: pakai [0-9] dan [-_] biar tidak ada warning invalid escape sequence
     patterns = [
         'part[-_ ]*([0-9]+)',
         '_part([0-9]+)',
