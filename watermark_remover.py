@@ -187,6 +187,54 @@ def remove_and_split(input_path, output_dir, watermarks, method='blur', part_dur
     print("[+] Complete in " + str(round(time.time() - start_time, 1)) + "s")
 
 
+def split_only(input_path, output_dir, part_duration=300):
+    """Fitur BARU: split per part TANPA hapus watermark (langsung upload)"""
+    print("[*] Mode: SKIP WATERMARK - split per part langsung")
+
+    cap = cv2.VideoCapture(input_path)
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    duration = total / fps if fps > 0 else 0
+    cap.release()
+
+    num_parts = int(np.ceil(duration / part_duration))
+    print("[*] Duration: " + str(round(duration, 1)) + "s")
+    print("[*] Will create " + str(num_parts) + " parts (no watermark removal)")
+
+    base_name = os.path.splitext(os.path.basename(input_path))[0]
+    clean_name = ""
+    for ch in base_name:
+        if ch.isalnum() or ch in '_-':
+            clean_name += ch
+        else:
+            clean_name += '_'
+    base_name = clean_name
+
+    start_time = time.time()
+
+    for part_idx in range(1, num_parts + 1):
+        start_sec = (part_idx - 1) * part_duration
+        final_path = os.path.join(output_dir, base_name + "_part" + str(part_idx).zfill(3) + "_no_wm.mp4")
+
+        cmd = [
+            'ffmpeg', '-i', input_path,
+            '-ss', str(start_sec), '-t', str(part_duration),
+            '-c', 'copy',
+            '-avoid_negative_ts', 'make_zero',
+            '-movflags', '+faststart',
+            final_path, '-y', '-loglevel', 'error'
+        ]
+        result = subprocess.run(cmd, capture_output=True, timeout=600)
+
+        if result.returncode == 0 and os.path.exists(final_path):
+            size = os.path.getsize(final_path) / (1024 * 1024)
+            print("    Part " + str(part_idx) + ": " + str(round(size, 1)) + " MB")
+        else:
+            print("    [!] Part " + str(part_idx) + " gagal split")
+
+    print("[+] Complete in " + str(round(time.time() - start_time, 1)) + "s")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', required=True)
@@ -194,11 +242,20 @@ def main():
     parser.add_argument('--method', default='blur')
     parser.add_argument('--samples', type=int, default=30)
     parser.add_argument('--part-duration', type=int, default=300)
+    parser.add_argument('--process-mode', default='remove_watermark',
+                        choices=['remove_watermark', 'skip_watermark'])
     args = parser.parse_args()
 
     os.makedirs(args.output_dir, exist_ok=True)
-    watermarks = detect_watermarks(args.input, args.samples)
-    remove_and_split(args.input, args.output_dir, watermarks, args.method, args.part_duration)
+
+    if args.process_mode == 'skip_watermark':
+        print("[*] MODE: SKIP WATERMARK (langsung split + upload)")
+        split_only(args.input, args.output_dir, args.part_duration)
+    else:
+        print("[*] MODE: REMOVE WATERMARK")
+        watermarks = detect_watermarks(args.input, args.samples)
+        remove_and_split(args.input, args.output_dir, watermarks, args.method, args.part_duration)
+
     print("[+] Output dir: " + args.output_dir)
 
 
