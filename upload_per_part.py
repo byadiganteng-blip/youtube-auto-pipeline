@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Upload YouTube per Part - Pilihan Reels / Video Biasa"""
+"""Upload YouTube per Part"""
 
 import os
 import sys
@@ -17,13 +17,9 @@ try:
     from google.auth.transport.requests import Request
     from googleapiclient.discovery import build
     from googleapiclient.http import MediaFileUpload
-    from google_auth_oauthlib.flow import InstalledAppFlow
 except ImportError:
-    print("[!] Install: pip install google-auth google-auth-oauthlib google-api-python-client")
+    print("[!] Install: pip install google-auth google-api-python-client")
     sys.exit(1)
-
-
-SCOPES = ['https://www.googleapis.com/auth/youtube.upload']
 
 
 def get_video_dimensions(path):
@@ -43,21 +39,16 @@ def get_video_dimensions(path):
 
 
 def convert_to_reels(input_path, output_path):
-    print("[*] Convert ke format Reels (9:16)...")
+    print("[*] Convert ke Reels (9:16)...")
     w, h = get_video_dimensions(input_path)
     if w == 0 or h == 0:
-        print("[!] Gagal ambil dimensi")
         return input_path
 
     target_w, target_h = 1080, 1920
     if h > w and abs((w / h) - (9 / 16)) < 0.05:
-        print("[+] Sudah 9:16, skip convert")
         return input_path
 
-    vf = (
-        "scale=" + str(target_w) + ":" + str(target_h) + ":force_original_aspect_ratio=increase,"
-        "crop=" + str(target_w) + ":" + str(target_h) + ",setsar=1"
-    )
+    vf = "scale=" + str(target_w) + ":" + str(target_h) + ":force_original_aspect_ratio=increase,crop=" + str(target_w) + ":" + str(target_h) + ",setsar=1"
     cmd = [
         'ffmpeg', '-i', input_path, '-vf', vf,
         '-c:v', 'libx264', '-preset', 'fast', '-crf', '23',
@@ -67,10 +58,7 @@ def convert_to_reels(input_path, output_path):
     ]
     result = subprocess.run(cmd, capture_output=True, timeout=600)
     if result.returncode == 0 and os.path.exists(output_path):
-        size = os.path.getsize(output_path) / (1024 * 1024)
-        print("[+] Converted: " + str(round(size, 1)) + " MB")
         return output_path
-    print("[!] Convert gagal, pakai original")
     return input_path
 
 
@@ -85,11 +73,6 @@ def get_service():
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file('client_secrets.json', SCOPES)
-            creds = flow.run_local_server(port=0)
-        with open('token.pickle', 'wb') as f:
-            pickle.dump(creds, f)
     return build('youtube', 'v3', credentials=creds)
 
 
@@ -120,14 +103,8 @@ def upload_single(youtube, video_path, title, description, tags, privacy='public
 
 
 def extract_part_from_filename(filename):
-    patterns = [
-        'part[-_ ]*([0-9]+)',
-        '_part([0-9]+)',
-        'part([0-9]+)',
-    ]
-    text = filename.lower()
-    for p in patterns:
-        m = re.search(p, text)
+    for p in ['part[-_ ]*([0-9]+)', '_part([0-9]+)', 'part([0-9]+)']:
+        m = re.search(p, filename.lower())
         if m:
             try:
                 return int(m.group(1))
@@ -147,18 +124,16 @@ def main():
     args = parser.parse_args()
 
     print("=" * 70)
-    print("  AUTO UPLOAD PER PART - Type: " + args.upload_type.upper())
+    print("  AUTO UPLOAD - Type: " + args.upload_type.upper())
     print("=" * 70)
 
     videos = sorted(glob.glob(os.path.join(args.input_dir, "*.mp4")))
     if not videos:
-        print("[!] Tidak ada video di " + args.input_dir)
         return
     print("[*] Found " + str(len(videos)) + " videos")
 
     bot = AntiDetectBot()
     gen = AutoHashtag()
-    detector = ContentDetector()
     youtube = get_service()
 
     uploaded = []
@@ -169,12 +144,10 @@ def main():
         part_num = extract_part_from_filename(filename) or i
 
         if part_num < args.start_part:
-            print("[*] Skip part " + str(part_num))
             continue
 
         print("\n" + "=" * 70)
         print("  Upload " + str(i) + "/" + str(len(videos)) + ": " + filename)
-        print("  PART " + str(part_num) + " | TYPE: " + args.upload_type.upper())
         print("=" * 70)
 
         actual_path = video_path
@@ -188,19 +161,18 @@ def main():
         hashtags = gen.generate(filename, title, upload_type=args.upload_type)
         description = gen.generate_description(filename, title, hashtags, args.upload_type)
 
-        print("\nTitle: " + title)
-        print("Hashtags: " + hashtags)
+        print("Title: " + title)
 
         try:
             vid = upload_single(youtube, actual_path, title, description, hashtags, args.privacy)
             if vid:
                 url = "https://youtu.be/" + vid
-                print("\n[+] Uploaded: " + url)
-                uploaded.append({'part': part_num, 'url': url, 'type': args.upload_type})
+                print("[+] Uploaded: " + url)
+                uploaded.append({'part': part_num, 'url': url})
             else:
                 failed.append(filename)
         except Exception as e:
-            print("\n[!] Error: " + str(e))
+            print("[!] Error: " + str(e))
             failed.append(filename)
 
         if args.upload_type == 'reels' and actual_path != video_path:
@@ -210,15 +182,10 @@ def main():
                 pass
 
         if i < len(videos):
-            print("[*] Wait " + str(args.delay) + "s...")
             time.sleep(args.delay)
 
     print("\n" + "=" * 70)
     print("  COMPLETE - Berhasil: " + str(len(uploaded)))
-    for u in uploaded:
-        print("  Part " + str(u['part']) + " [" + u['type'] + "]: " + u['url'])
-    if failed:
-        print("[!] Gagal: " + str(len(failed)))
 
 
 if __name__ == '__main__':
