@@ -7,18 +7,17 @@ on:
         description: "URL Video (YouTube, FB, TikTok, IG)"
         required: true
         type: string
-      privacy:
-        description: "Privacy Status"
+      process_mode:
+        description: "Mode: Hapus Watermark dulu atau Langsung Upload?"
         required: true
-        default: "public"
+        default: "remove_watermark"
         type: choice
         options:
-          - public
-          - unlisted
-          - private
+          - remove_watermark
+          - skip_watermark
       method:
-        description: "Metode Remove Watermark"
-        required: true
+        description: "Metode Remove Watermark (kalau remove_watermark)"
+        required: false
         default: "blur"
         type: choice
         options:
@@ -34,6 +33,15 @@ on:
         required: false
         default: "30"
         type: string
+      privacy:
+        description: "Privacy Status"
+        required: true
+        default: "public"
+        type: choice
+        options:
+          - public
+          - unlisted
+          - private
       auto_upload:
         description: "Auto Upload ke YouTube?"
         required: true
@@ -97,14 +105,18 @@ jobs:
             --output "input/video.mp4"
           ls -lah input/
 
-      - name: Remove Watermark + Split
+      - name: Process Video (Remove Watermark / Skip)
         run: |
+          echo "=========================================="
+          echo "  PROCESS MODE: ${{ github.event.inputs.process_mode }}"
+          echo "=========================================="
           python watermark_remover.py \
             --input "input/video.mp4" \
             --output-dir "output" \
             --method "${{ github.event.inputs.method }}" \
             --part-duration "${{ github.event.inputs.part_duration }}" \
-            --samples "${{ github.event.inputs.samples }}"
+            --samples "${{ github.event.inputs.samples }}" \
+            --process-mode "${{ github.event.inputs.process_mode }}"
           ls -lah output/
 
       - name: Generate Metadata per Part
@@ -150,6 +162,7 @@ jobs:
           name: "Parts v${{ github.run_number }}"
           body: |
             Source: ${{ github.event.inputs.video_url }}
+            Process Mode: ${{ github.event.inputs.process_mode }}
             Method: ${{ github.event.inputs.method }}
             Part Duration: ${{ github.event.inputs.part_duration }}s
             Upload Type: ${{ github.event.inputs.upload_type }}
