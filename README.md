@@ -12,7 +12,21 @@
 9. Universal Downloader (YouTube, FB, TikTok, IG)
 10. Auto Setup Secrets (upload token.txt & api_key.txt)
 11. Pilih Tipe Upload: Reels/Shorts atau Video Biasa
-12. GitHub Actions Full Automation
+12. PILIH MODE: Hapus Watermark atau Langsung Upload (BARU)
+13. GitHub Actions Full Automation
+
+## Process Mode (BARU)
+
+### remove_watermark
+- Hapus watermark dulu (blur/inpaint)
+- Split per part
+- Upload ke YouTube
+
+### skip_watermark
+- Download video
+- Split per part langsung (tanpa hapus watermark)
+- Upload ke YouTube
+- Lebih cepat karena skip proses deteksi + remove
 
 ## Setup Awal
 
@@ -26,15 +40,14 @@
 
 ### 3. Upload youtube_token.txt (Opsional)
 - Base64 dari token.pickle untuk auto upload
-- Linux/Mac: base64 token.pickle > youtube_token.txt
-- Windows: certutil -encode token.pickle youtube_token.txt
 
 ## Cara Pakai
 1. Buka Actions
 2. Pilih "Complete Pipeline + Per-Part Upload"
 3. Isi form:
    - video_url: URL video
-   - method: blur/inpaint
+   - process_mode: remove_watermark / skip_watermark
+   - method: blur / inpaint (kalau remove_watermark)
    - part_duration: 300 (5 menit)
    - auto_upload: true/false
    - upload_type: video / reels
@@ -45,14 +58,11 @@
 
 ### Video Biasa
 - Aspect ratio asli (16:9)
-- Durasi sesuai part_duration
-- Cocok untuk konten panjang
 
 ### Reels/Shorts
 - Auto-convert ke 9:16 portrait (1080x1920)
 - Max 60 detik
 - Hashtag #Shorts #Reels otomatis
-- Cocok untuk konten viral
 
 ---
 
