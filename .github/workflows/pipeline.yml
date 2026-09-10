@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       video_url:
-        description: "URL Video (YouTube, FB, TikTok, IG)"
+        description: "URL Video"
         required: true
         type: string
       process_mode:
-        description: "Mode: Hapus Watermark dulu atau Langsung Upload?"
+        description: "Mode"
         required: true
         default: "remove_watermark"
         type: choice
@@ -16,7 +16,7 @@ on:
           - remove_watermark
           - skip_watermark
       method:
-        description: "Metode Remove Watermark (kalau remove_watermark)"
+        description: "Metode Remove Watermark"
         required: false
         default: "blur"
         type: choice
@@ -29,12 +29,12 @@ on:
         default: "300"
         type: string
       samples:
-        description: "Sample frame deteksi watermark"
+        description: "Sample frame"
         required: false
         default: "30"
         type: string
       privacy:
-        description: "Privacy Status"
+        description: "Privacy"
         required: true
         default: "public"
         type: choice
@@ -43,7 +43,7 @@ on:
           - unlisted
           - private
       auto_upload:
-        description: "Auto Upload ke YouTube?"
+        description: "Auto Upload?"
         required: true
         default: "false"
         type: choice
@@ -51,7 +51,7 @@ on:
           - "true"
           - "false"
       upload_type:
-        description: "Tipe Upload: Reels/Shorts atau Video Biasa"
+        description: "Tipe Upload"
         required: true
         default: "video"
         type: choice
@@ -59,12 +59,12 @@ on:
           - video
           - reels
       upload_delay:
-        description: "Delay antar upload (detik)"
+        description: "Delay upload (detik)"
         required: false
         default: "60"
         type: string
       start_part:
-        description: "Mulai dari part ke berapa"
+        description: "Mulai part"
         required: false
         default: "1"
         type: string
@@ -77,21 +77,16 @@ jobs:
       contents: write
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Python 3.11
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install System Dependencies
+      - name: Install Dependencies
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq ffmpeg libsm6 libxext6 libgl1 wget curl
-
-      - name: Install Python Dependencies
-        run: |
           pip install --upgrade pip
           pip install opencv-python-headless numpy yt-dlp requests
           pip install google-auth google-auth-oauthlib google-api-python-client
@@ -105,11 +100,8 @@ jobs:
             --output "input/video.mp4"
           ls -lah input/
 
-      - name: Process Video (Remove Watermark / Skip)
+      - name: Process Video
         run: |
-          echo "=========================================="
-          echo "  PROCESS MODE: ${{ github.event.inputs.process_mode }}"
-          echo "=========================================="
           python watermark_remover.py \
             --input "input/video.mp4" \
             --output-dir "output" \
@@ -119,7 +111,7 @@ jobs:
             --process-mode "${{ github.event.inputs.process_mode }}"
           ls -lah output/
 
-      - name: Generate Metadata per Part
+      - name: Generate Metadata
         run: |
           for video in output/*.mp4; do
             if [ -f "$video" ]; then
@@ -127,15 +119,24 @@ jobs:
             fi
           done
 
-      - name: Upload per Part to YouTube
+      - name: Check Token
+        id: check_token
         if: github.event.inputs.auto_upload == 'true'
         env:
           YOUTUBE_TOKEN: ${{ secrets.YOUTUBE_TOKEN }}
         run: |
           if [ -z "$YOUTUBE_TOKEN" ]; then
-            echo "ERROR: YOUTUBE_TOKEN tidak ditemukan!"
-            exit 1
+            echo "available=false" >> $GITHUB_OUTPUT
+            echo "::warning::YOUTUBE_TOKEN tidak ada! Skip upload."
+          else
+            echo "available=true" >> $GITHUB_OUTPUT
           fi
+
+      - name: Upload to YouTube
+        if: github.event.inputs.auto_upload == 'true' && steps.check_token.outputs.available == 'true'
+        env:
+          YOUTUBE_TOKEN: ${{ secrets.YOUTUBE_TOKEN }}
+        run: |
           echo "$YOUTUBE_TOKEN" | base64 -d > token.pickle
           python upload_per_part.py \
             --input-dir "output" \
@@ -162,9 +163,7 @@ jobs:
           name: "Parts v${{ github.run_number }}"
           body: |
             Source: ${{ github.event.inputs.video_url }}
-            Process Mode: ${{ github.event.inputs.process_mode }}
-            Method: ${{ github.event.inputs.method }}
-            Part Duration: ${{ github.event.inputs.part_duration }}s
-            Upload Type: ${{ github.event.inputs.upload_type }}
+            Mode: ${{ github.event.inputs.process_mode }}
+            Type: ${{ github.event.inputs.upload_type }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
