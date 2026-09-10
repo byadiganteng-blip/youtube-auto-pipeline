@@ -28,39 +28,30 @@ class AntiDetectBot:
         "id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7",
     ]
     TIMEZONES = ["Asia/Jakarta", "Asia/Singapore", "America/New_York", "Europe/London"]
-    
+
     def __init__(self, use_proxy=False, proxy_list=None):
         self.use_proxy = use_proxy
         self.proxy_list = proxy_list or []
         self.session = None
-        self.current_proxy = None
-        self.request_count = 0
-        self.max_requests_per_proxy = 50
         self.fingerprint = None
         self._init_session()
         self._generate_fingerprint()
-    
+
     def _init_session(self):
         self.session = requests.Session()
         self._rotate_headers()
-    
+
     def _generate_fingerprint(self):
         self.fingerprint = {
             'user_agent': random.choice(self.USER_AGENTS),
-            'screen_resolution': random.choice(['1920x1080', '1366x768', '2560x1440', '1280x720']),
+            'screen_resolution': random.choice(['1920x1080', '1366x768', '2560x1440']),
             'timezone': random.choice(self.TIMEZONES),
             'language': random.choice(self.LANGUAGES),
             'platform': random.choice(['Win32', 'MacIntel', 'Linux x86_64']),
             'hardware_concurrency': random.choice([4, 8, 12, 16]),
             'device_memory': random.choice([4, 8, 16, 32]),
-            'canvas_hash': self._random_hash(16),
-            'webgl_hash': self._random_hash(16),
-            'audio_hash': self._random_hash(16),
         }
-    
-    def _random_hash(self, length=16):
-        return hashlib.md5(''.join(random.choices(string.ascii_letters + string.digits, k=32)).encode()).hexdigest()[:length]
-    
+
     def _rotate_headers(self):
         self.session.headers.update({
             'User-Agent': random.choice(self.USER_AGENTS),
@@ -69,13 +60,11 @@ class AntiDetectBot:
             'Accept-Encoding': 'gzip, deflate, br',
             'DNT': '1',
             'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1',
         })
-    
+
     def _random_delay(self, min_sec=2.0, max_sec=8.0):
-        delay = random.uniform(min_sec, max_sec)
-        time.sleep(delay)
-    
+        time.sleep(random.uniform(min_sec, max_sec))
+
     def get(self, url, **kwargs):
         self._rotate_headers()
         self._random_delay()
@@ -88,6 +77,5 @@ class AntiDetectBot:
 
 if __name__ == '__main__':
     bot = AntiDetectBot()
-    print("Fingerprint:")
     for k, v in bot.fingerprint.items():
         print("  " + k + ": " + str(v))
