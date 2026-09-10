@@ -132,8 +132,5 @@ if __name__ == '__main__':
     title = gen.generate_title(filename, upload_type)
     hashtags = gen.generate(filename, title, upload_type=upload_type)
     description = gen.generate_description(filename, title, hashtags, upload_type)
-    print("FILENAME: " + filename)
-    print("TYPE: " + upload_type)
     print("TITLE: " + title)
     print("HASHTAGS: " + hashtags)
-    print(description)
