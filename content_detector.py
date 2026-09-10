@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """Content Detector"""
 
-import re
-
 
 class ContentDetector:
     KEYWORDS = {
