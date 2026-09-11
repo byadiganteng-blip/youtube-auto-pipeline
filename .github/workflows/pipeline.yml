@@ -8,7 +8,7 @@ on:
         required: true
         type: string
       process_mode:
-        description: "Mode: Hapus Watermark atau Langsung Upload?"
+        description: "Mode"
         required: true
         default: "remove_watermark"
         type: choice
@@ -16,7 +16,7 @@ on:
           - remove_watermark
           - skip_watermark
       video_size:
-        description: "Ukuran Video (aspect ratio / platform)"
+        description: "Ukuran Video"
         required: true
         default: "original"
         type: choice
@@ -34,7 +34,7 @@ on:
           - fb_video
           - twitter
       video_quality:
-        description: "Kualitas Video (resolusi)"
+        description: "Kualitas Video"
         required: true
         default: "original"
         type: choice
@@ -49,7 +49,7 @@ on:
           - 1440p
           - 2160p
       method:
-        description: "Metode Remove Watermark"
+        description: "Metode Watermark"
         required: false
         default: "blur"
         type: choice
@@ -92,7 +92,7 @@ on:
           - video
           - reels
       upload_delay:
-        description: "Delay upload (detik)"
+        description: "Delay upload"
         required: false
         default: "60"
         type: string
@@ -111,7 +111,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -135,10 +134,6 @@ jobs:
 
       - name: Process Video
         run: |
-          echo "=========================================="
-          echo "  Video Size: ${{ github.event.inputs.video_size }}"
-          echo "  Video Quality: ${{ github.event.inputs.video_quality }}"
-          echo "=========================================="
           python watermark_remover.py \
             --input "input/video.mp4" \
             --output-dir "output" \
@@ -166,7 +161,6 @@ jobs:
         run: |
           if [ -z "$YOUTUBE_TOKEN" ]; then
             echo "available=false" >> $GITHUB_OUTPUT
-            echo "::warning::YOUTUBE_TOKEN tidak ada! Skip upload."
           else
             echo "available=true" >> $GITHUB_OUTPUT
           fi
@@ -191,7 +185,6 @@ jobs:
           name: pipeline-result-${{ github.run_number }}
           path: output/*.mp4
           retention-days: 30
-          overwrite: true
 
       - name: Create Release
         if: success()
@@ -200,11 +193,5 @@ jobs:
           files: output/*.mp4
           tag_name: parts-v${{ github.run_number }}
           name: "Parts v${{ github.run_number }}"
-          body: |
-            Source: ${{ github.event.inputs.video_url }}
-            Mode: ${{ github.event.inputs.process_mode }}
-            Video Size: ${{ github.event.inputs.video_size }}
-            Video Quality: ${{ github.event.inputs.video_quality }}
-            Upload Type: ${{ github.event.inputs.upload_type }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
