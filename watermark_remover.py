@@ -1,219 +1,164 @@
 #!/usr/bin/env python3
-import os, sys, argparse, time, subprocess, tempfile, shutil
+import os, sys, argparse, subprocess, tempfile, shutil
 
-VIDEO_PRESETS = {
-    'original': None, 'yt_shorts': (1080, 1920), 'tiktok': (1080, 1920),
-    'ig_reels': (1080, 1920), 'fb_reels': (1080, 1920), 'whatsapp_status': (1080, 1920),
-    'ig_feed_square': (1080, 1080), 'ig_feed_portrait': (1080, 1350),
-    'yt_landscape': (1920, 1080), 'yt_4k': (3840, 2160),
-    'fb_video': (1920, 1080), 'twitter': (1280, 720),
-}
+PRESETS = {'original':None,'yt_shorts':(1080,1920),'tiktok':(1080,1920),'ig_reels':(1080,1920),
+    'fb_reels':(1080,1920),'whatsapp_status':(1080,1920),'ig_feed_square':(1080,1080),
+    'ig_feed_portrait':(1080,1350),'yt_landscape':(1920,1080),'yt_4k':(3840,2160),
+    'fb_video':(1920,1080),'twitter':(1280,720)}
+QUALITY = {'original':None,'144p':{'w':256,'h':144,'b':'100k'},'240p':{'w':426,'h':240,'b':'300k'},
+    '360p':{'w':640,'h':360,'b':'500k'},'480p':{'w':854,'h':480,'b':'1000k'},
+    '720p':{'w':1280,'h':720,'b':'2500k'},'1080p':{'w':1920,'h':1080,'b':'5000k'},
+    '1440p':{'w':2560,'h':1440,'b':'10000k'},'2160p':{'w':3840,'h':2160,'b':'20000k'}}
 
-VIDEO_QUALITY = {
-    'original': None,
-    '144p': {'width': 256, 'height': 144, 'bitrate': '100k'},
-    '240p': {'width': 426, 'height': 240, 'bitrate': '300k'},
-    '360p': {'width': 640, 'height': 360, 'bitrate': '500k'},
-    '480p': {'width': 854, 'height': 480, 'bitrate': '1000k'},
-    '720p': {'width': 1280, 'height': 720, 'bitrate': '2500k'},
-    '1080p': {'width': 1920, 'height': 1080, 'bitrate': '5000k'},
-    '1440p': {'width': 2560, 'height': 1440, 'bitrate': '10000k'},
-    '2160p': {'width': 3840, 'height': 2160, 'bitrate': '20000k'},
-}
-
-def get_preset_size(p): return VIDEO_PRESETS.get(p)
-def get_quality_size(q): return VIDEO_QUALITY.get(q)
-
-def build_vf_filter(preset_name, quality_name):
-    target_w = target_h = None
-    quality = get_quality_size(quality_name)
-    if quality:
-        target_w, target_h = quality['width'], quality['height']
+def vf_filter(p, q):
+    w = h = None
+    qi = QUALITY.get(q)
+    if qi: w, h = qi['w'], qi['h']
     else:
-        preset = get_preset_size(preset_name)
-        if preset: target_w, target_h = preset
-    if target_w is None: return None
-    return ("scale=" + str(target_w) + ":" + str(target_h) +
-            ":force_original_aspect_ratio=decrease,pad=" +
-            str(target_w) + ":" + str(target_h) + ":(ow-iw)/2:(oh-ih)/2:black,setsar=1")
+        ps = PRESETS.get(p)
+        if ps: w, h = ps
+    if w is None: return None
+    return f"scale={w}:{h}:force_original_aspect_ratio=decrease,pad={w}:{h}:(ow-iw)/2:(oh-ih)/2:black,setsar=1"
 
-def get_duration(path):
+def dur(path):
     try:
-        r = subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration',
-                           '-of', 'default=noprint_wrappers=1:nokey=1', path],
-                          capture_output=True, text=True, timeout=15)
+        r = subprocess.run(['ffprobe','-v','error','-show_entries','format=duration','-of','default=noprint_wrappers=1:nokey=1',path],capture_output=True,text=True,timeout=15)
         return float(r.stdout.strip())
     except: return 0
 
 def has_audio(path):
     try:
-        r = subprocess.run(['ffprobe', '-v', 'error', '-select_streams', 'a:0',
-                           '-show_entries', 'stream=codec_type',
-                           '-of', 'default=noprint_wrappers=1:nokey=1', path],
-                          capture_output=True, text=True, timeout=10)
+        r = subprocess.run(['ffprobe','-v','error','-select_streams','a:0','-show_entries','stream=codec_type','-of','default=noprint_wrappers=1:nokey=1',path],capture_output=True,text=True,timeout=10)
         return 'audio' in r.stdout.lower()
     except: return False
 
-def split_only(input_path, output_dir, part_duration=300, preset='original', quality='original'):
+def split_only(inp, outd, pd=300, preset='original', q='original'):
     print("[*] Mode: SKIP WATERMARK")
-    vf = build_vf_filter(preset, quality)
-    quality_info = get_quality_size(quality)
-    duration = get_duration(input_path)
-    if duration <= 0: sys.exit(1)
-    num_parts = int((duration + part_duration - 1) // part_duration)
-    print("[*] Will create " + str(num_parts) + " parts")
-    base_name = "".join(ch if (ch.isalnum() or ch in '_-') else '_'
-                        for ch in os.path.splitext(os.path.basename(input_path))[0])
-    for part_idx in range(1, num_parts + 1):
-        start_sec = (part_idx - 1) * part_duration
-        final_path = os.path.join(output_dir, base_name + "_part" + str(part_idx).zfill(3) + "_no_wm.mp4")
-        print("[*] Part " + str(part_idx) + "/" + str(num_parts))
+    vf = vf_filter(preset, q)
+    qi = QUALITY.get(q)
+    d = dur(inp)
+    if d <= 0: sys.exit(1)
+    n = int((d + pd - 1) // pd)
+    print(f"[*] Will create {n} parts")
+    bn = "".join(c if (c.isalnum() or c in '_-') else '_' for c in os.path.splitext(os.path.basename(inp))[0])
+    for i in range(1, n+1):
+        ss = (i-1) * pd
+        fp = os.path.join(outd, f"{bn}_part{i:03d}_no_wm.mp4")
+        print(f"[*] Part {i}/{n}")
         if vf:
-            cmd = ['ffmpeg', '-ss', str(start_sec), '-i', input_path, '-t', str(part_duration), '-vf', vf]
-            if quality_info: cmd.extend(['-b:v', quality_info['bitrate']])
-            cmd.extend(['-c:v', 'libx264', '-preset', 'fast', '-c:a', 'aac', '-b:a', '192k',
-                       '-movflags', '+faststart', final_path, '-y', '-loglevel', 'error'])
+            cmd = ['ffmpeg','-ss',str(ss),'-i',inp,'-t',str(pd),'-vf',vf]
+            if qi: cmd += ['-b:v', qi['b']]
+            cmd += ['-c:v','libx264','-preset','fast','-c:a','aac','-b:a','192k','-movflags','+faststart',fp,'-y','-loglevel','error']
         else:
-            cmd = ['ffmpeg', '-ss', str(start_sec), '-i', input_path, '-t', str(part_duration),
-                   '-c', 'copy', '-avoid_negative_ts', 'make_zero', '-movflags', '+faststart',
-                   final_path, '-y', '-loglevel', 'warning']
-        subprocess.run(cmd, capture_output=True, text=True, timeout=1800)
-        if os.path.exists(final_path):
-            print("    [+] " + str(round(os.path.getsize(final_path) / (1024*1024), 1)) + " MB")
+            cmd = ['ffmpeg','-ss',str(ss),'-i',inp,'-t',str(pd),'-c','copy','-avoid_negative_ts','make_zero','-movflags','+faststart',fp,'-y','-loglevel','warning']
+        subprocess.run(cmd, capture_output=True, timeout=1800)
+        if os.path.exists(fp): print(f"    [+] {round(os.path.getsize(fp)/(1024*1024),1)} MB")
 
-def detect_watermarks(path, samples=30):
+def detect_wm(path, samples=30):
     import cv2, numpy as np
     print("[*] Detecting watermarks...")
     cap = cv2.VideoCapture(path)
-    total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    if total < 2: cap.release(); return []
-    step = max(1, total // samples)
+    t = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    if t < 2: cap.release(); return []
+    step = max(1, t // samples)
     frames = []
-    for i in range(0, total, step):
+    for i in range(0, t, step):
         cap.set(cv2.CAP_PROP_POS_FRAMES, i)
-        ret, frame = cap.read()
-        if ret: frames.append(frame)
+        ret, fr = cap.read()
+        if ret: frames.append(fr)
         if len(frames) >= samples: break
     cap.release()
     if len(frames) < 2: return []
     h, w = frames[0].shape[:2]
-    grays = [cv2.cvtColor(f, cv2.COLOR_BGR2GRAY) for f in frames]
-    variance = np.var(np.stack(grays, axis=0), axis=0)
-    static = (variance < 30).astype(np.uint8) * 255
-    edges = [cv2.Canny(g, 50, 150) for g in grays]
-    edge_var = np.var(np.stack(edges, axis=0), axis=0)
-    stable = (edge_var < 100).astype(np.uint8) * 255
-    combined = cv2.bitwise_or(static, stable)
-    combined = cv2.dilate(combined, np.ones((15, 15), np.uint8), iterations=2)
-    contours, _ = cv2.findContours(combined, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    watermarks = []
-    for cnt in contours:
-        area = cv2.contourArea(cnt)
-        if 200 < area < w * h * 0.15:
-            x, y, cw, ch = cv2.boundingRect(cnt)
-            watermarks.append({'bbox': (x, y, x + cw, y + ch)})
-    print("[+] Found " + str(len(watermarks)) + " watermark(s)")
-    return watermarks
+    gs = [cv2.cvtColor(f, cv2.COLOR_BGR2GRAY) for f in frames]
+    var = np.var(np.stack(gs, axis=0), axis=0)
+    st = (var < 30).astype(np.uint8) * 255
+    e = [cv2.Canny(g, 50, 150) for g in gs]
+    ev = np.var(np.stack(e, axis=0), axis=0)
+    sb = (ev < 100).astype(np.uint8) * 255
+    comb = cv2.bitwise_or(st, sb)
+    comb = cv2.dilate(comb, np.ones((15,15),np.uint8), iterations=2)
+    conts, _ = cv2.findContours(comb, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    wms = []
+    for c in conts:
+        a = cv2.contourArea(c)
+        if 200 < a < w*h*0.15:
+            x, y, cw, ch = cv2.boundingRect(c)
+            wms.append({'bbox': (x,y,x+cw,y+ch)})
+    print(f"[+] Found {len(wms)} watermark(s)")
+    return wms
 
-def remove_and_split(input_path, output_dir, watermarks, method='blur', part_duration=300,
-                     preset='original', quality='original'):
+def remove_and_split(inp, outd, wms, method='blur', pd=300, preset='original', q='original'):
     import cv2, numpy as np
     print("[*] Mode: REMOVE WATERMARK")
-    cap = cv2.VideoCapture(input_path)
-    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    fps = cap.get(cv2.CAP_PROP_FPS)
-    total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    duration = total / fps if fps > 0 else 0
+    cap = cv2.VideoCapture(inp)
+    w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)); h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    fps = cap.get(cv2.CAP_PROP_FPS); t = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    d = t/fps if fps > 0 else 0
     cap.release()
-    num_parts = int((duration + part_duration - 1) // part_duration)
-    frames_per_part = int(part_duration * fps)
-    print("[*] Will create " + str(num_parts) + " parts")
-    mask = np.zeros((height, width), dtype=np.uint8)
-    for wm in watermarks:
-        x1, y1, x2, y2 = wm['bbox']
-        mask[y1:y2, x1:x2] = 255
-    mask = cv2.dilate(mask, np.ones((10, 10), np.uint8), iterations=1)
-    cap = cv2.VideoCapture(input_path)
-    part_num = 1
-    frame_in_part = 0
-    temp_video = None
-    out = None
-    audio_ok = has_audio(input_path)
-    vf = build_vf_filter(preset, quality)
-    quality_info = get_quality_size(quality)
-    base_name = "".join(ch if (ch.isalnum() or ch in '_-') else '_'
-                        for ch in os.path.splitext(os.path.basename(input_path))[0])
+    n = int((d + pd - 1) // pd); fpp = int(pd * fps)
+    print(f"[*] Will create {n} parts")
+    mask = np.zeros((h,w), dtype=np.uint8)
+    for wm in wms:
+        x1,y1,x2,y2 = wm['bbox']; mask[y1:y2,x1:x2] = 255
+    mask = cv2.dilate(mask, np.ones((10,10),np.uint8), iterations=1)
+    cap = cv2.VideoCapture(inp)
+    pn = 1; fip = 0; tv = None; out = None
+    ao = has_audio(inp)
+    vf = vf_filter(preset, q); qi = QUALITY.get(q)
+    bn = "".join(c if (c.isalnum() or c in '_-') else '_' for c in os.path.splitext(os.path.basename(inp))[0])
 
-    def finalize_part(part_idx, temp_vid):
-        final_path = os.path.join(output_dir, base_name + "_part" + str(part_idx).zfill(3) + "_no_wm.mp4")
+    def fin(pi, tv):
+        fp = os.path.join(outd, f"{bn}_part{pi:03d}_no_wm.mp4")
         if vf:
-            cmd = ['ffmpeg', '-i', temp_vid, '-vf', vf]
-            if quality_info: cmd.extend(['-b:v', quality_info['bitrate']])
-            cmd.extend(['-c:v', 'libx264', '-preset', 'fast', '-c:a', 'aac', '-b:a', '192k',
-                       '-movflags', '+faststart', final_path, '-y', '-loglevel', 'error'] if audio_ok
-                       else ['-c:v', 'libx264', '-preset', 'fast', '-an', '-movflags', '+faststart',
-                             final_path, '-y', '-loglevel', 'error'])
+            cmd = ['ffmpeg','-i',tv,'-vf',vf]
+            if qi: cmd += ['-b:v', qi['b']]
+            cmd += ['-c:v','libx264','-preset','fast','-c:a','aac','-b:a','192k','-movflags','+faststart',fp,'-y','-loglevel','error'] if ao else ['-c:v','libx264','-preset','fast','-an','-movflags','+faststart',fp,'-y','-loglevel','error']
             subprocess.run(cmd, capture_output=True, timeout=1800)
         else:
-            if audio_ok:
-                start_sec = (part_idx - 1) * part_duration
-                cmd = ['ffmpeg', '-ss', str(start_sec), '-i', temp_vid, '-t', str(part_duration),
-                       '-i', input_path, '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k',
-                       '-map', '0:v:0', '-map', '1:a:0?', '-shortest', '-movflags', '+faststart',
-                       final_path, '-y', '-loglevel', 'error']
+            if ao:
+                ss = (pi-1)*pd
+                cmd = ['ffmpeg','-ss',str(ss),'-i',tv,'-t',str(pd),'-i',inp,'-c:v','copy','-c:a','aac','-b:a','192k','-map','0:v:0','-map','1:a:0?','-shortest','-movflags','+faststart',fp,'-y','-loglevel','error']
                 subprocess.run(cmd, capture_output=True, timeout=600)
-            else: shutil.move(temp_vid, final_path)
-        if os.path.exists(temp_vid): os.remove(temp_vid)
-        if os.path.exists(final_path):
-            print("    [+] Part " + str(part_idx) + ": " +
-                  str(round(os.path.getsize(final_path) / (1024*1024), 1)) + " MB")
+            else: shutil.move(tv, fp)
+        if os.path.exists(tv): os.remove(tv)
+        if os.path.exists(fp): print(f"    [+] Part {pi}: {round(os.path.getsize(fp)/(1024*1024),1)} MB")
 
     while True:
-        ret, frame = cap.read()
+        ret, fr = cap.read()
         if not ret: break
-        if frame_in_part == 0:
-            temp_video = tempfile.mktemp(suffix='_noaudio.mp4')
-            out = cv2.VideoWriter(temp_video, cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
+        if fip == 0:
+            tv = tempfile.mktemp(suffix='_na.mp4')
+            out = cv2.VideoWriter(tv, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w,h))
         if method == 'blur':
-            for wm in watermarks:
-                x1, y1, x2, y2 = wm['bbox']
-                roi = frame[y1:y2, x1:x2]
-                if roi.size > 0: frame[y1:y2, x1:x2] = cv2.GaussianBlur(roi, (25, 25), 0)
-            result = frame
-        elif method == 'inpaint': result = cv2.inpaint(frame, mask, 5, cv2.INPAINT_TELEA)
-        else: result = frame
-        out.write(result)
-        frame_in_part += 1
-        if frame_in_part >= frames_per_part:
-            out.release()
-            finalize_part(part_num, temp_video)
-            part_num += 1
-            frame_in_part = 0
-            temp_video = None
-            out = None
+            for wm in wms:
+                x1,y1,x2,y2 = wm['bbox']
+                roi = fr[y1:y2, x1:x2]
+                if roi.size > 0: fr[y1:y2, x1:x2] = cv2.GaussianBlur(roi, (25,25), 0)
+            res = fr
+        elif method == 'inpaint': res = cv2.inpaint(fr, mask, 5, cv2.INPAINT_TELEA)
+        else: res = fr
+        out.write(res); fip += 1
+        if fip >= fpp:
+            out.release(); fin(pn, tv); pn += 1; fip = 0; tv = None; out = None
     if out is not None:
         out.release()
-        if temp_video and os.path.exists(temp_video): finalize_part(part_num, temp_video)
+        if tv and os.path.exists(tv): fin(pn, tv)
     cap.release()
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--input', required=True)
-    parser.add_argument('--output-dir', default='output')
-    parser.add_argument('--method', default='blur')
-    parser.add_argument('--samples', type=int, default=30)
-    parser.add_argument('--part-duration', type=int, default=300)
-    parser.add_argument('--process-mode', default='remove_watermark')
-    parser.add_argument('--video-size', default='original')
-    parser.add_argument('--video-quality', default='original')
-    args = parser.parse_args()
-    os.makedirs(args.output_dir, exist_ok=True)
-    if args.process_mode == 'skip_watermark':
-        split_only(args.input, args.output_dir, args.part_duration, args.video_size, args.video_quality)
+    p = argparse.ArgumentParser()
+    p.add_argument('--input', required=True); p.add_argument('--output-dir', default='output')
+    p.add_argument('--method', default='blur'); p.add_argument('--samples', type=int, default=30)
+    p.add_argument('--part-duration', type=int, default=300)
+    p.add_argument('--process-mode', default='remove_watermark')
+    p.add_argument('--video-size', default='original'); p.add_argument('--video-quality', default='original')
+    a = p.parse_args()
+    os.makedirs(a.output_dir, exist_ok=True)
+    if a.process_mode == 'skip_watermark':
+        split_only(a.input, a.output_dir, a.part_duration, a.video_size, a.video_quality)
     else:
-        watermarks = detect_watermarks(args.input, args.samples)
-        remove_and_split(args.input, args.output_dir, watermarks, args.method,
-                        args.part_duration, args.video_size, args.video_quality)
+        wms = detect_wm(a.input, a.samples)
+        remove_and_split(a.input, a.output_dir, wms, a.method, a.part_duration, a.video_size, a.video_quality)
 
 if __name__ == '__main__': main()
