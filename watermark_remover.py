@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Watermark Remover + Split + Resize per Part"""
+"""Watermark Remover + Split + Resize + Quality Control"""
 
 import os
 import sys
@@ -14,36 +14,65 @@ import shutil
 # VIDEO SIZE PRESETS
 # ==========================================
 VIDEO_PRESETS = {
-    'original': None,  # Tidak resize
-    'yt_shorts': (1080, 1920),       # 9:16
-    'tiktok': (1080, 1920),           # 9:16
-    'ig_reels': (1080, 1920),         # 9:16
-    'fb_reels': (1080, 1920),         # 9:16
-    'whatsapp_status': (1080, 1920),  # 9:16
-    'ig_feed_square': (1080, 1080),   # 1:1
-    'ig_feed_portrait': (1080, 1350), # 4:5
-    'yt_landscape': (1920, 1080),     # 16:9
-    'yt_4k': (3840, 2160),            # 16:9 4K
-    'fb_video': (1920, 1080),         # 16:9
-    'twitter': (1280, 720),           # 16:9
+    'original': None,
+    'yt_shorts': (1080, 1920),
+    'tiktok': (1080, 1920),
+    'ig_reels': (1080, 1920),
+    'fb_reels': (1080, 1920),
+    'whatsapp_status': (1080, 1920),
+    'ig_feed_square': (1080, 1080),
+    'ig_feed_portrait': (1080, 1350),
+    'yt_landscape': (1920, 1080),
+    'yt_4k': (3840, 2160),
+    'fb_video': (1920, 1080),
+    'twitter': (1280, 720),
+}
+
+
+# ==========================================
+# VIDEO QUALITY PRESETS
+# ==========================================
+VIDEO_QUALITY = {
+    'original': None,
+    '144p': {'width': 256, 'height': 144, 'bitrate': '100k'},
+    '240p': {'width': 426, 'height': 240, 'bitrate': '300k'},
+    '360p': {'width': 640, 'height': 360, 'bitrate': '500k'},
+    '480p': {'width': 854, 'height': 480, 'bitrate': '1000k'},
+    '720p': {'width': 1280, 'height': 720, 'bitrate': '2500k'},
+    '1080p': {'width': 1920, 'height': 1080, 'bitrate': '5000k'},
+    '1440p': {'width': 2560, 'height': 1440, 'bitrate': '10000k'},
+    '2160p': {'width': 3840, 'height': 2160, 'bitrate': '20000k'},
 }
 
 
 def get_preset_size(preset_name):
-    """Dapatkan resolusi dari preset"""
     if preset_name in VIDEO_PRESETS:
         return VIDEO_PRESETS[preset_name]
     return None
 
 
-def build_vf_filter(preset_name):
-    """Build FFmpeg video filter untuk resize + pad/crop"""
-    size = get_preset_size(preset_name)
-    if size is None:
+def get_quality_size(quality_name):
+    if quality_name in VIDEO_QUALITY:
+        return VIDEO_QUALITY[quality_name]
+    return None
+
+
+def build_vf_filter(preset_name, quality_name):
+    target_w = None
+    target_h = None
+
+    quality = get_quality_size(quality_name)
+    if quality:
+        target_w = quality['width']
+        target_h = quality['height']
+    else:
+        preset = get_preset_size(preset_name)
+        if preset:
+            target_w, target_h = preset
+
+    if target_w is None or target_h is None:
         return None
 
-    target_w, target_h = size
-    # Scale dengan aspect ratio maintained + pad (letterbox)
     vf = (
         "scale=" + str(target_w) + ":" + str(target_h) +
         ":force_original_aspect_ratio=decrease,"
@@ -79,13 +108,19 @@ def has_audio(path):
         return False
 
 
-def split_only(input_path, output_dir, part_duration=300, preset='original'):
+def split_only(input_path, output_dir, part_duration=300, preset='original', quality='original'):
     print("[*] Mode: SKIP WATERMARK")
     print("[*] Preset: " + preset)
-    
-    vf = build_vf_filter(preset)
+    print("[*] Quality: " + quality)
+
+    vf = build_vf_filter(preset, quality)
+    quality_info = get_quality_size(quality)
+
     if vf:
-        print("[*] Resize ke: " + str(get_preset_size(preset)))
+        print("[*] Resize AKTIF")
+        if quality_info:
+            print("[*] Target: " + str(quality_info['width']) + "x" + str(quality_info['height']) +
+                  " @ " + quality_info['bitrate'])
     else:
         print("[*] Resize: TIDAK (original)")
 
@@ -112,26 +147,22 @@ def split_only(input_path, output_dir, part_duration=300, preset='original'):
         print("[*] Part " + str(part_idx) + "/" + str(num_parts))
 
         if vf:
-            # Resize + re-encode (butuh proses)
             cmd = [
-                'ffmpeg',
-                '-ss', str(start_sec),
-                '-i', input_path,
-                '-t', str(part_duration),
-                '-vf', vf,
-                '-c:v', 'libx264', '-preset', 'fast', '-crf', '23',
+                'ffmpeg', '-ss', str(start_sec), '-i', input_path,
+                '-t', str(part_duration), '-vf', vf,
+            ]
+            if quality_info:
+                cmd.extend(['-b:v', quality_info['bitrate']])
+            cmd.extend([
+                '-c:v', 'libx264', '-preset', 'fast',
                 '-c:a', 'aac', '-b:a', '192k',
                 '-movflags', '+faststart',
                 final_path, '-y', '-loglevel', 'error'
-            ]
+            ])
         else:
-            # No resize, pakai copy (fast)
             cmd = [
-                'ffmpeg',
-                '-ss', str(start_sec),
-                '-i', input_path,
-                '-t', str(part_duration),
-                '-c', 'copy',
+                'ffmpeg', '-ss', str(start_sec), '-i', input_path,
+                '-t', str(part_duration), '-c', 'copy',
                 '-avoid_negative_ts', 'make_zero',
                 '-movflags', '+faststart',
                 final_path, '-y', '-loglevel', 'warning'
@@ -144,8 +175,6 @@ def split_only(input_path, output_dir, part_duration=300, preset='original'):
             print("    [+] Part " + str(part_idx) + ": " + str(round(size, 1)) + " MB")
         else:
             print("    [!] Part " + str(part_idx) + " gagal")
-            if result.stderr:
-                print("    stderr: " + result.stderr[:200])
 
     print("[+] Complete in " + str(round(time.time() - start_time, 1)) + "s")
 
@@ -198,13 +227,14 @@ def detect_watermarks(path, samples=30):
 
 
 def remove_and_split(input_path, output_dir, watermarks, method='blur',
-                     part_duration=300, preset='original'):
+                     part_duration=300, preset='original', quality='original'):
     import cv2
     import numpy as np
 
     print("[*] Mode: REMOVE WATERMARK")
     print("[*] Method: " + method)
     print("[*] Preset: " + preset)
+    print("[*] Quality: " + quality)
 
     cap = cv2.VideoCapture(input_path)
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -226,11 +256,6 @@ def remove_and_split(input_path, output_dir, watermarks, method='blur',
         mask[y1:y2, x1:x2] = 255
     mask = cv2.dilate(mask, np.ones((10, 10), np.uint8), iterations=1)
 
-    preset_size = get_preset_size(preset)
-    if preset_size:
-        target_w, target_h = preset_size
-        print("[*] Output: " + str(target_w) + "x" + str(target_h))
-
     cap = cv2.VideoCapture(input_path)
     part_num = 1
     frame_in_part = 0
@@ -238,6 +263,9 @@ def remove_and_split(input_path, output_dir, watermarks, method='blur',
     out = None
     start_time = time.time()
     audio_ok = has_audio(input_path)
+
+    vf = build_vf_filter(preset, quality)
+    quality_info = get_quality_size(quality)
 
     base_name = os.path.splitext(os.path.basename(input_path))[0]
     clean_name = ""
@@ -248,30 +276,23 @@ def remove_and_split(input_path, output_dir, watermarks, method='blur',
     def finalize_part(part_idx, temp_vid):
         final_path = os.path.join(output_dir, base_name + "_part" + str(part_idx).zfill(3) + "_no_wm.mp4")
 
-        if preset_size:
-            target_w, target_h = preset_size
-            vf = (
-                "scale=" + str(target_w) + ":" + str(target_h) +
-                ":force_original_aspect_ratio=decrease,"
-                "pad=" + str(target_w) + ":" + str(target_h) +
-                ":(ow-iw)/2:(oh-ih)/2:black,"
-                "setsar=1"
-            )
+        if vf:
+            cmd = ['ffmpeg', '-i', temp_vid, '-vf', vf]
+            if quality_info:
+                cmd.extend(['-b:v', quality_info['bitrate']])
             if audio_ok:
-                cmd = [
-                    'ffmpeg', '-i', temp_vid, '-vf', vf,
-                    '-c:v', 'libx264', '-preset', 'fast', '-crf', '23',
+                cmd.extend([
+                    '-c:v', 'libx264', '-preset', 'fast',
                     '-c:a', 'aac', '-b:a', '192k',
                     '-movflags', '+faststart',
                     final_path, '-y', '-loglevel', 'error'
-                ]
+                ])
             else:
-                cmd = [
-                    'ffmpeg', '-i', temp_vid, '-vf', vf,
-                    '-c:v', 'libx264', '-preset', 'fast', '-crf', '23',
+                cmd.extend([
+                    '-c:v', 'libx264', '-preset', 'fast',
                     '-an', '-movflags', '+faststart',
                     final_path, '-y', '-loglevel', 'error'
-                ]
+                ])
             subprocess.run(cmd, capture_output=True, timeout=1800)
         else:
             if audio_ok:
@@ -348,6 +369,8 @@ def main():
                         choices=['remove_watermark', 'skip_watermark'])
     parser.add_argument('--video-size', default='original',
                         choices=list(VIDEO_PRESETS.keys()))
+    parser.add_argument('--video-quality', default='original',
+                        choices=list(VIDEO_QUALITY.keys()))
     args = parser.parse_args()
 
     os.makedirs(args.output_dir, exist_ok=True)
@@ -355,22 +378,31 @@ def main():
         sys.exit(1)
 
     print("=" * 70)
-    print("  PRESET INFO")
+    print("  VIDEO CONFIG")
     print("=" * 70)
     print("[*] Video size preset: " + args.video_size)
+    print("[*] Video quality: " + args.video_quality)
+
     preset_size = get_preset_size(args.video_size)
-    if preset_size:
-        print("[*] Target resolusi: " + str(preset_size[0]) + "x" + str(preset_size[1]))
+    quality_info = get_quality_size(args.video_quality)
+
+    if quality_info:
+        print("[*] Resolusi: " + str(quality_info['width']) + "x" + str(quality_info['height']))
+        print("[*] Bitrate: " + quality_info['bitrate'])
+    elif preset_size:
+        print("[*] Resolusi (preset): " + str(preset_size[0]) + "x" + str(preset_size[1]))
     else:
         print("[*] Resolusi: original")
     print("")
 
     if args.process_mode == 'skip_watermark':
-        split_only(args.input, args.output_dir, args.part_duration, args.video_size)
+        split_only(args.input, args.output_dir, args.part_duration,
+                   args.video_size, args.video_quality)
     else:
         watermarks = detect_watermarks(args.input, args.samples)
         remove_and_split(args.input, args.output_dir, watermarks,
-                        args.method, args.part_duration, args.video_size)
+                        args.method, args.part_duration,
+                        args.video_size, args.video_quality)
 
     out_files = [f for f in os.listdir(args.output_dir) if f.endswith('.mp4')]
     print("[*] Total output: " + str(len(out_files)) + " files")
