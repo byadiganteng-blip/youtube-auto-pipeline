@@ -1,171 +1,351 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:background="#F5F5F5">
+    android:background="@color/bg_light">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:orientation="vertical">
 
-        <TextView
+        <!-- ═══════════════════════════════════════ -->
+        <!-- HEADER KEREN DENGAN GRADIENT -->
+        <!-- ═══════════════════════════════════════ -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Yad Pipeline"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="#D32F2F"
-            android:gravity="center"
-            android:paddingBottom="16dp" />
+            android:orientation="vertical"
+            android:background="@drawable/header_gradient"
+            android:paddingTop="40dp"
+            android:paddingBottom="30dp"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:gravity="center">
 
+            <!-- Logo Circle -->
+            <FrameLayout
+                android:layout_width="90dp"
+                android:layout_height="90dp"
+                android:background="@drawable/logo_bg"
+                android:elevation="8dp">
+
+                <ImageView
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_launcher_foreground"
+                    android:contentDescription="Logo" />
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Yad Pipeline"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:layout_marginTop="12dp"
+                android:letterSpacing="0.05" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="YouTube Auto Upload &amp; Split"
+                android:textSize="13sp"
+                android:textColor="#FFEBEE"
+                android:layout_marginTop="4dp" />
+
+            <View
+                android:layout_width="60dp"
+                android:layout_height="3dp"
+                android:background="#FFC107"
+                android:layout_marginTop="12dp" />
+        </LinearLayout>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PROGRESS BAR -->
+        <!-- ═══════════════════════════════════════ -->
         <ProgressBar
             android:id="@+id/progressBar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:visibility="gone" />
+            android:visibility="gone"
+            android:layout_marginTop="16dp"
+            android:indeterminateTint="@color/brand_primary" />
 
-        <LinearLayout
+        <!-- ═══════════════════════════════════════ -->
+        <!-- SETUP TOKEN CARD -->
+        <!-- ═══════════════════════════════════════ -->
+        <androidx.cardview.widget.CardView
             android:id="@+id/layoutSetup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_margin="16dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="6dp">
 
-            <TextView
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Setup GitHub Token"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                android:orientation="vertical"
+                android:padding="20dp">
 
-            <EditText
-                android:id="@+id/etToken"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="ghp_xxxxx"
-                android:inputType="textMultiLine"
-                android:minLines="2"
-                android:padding="12dp"
-                android:background="#FFFFFF"
-                android:layout_marginTop="12dp" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
 
-            <Button
-                android:id="@+id/btnUploadTokenFile"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Upload Token dari File"
-                android:backgroundTint="#2196F3"
-                android:textColor="#FFFFFF"
-                android:layout_marginTop="8dp" />
+                    <View
+                        android:layout_width="4dp"
+                        android:layout_height="20dp"
+                        android:background="@color/brand_primary" />
 
-            <Button
-                android:id="@+id/btnSaveToken"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Simpan Token"
-                android:backgroundTint="#4CAF50"
-                android:textColor="#FFFFFF"
-                android:layout_marginTop="8dp" />
-        </LinearLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Setup Token"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:layout_marginStart="10dp" />
+                </LinearLayout>
 
-        <LinearLayout
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Masukkan GitHub PAT atau upload file token.txt"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="16dp" />
+
+                <EditText
+                    android:id="@+id/etToken"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="ghp_xxxxxxxxxxxxx"
+                    android:inputType="textMultiLine"
+                    android:minLines="2"
+                    android:padding="14dp"
+                    android:background="@drawable/card_bg"
+                    android:textSize="13sp"
+                    android:fontFamily="monospace"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_secondary" />
+
+                <Button
+                    android:id="@+id/btnUploadTokenFile"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Upload dari File"
+                    android:layout_marginTop="12dp"
+                    style="@style/BtnPrimary"
+                    android:backgroundTint="@color/info" />
+
+                <Button
+                    android:id="@+id/btnSaveToken"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Simpan Token"
+                    android:layout_marginTop="8dp"
+                    style="@style/BtnPrimary"
+                    android:backgroundTint="@color/success" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- FORM PIPELINE CARD -->
+        <!-- ═══════════════════════════════════════ -->
+        <androidx.cardview.widget.CardView
             android:id="@+id/layoutForm"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:visibility="gone">
+            android:layout_margin="16dp"
+            android:visibility="gone"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="6dp">
 
-            <EditText android:id="@+id/etUrl"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:hint="URL Video" android:padding="12dp"
-                android:background="#FFFFFF" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
 
-            <Spinner android:id="@+id/spinnerProcessMode"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:background="#FFFFFF" android:layout_marginTop="8dp" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
 
-            <Spinner android:id="@+id/spinnerVideoSize"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:background="#FFFFFF" android:layout_marginTop="8dp" />
+                    <View
+                        android:layout_width="4dp"
+                        android:layout_height="20dp"
+                        android:background="@color/brand_primary" />
 
-            <Spinner android:id="@+id/spinnerVideoQuality"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:background="#FFFFFF" android:layout_marginTop="8dp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Konfigurasi Pipeline"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:layout_marginStart="10dp" />
+                </LinearLayout>
 
-            <Spinner android:id="@+id/spinnerMethod"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:background="#FFFFFF" android:layout_marginTop="8dp" />
+                <EditText
+                    android:id="@+id/etUrl"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="URL Video (YouTube/TikTok/FB/IG)"
+                    android:inputType="textUri"
+                    android:padding="14dp"
+                    android:background="@drawable/card_bg"
+                    android:textSize="13sp"
+                    android:layout_marginTop="16dp" />
 
-            <EditText android:id="@+id/etPartDuration"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:text="300" android:inputType="number"
-                android:padding="12dp" android:background="#FFFFFF"
-                android:layout_marginTop="8dp" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Process Mode" android:textSize="12sp" android:textStyle="bold"
+                    android:textColor="@color/text_secondary" android:layout_marginTop="12dp" />
+                <Spinner android:id="@+id/spinnerProcessMode"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:background="@drawable/card_bg" android:layout_marginTop="4dp" />
 
-            <Spinner android:id="@+id/spinnerPrivacy"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:background="#FFFFFF" android:layout_marginTop="8dp" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Video Size (Platform)" android:textSize="12sp" android:textStyle="bold"
+                    android:textColor="@color/text_secondary" android:layout_marginTop="12dp" />
+                <Spinner android:id="@+id/spinnerVideoSize"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:background="@drawable/card_bg" android:layout_marginTop="4dp" />
 
-            <Spinner android:id="@+id/spinnerAutoUpload"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:background="#FFFFFF" android:layout_marginTop="8dp" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Video Quality" android:textSize="12sp" android:textStyle="bold"
+                    android:textColor="@color/text_secondary" android:layout_marginTop="12dp" />
+                <Spinner android:id="@+id/spinnerVideoQuality"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:background="@drawable/card_bg" android:layout_marginTop="4dp" />
 
-            <Spinner android:id="@+id/spinnerUploadType"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:background="#FFFFFF" android:layout_marginTop="8dp" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Watermark Method" android:textSize="12sp" android:textStyle="bold"
+                    android:textColor="@color/text_secondary" android:layout_marginTop="12dp" />
+                <Spinner android:id="@+id/spinnerMethod"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:background="@drawable/card_bg" android:layout_marginTop="4dp" />
 
-            <EditText android:id="@+id/etDelay"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:text="60" android:inputType="number"
-                android:padding="12dp" android:background="#FFFFFF"
-                android:layout_marginTop="8dp" />
+                <EditText android:id="@+id/etPartDuration"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="300" android:inputType="number" android:hint="Part Duration (detik)"
+                    android:padding="14dp" android:background="@drawable/card_bg"
+                    android:layout_marginTop="12dp" />
 
-            <EditText android:id="@+id/etStartPart"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:text="1" android:inputType="number"
-                android:padding="12dp" android:background="#FFFFFF"
-                android:layout_marginTop="8dp" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Privacy" android:textSize="12sp" android:textStyle="bold"
+                    android:textColor="@color/text_secondary" android:layout_marginTop="12dp" />
+                <Spinner android:id="@+id/spinnerPrivacy"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:background="@drawable/card_bg" android:layout_marginTop="4dp" />
 
-            <Button android:id="@+id/btnRunWorkflow"
-                android:layout_width="match_parent" android:layout_height="55dp"
-                android:text="Run Workflow" android:textSize="18sp"
-                android:textStyle="bold" android:backgroundTint="#D32F2F"
-                android:textColor="#FFFFFF" android:layout_marginTop="16dp" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Auto Upload YouTube" android:textSize="12sp" android:textStyle="bold"
+                    android:textColor="@color/text_secondary" android:layout_marginTop="12dp" />
+                <Spinner android:id="@+id/spinnerAutoUpload"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:background="@drawable/card_bg" android:layout_marginTop="4dp" />
 
-            <Button android:id="@+id/btnOpenFiles"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:text="Artifacts &amp; Releases" android:backgroundTint="#9C27B0"
-                android:textColor="#FFFFFF" android:layout_marginTop="8dp" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Upload Type" android:textSize="12sp" android:textStyle="bold"
+                    android:textColor="@color/text_secondary" android:layout_marginTop="12dp" />
+                <Spinner android:id="@+id/spinnerUploadType"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:background="@drawable/card_bg" android:layout_marginTop="4dp" />
 
-            <LinearLayout android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:orientation="horizontal"
-                android:layout_marginTop="8dp">
+                <EditText android:id="@+id/etDelay"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="60" android:inputType="number" android:hint="Upload Delay"
+                    android:padding="14dp" android:background="@drawable/card_bg"
+                    android:layout_marginTop="12dp" />
 
-                <Button android:id="@+id/btnCheckStatus"
-                    android:layout_width="0dp" android:layout_height="wrap_content"
-                    android:layout_weight="1" android:text="Status"
-                    android:backgroundTint="#FF9800" android:textColor="#FFFFFF" />
+                <EditText android:id="@+id/etStartPart"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="1" android:inputType="number" android:hint="Start Part"
+                    android:padding="14dp" android:background="@drawable/card_bg"
+                    android:layout_marginTop="12dp" />
 
-                <Button android:id="@+id/btnOpenActions"
-                    android:layout_width="0dp" android:layout_height="wrap_content"
-                    android:layout_weight="1" android:text="Actions"
-                    android:backgroundTint="#2196F3" android:textColor="#FFFFFF"
-                    android:layout_marginStart="8dp" />
+                <!-- RUN BUTTON -->
+                <Button
+                    android:id="@+id/btnRunWorkflow"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:text="🚀  RUN WORKFLOW"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFF"
+                    android:background="@drawable/header_gradient"
+                    android:layout_marginTop="20dp"
+                    android:elevation="4dp" />
+
+                <!-- FILES BUTTON -->
+                <Button
+                    android:id="@+id/btnOpenFiles"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="📁  Artifacts &amp; Releases"
+                    android:textColor="#FFFFFF"
+                    android:backgroundTint="@color/purple"
+                    android:layout_marginTop="10dp"
+                    style="@style/BtnPrimary" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="10dp">
+
+                    <Button android:id="@+id/btnCheckStatus"
+                        android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="📊 Status"
+                        android:textColor="#FFFFFF" android:backgroundTint="@color/warning"
+                        android:layout_marginEnd="5dp" />
+
+                    <Button android:id="@+id/btnOpenActions"
+                        android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="🌐 Actions"
+                        android:textColor="#FFFFFF" android:backgroundTint="@color/info"
+                        android:layout_marginStart="5dp" />
+                </LinearLayout>
+
+                <Button android:id="@+id/btnLogout"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="🚪 Logout"
+                    android:textColor="#FFFFFF" android:backgroundTint="@color/text_secondary"
+                    android:layout_marginTop="10dp" />
+
+                <!-- STATUS -->
+                <TextView android:id="@+id/tvStatus"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:padding="16dp"
+                    android:background="@drawable/card_bg"
+                    android:textSize="12sp"
+                    android:fontFamily="monospace"
+                    android:textColor="@color/text_primary"
+                    android:layout_marginTop="16dp"
+                    android:minHeight="80dp"
+                    android:gravity="top" />
             </LinearLayout>
+        </androidx.cardview.widget.CardView>
 
-            <Button android:id="@+id/btnLogout"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:text="Logout" android:backgroundTint="#757575"
-                android:textColor="#FFFFFF" android:layout_marginTop="8dp" />
-
-            <TextView android:id="@+id/tvStatus"
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:padding="12dp" android:background="#FFFFFF"
-                android:textSize="13sp" android:fontFamily="monospace"
-                android:layout_marginTop="12dp" android:minHeight="80dp" />
-        </LinearLayout>
+        <!-- Footer -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Created By Yad • v1.0"
+            android:textSize="11sp"
+            android:textColor="@color/text_secondary"
+            android:gravity="center"
+            android:padding="16dp" />
     </LinearLayout>
 </ScrollView>
