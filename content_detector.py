@@ -1,40 +1,24 @@
 #!/usr/bin/env python3
-"""Content Detector"""
-
-
 class ContentDetector:
     KEYWORDS = {
-        'anime': {
-            'strong': ['anime', 'otaku', 'wibu', 'waifu', 'senpai', 'kawaii'],
-            'characters': ['naruto', 'sasuke', 'luffy', 'zoro', 'goku', 'vegeta',
-                          'tanjiro', 'nezuko', 'gojo', 'yuji', 'eren', 'mikasa'],
-            'titles': ['one piece', 'naruto', 'jujutsu kaisen', 'demon slayer',
-                      'attack on titan', 'my hero academia', 'chainsaw man'],
-        },
-        'manhwa': {
-            'strong': ['manhwa', 'webtoon', 'korean comic'],
-            'characters': ['sung jinwoo', 'cha hae in', 'beru', 'igris'],
-            'titles': ['solo leveling', 'tomb raider king', 'tbate',
-                      'omniscient reader', 'orv', 'nano machine'],
-        },
-        'manga': {'strong': ['manga', 'japanese comic']},
-        'donghua': {
-            'strong': ['donghua', 'chinese anime'],
-            'characters': ['tang san', 'xiao wu', 'xiao yan', 'han li'],
-            'titles': ['soul land', 'douluo dalu', 'battle through the heavens'],
-        },
-        'manhua': {'strong': ['manhua', 'chinese comic']},
+        'anime': {'strong': ['anime', 'otaku', 'wibu', 'waifu'],
+                  'characters': ['naruto', 'sasuke', 'luffy', 'zoro', 'gojo', 'yuji', 'eren', 'mikasa'],
+                  'titles': ['one piece', 'naruto', 'jujutsu kaisen', 'demon slayer', 'attack on titan']},
+        'manhwa': {'strong': ['manhwa', 'webtoon'],
+                   'characters': ['sung jinwoo', 'cha hae in'],
+                   'titles': ['solo leveling', 'tomb raider king', 'tbate', 'omniscient reader', 'orv']},
+        'manga': {'strong': ['manga']},
+        'donghua': {'strong': ['donghua'], 'characters': ['tang san', 'xiao wu', 'xiao yan'],
+                    'titles': ['soul land', 'douluo dalu', 'battle through the heavens', 'btth']},
         'mlbb': {'strong': ['mlbb', 'mobile legends']},
         'freefire': {'strong': ['free fire', 'freefire', 'booyah']},
-        'pubg': {'strong': ['pubg', 'pubg mobile']},
-        'genshin': {'strong': ['genshin', 'genshin impact']},
-        'valorant': {'strong': ['valorant', 'valo']},
-        'topup': {'strong': ['top up', 'topup', 'diamond murah']},
+        'pubg': {'strong': ['pubg']},
+        'genshin': {'strong': ['genshin']},
+        'valorant': {'strong': ['valorant']},
         'gaming': {'strong': ['gameplay', 'highlight', 'gaming']},
-        'tutorial': {'strong': ['tutorial', 'cara', 'how to', 'guide']},
+        'tutorial': {'strong': ['tutorial', 'cara', 'how to']},
         'review': {'strong': ['review', 'unboxing']},
     }
-
     def detect_from_filename(self, filename):
         text = filename.lower()
         for ch in ['_', '-', '.', '(', ')', '[', ']']:
@@ -48,10 +32,8 @@ class ContentDetector:
                 if c in text: score += 4
             for t in data.get('titles', []):
                 if t in text: score += 3
-            if score > 0:
-                results.append((cat, score))
+            if score > 0: results.append((cat, score))
         results.sort(key=lambda x: x[1], reverse=True)
         return results
-
     def detect_multiple(self, filename, max_cat=3):
         return [cat for cat, _ in self.detect_from_filename(filename)[:max_cat]]
