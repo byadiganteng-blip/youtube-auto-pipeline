@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Auto Hashtag - Content + Part Aware + Reels Support"""
+"""Auto Hashtag"""
 
 import sys
 import random
@@ -14,32 +14,28 @@ class AutoHashtag:
             'viral': ["#FYP", "#Viral", "#Trending", "#Shorts", "#YouTubeShorts",
                      "#ShortsViral", "#ForYouPage", "#Explore", "#ViralIndonesia"],
             'anime': ["#Anime", "#AnimeViral", "#AnimeEdit", "#AnimeIndonesia",
-                     "#Otaku", "#Wibu", "#JujutsuKaisen", "#DemonSlayer",
-                     "#OnePiece", "#Naruto", "#Bleach"],
-            'manhwa': ["#Manhwa", "#ManhwaViral", "#Webtoon", "#ManhwaIndonesia",
-                      "#SoloLeveling", "#TombRaiderKing", "#TBATE", "#ORV"],
-            'manga': ["#Manga", "#MangaViral", "#MangaIndonesia"],
-            'donghua': ["#Donghua", "#DonghuaViral", "#SoulLand", "#BTTH"],
+                     "#Otaku", "#Wibu", "#JujutsuKaisen", "#DemonSlayer"],
+            'manhwa': ["#Manhwa", "#ManhwaViral", "#Webtoon", "#SoloLeveling", "#TBATE"],
+            'manga': ["#Manga", "#MangaViral"],
+            'donghua': ["#Donghua", "#SoulLand", "#BTTH"],
             'manhua': ["#Manhua", "#ManhuaViral"],
             'gaming': ["#Gaming", "#Gamer", "#GamingIndonesia", "#GameShorts"],
-            'mlbb': ["#MLBB", "#MobileLegends", "#MLBBIndonesia", "#DiamondMLBB"],
+            'mlbb': ["#MLBB", "#MobileLegends", "#DiamondMLBB"],
             'freefire': ["#FreeFire", "#FFIndonesia", "#FreeFireBooyah"],
-            'pubg': ["#PUBG", "#PUBGMobile", "#PUBGIndonesia"],
+            'pubg': ["#PUBG", "#PUBGIndonesia"],
             'genshin': ["#GenshinImpact", "#GenshinIndonesia"],
             'valorant': ["#Valorant", "#ValorantIndonesia"],
             'topup': ["#TopUpGame", "#TopUpMurah", "#DiamondMurah"],
             'engagement': ["#Subscribe", "#Like", "#Comment", "#Share"],
             'indonesia': ["#Indonesia", "#GamersID", "#KreatorIndonesia"],
-            'reels': ["#Reels", "#ReelsVideo", "#ReelsIndonesia", "#ReelsViral",
-                     "#ReelsFYP", "#InstagramReels", "#FacebookReels"],
+            'reels': ["#Reels", "#ReelsVideo", "#ReelsIndonesia", "#ReelsFYP"],
         }
         self.branded = ["#YadStore", "#YadGaming"]
 
     def generate(self, filename, title="", count=15, upload_type="video"):
         categories = self.detector.detect_multiple(filename + " " + title, max_cat=3)
-        if not categories:
-            categories = ['gaming']
-        print("[*] Detected: " + str(categories) + " | Type: " + upload_type)
+        if not categories: categories = ['gaming']
+        print("[*] Detected: " + str(categories))
 
         tags = list(random.sample(self.hashtags['viral'], 4))
         if upload_type == "reels":
@@ -63,73 +59,46 @@ class AutoHashtag:
         return ' '.join(tags[:count])
 
     def _extract_part_number(self, filename):
-        patterns = [
-            'part[-_ ]*([0-9]+)',
-            'episode[-_ ]*([0-9]+)',
-            'ep[-_ ]*([0-9]+)',
-            '_([0-9]+)[.]mp4$',
-            '[_ -]([0-9]+)[_ -]',
-        ]
+        patterns = ['part[-_ ]*([0-9]+)', 'episode[-_ ]*([0-9]+)',
+                    'ep[-_ ]*([0-9]+)', '_([0-9]+)[.]mp4$']
         text = filename.lower()
         for p in patterns:
             m = re.search(p, text)
             if m:
-                try:
-                    return int(m.group(1))
-                except:
-                    pass
+                try: return int(m.group(1))
+                except: pass
         return None
 
     def generate_title(self, filename, upload_type="video"):
         part_num = self._extract_part_number(filename)
         cats = self.detector.detect_multiple(filename, max_cat=1)
         cat = cats[0] if cats else 'gaming'
-
         titles = {
-            'anime': ["Anime Edit Viral! Wajib Tonton!", "Momen Epic Anime! Auto FYP!"],
-            'manhwa': ["Manhwa Recommendation! Terbaik 2026!", "Manhwa Panel Epic!"],
-            'manga': ["Manga Panel Epic! Wajib Tonton!"],
-            'donghua': ["Donghua Viral! Wajib Tonton!", "Donghua Epic Moment!"],
-            'manhua': ["Manhua Review! Terbaik 2026!"],
-            'mlbb': ["Top Up Diamond MLBB Murah!", "MLBB Savage! Epic Moment!"],
-            'freefire': ["Free Fire Booyah Terus!", "FF Pro Player Moment!"],
-            'pubg': ["PUBG Highlight! Momen Epic!", "PUBG Chicken Dinner!"],
-            'genshin': ["Genshin Impact Wish! Gacha Epic!", "Genshin Build Terbaik!"],
-            'valorant': ["Valorant Highlight! Clutch Epic!"],
-            'topup': ["Top Up Game Murah & Terpercaya!"],
-            'tutorial': ["Tutorial Game! Tips & Trik Pro!"],
-            'review': ["Review Jujur! Wajib Tonton!"],
-            'gaming': ["Gameplay Epic! Momen Viral!", "Gaming Highlight Terbaik!"],
+            'anime': ["Anime Edit Viral!", "Momen Epic Anime!"],
+            'manhwa': ["Manhwa Recommendation!", "Manhwa Panel Epic!"],
+            'manga': ["Manga Panel Epic!"],
+            'donghua': ["Donghua Viral!", "Donghua Epic!"],
+            'gaming': ["Gameplay Epic!", "Gaming Highlight Terbaik!"],
         }
         base = random.choice(titles.get(cat, titles['gaming']))
         prefix = "#Shorts " if upload_type == "reels" else ""
         if part_num:
             return prefix + "PART " + str(part_num) + " - " + base
-        part_hash = (hash(filename) % 30) + 1
-        return prefix + "PART " + str(part_hash) + " - " + base
+        return prefix + "PART 1 - " + base
 
     def generate_description(self, filename, title, hashtags, upload_type="video"):
         part_num = self._extract_part_number(filename)
-        desc = "\U0001F3AC " + title + "\n\n"
-        if part_num:
-            desc += "\U0001F4FA PART " + str(part_num) + "\n\n"
-        desc += "\U0001F39E Format: " + ("Reels / Shorts" if upload_type == "reels" else "Video Biasa") + "\n\n"
-        desc += "-" * 20 + "\n"
-        desc += "Jangan lupa Subscribe!\n"
-        desc += "Like & Comment!\n"
-        desc += "Share ke teman!\n"
-        desc += "-" * 20 + "\n\n"
-        desc += "HASHTAG:\n" + hashtags + "\n\n"
-        desc += "-" * 20 + "\nCreated By Yad\n"
+        desc = "Video: " + title + "\n\n"
+        if part_num: desc += "PART " + str(part_num) + "\n\n"
+        desc += "Format: " + ("Reels / Shorts" if upload_type == "reels" else "Video") + "\n\n"
+        desc += "Subscribe! Like & Comment!\n\n"
+        desc += "HASHTAG:\n" + hashtags + "\n\nCreated By Yad\n"
         return desc
 
 
 if __name__ == '__main__':
     gen = AutoHashtag()
-    filename = sys.argv[1] if len(sys.argv) > 1 else "solo_leveling_part_01.mp4"
+    filename = sys.argv[1] if len(sys.argv) > 1 else "video.mp4"
     upload_type = sys.argv[2] if len(sys.argv) > 2 else "video"
-    title = gen.generate_title(filename, upload_type)
-    hashtags = gen.generate(filename, title, upload_type=upload_type)
-    description = gen.generate_description(filename, title, hashtags, upload_type)
-    print("TITLE: " + title)
-    print("HASHTAGS: " + hashtags)
+    print("TITLE: " + gen.generate_title(filename, upload_type))
+    print("HASHTAGS: " + gen.generate(filename))
