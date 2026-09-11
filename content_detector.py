@@ -1,28 +1,18 @@
 #!/usr/bin/env python3
 class ContentDetector:
     KEYWORDS = {
-        'anime': {'strong': ['anime', 'otaku', 'wibu', 'waifu'],
-                  'characters': ['naruto', 'sasuke', 'luffy', 'zoro', 'gojo', 'yuji', 'eren', 'mikasa'],
-                  'titles': ['one piece', 'naruto', 'jujutsu kaisen', 'demon slayer', 'attack on titan']},
-        'manhwa': {'strong': ['manhwa', 'webtoon'],
-                   'characters': ['sung jinwoo', 'cha hae in'],
-                   'titles': ['solo leveling', 'tomb raider king', 'tbate', 'omniscient reader', 'orv']},
+        'anime': {'strong': ['anime', 'otaku', 'wibu'], 'characters': ['naruto', 'luffy', 'gojo'], 'titles': ['one piece', 'naruto']},
+        'manhwa': {'strong': ['manhwa', 'webtoon'], 'characters': ['sung jinwoo'], 'titles': ['solo leveling', 'orv']},
         'manga': {'strong': ['manga']},
-        'donghua': {'strong': ['donghua'], 'characters': ['tang san', 'xiao wu', 'xiao yan'],
-                    'titles': ['soul land', 'douluo dalu', 'battle through the heavens', 'btth']},
-        'mlbb': {'strong': ['mlbb', 'mobile legends']},
-        'freefire': {'strong': ['free fire', 'freefire', 'booyah']},
-        'pubg': {'strong': ['pubg']},
-        'genshin': {'strong': ['genshin']},
-        'valorant': {'strong': ['valorant']},
         'gaming': {'strong': ['gameplay', 'highlight', 'gaming']},
-        'tutorial': {'strong': ['tutorial', 'cara', 'how to']},
-        'review': {'strong': ['review', 'unboxing']},
+        'mlbb': {'strong': ['mlbb', 'mobile legends']},
+        'freefire': {'strong': ['free fire', 'booyah']},
+        'genshin': {'strong': ['genshin']},
+        'topup': {'strong': ['top up', 'topup', 'diamond murah']},
     }
     def detect_from_filename(self, filename):
         text = filename.lower()
-        for ch in ['_', '-', '.', '(', ')', '[', ']']:
-            text = text.replace(ch, ' ')
+        for ch in ['_', '-', '.', '(', ')']: text = text.replace(ch, ' ')
         results = []
         for cat, data in self.KEYWORDS.items():
             score = 0
