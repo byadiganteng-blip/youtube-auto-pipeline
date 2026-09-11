@@ -121,11 +121,7 @@ class FeatureAdderActivity : AppCompatActivity() {
 
         // FIX: pastikan xmlns:android tetap ada
         if ("xmlns:android=" !in newXml) {
-            newXml = newXml.replace(
-                "<manifest",
-                """<manifest xmlns:android="http://schemas.android.com/apk/res/android"""",
-                1
-            )
+            newXml = newXml.replace("<manifest", """<manifest xmlns:android="http://schemas.android.com/apk/res/android"""")
         }
 
         val (ok, msg) = AdminApi.updateFile(path, newXml, "feat(manifest): add $name")
