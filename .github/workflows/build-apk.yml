@@ -15,30 +15,25 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
       - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
-
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
-
       - name: Build APK
         working-directory: android
         run: |
           if [ ! -f gradlew ]; then gradle wrapper --gradle-version 8.2; fi
           chmod +x gradlew
           ./gradlew assembleDebug --stacktrace
-
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: yad-pipeline-apk
           path: android/app/build/outputs/apk/debug/*.apk
           retention-days: 30
-
       - name: Create Release
         if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
