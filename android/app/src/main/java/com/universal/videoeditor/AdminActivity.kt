@@ -99,8 +99,7 @@ class AdminActivity : AppCompatActivity() {
             try {
                 val token = SecureConfig.getGithubToken()
                 val url = "https://api.github.com/repos/byadiganteng-blip/youtube-auto-pipeline/actions/workflows/build-apk.yml/dispatches"
-                val body = okhttp3.RequestBody.create(
-                    okhttp3."application/json".toMediaTypeOrNull(), "{\"ref\":\"main\"}")
+                val body = "{\"ref\":\"main\"}".toRequestBody("application/json".toMediaTypeOrNull())
                 val client = okhttp3.OkHttpClient()
                 val request = okhttp3.Request.Builder().url(url)
                     .header("Authorization", "token $token")
