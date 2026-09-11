@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
 
 class AdminActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -98,7 +100,7 @@ class AdminActivity : AppCompatActivity() {
                 val token = SecureConfig.getGithubToken()
                 val url = "https://api.github.com/repos/byadiganteng-blip/youtube-auto-pipeline/actions/workflows/build-apk.yml/dispatches"
                 val body = okhttp3.RequestBody.create(
-                    okhttp3.MediaType.parse("application/json"), "{\"ref\":\"main\"}")
+                    okhttp3."application/json".toMediaTypeOrNull(), "{\"ref\":\"main\"}")
                 val client = okhttp3.OkHttpClient()
                 val request = okhttp3.Request.Builder().url(url)
                     .header("Authorization", "token $token")
