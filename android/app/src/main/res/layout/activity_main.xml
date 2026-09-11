@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="#F5F5F5">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Yad Pipeline"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="#D32F2F"
+            android:gravity="center"
+            android:paddingBottom="16dp" />
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/layoutSetup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Setup GitHub Token"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/etToken"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="ghp_xxxxx"
+                android:inputType="textMultiLine"
+                android:minLines="2"
+                android:padding="12dp"
+                android:background="#FFFFFF"
+                android:layout_marginTop="12dp" />
+
+            <Button
+                android:id="@+id/btnUploadTokenFile"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Upload Token dari File"
+                android:backgroundTint="#2196F3"
+                android:textColor="#FFFFFF"
+                android:layout_marginTop="8dp" />
+
+            <Button
+                android:id="@+id/btnSaveToken"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Simpan Token"
+                android:backgroundTint="#4CAF50"
+                android:textColor="#FFFFFF"
+                android:layout_marginTop="8dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layoutForm"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <EditText
+                android:id="@+id/etUrl"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="URL Video"
+                android:padding="12dp"
+                android:background="#FFFFFF" />
+
+            <Spinner
+                android:id="@+id/spinnerProcessMode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#FFFFFF"
+                android:layout_marginTop="8dp" />
+
+            <Spinner
+                android:id="@+id/spinnerVideoSize"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#FFFFFF"
+                android:layout_marginTop="8dp" />
+
+            <Spinner
+                android:id="@+id/spinnerVideoQuality"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#FFFFFF"
+                android:layout_marginTop="8dp" />
+
+            <Spinner
+                android:id="@+id/spinnerMethod"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#FFFFFF"
+                android:layout_marginTop="8dp" />
+
+            <EditText
+                android:id="@+id/etPartDuration"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="300"
+                android:inputType="number"
+                android:hint="Part Duration"
+                android:padding="12dp"
+                android:background="#FFFFFF"
+                android:layout_marginTop="8dp" />
+
+            <Spinner
+                android:id="@+id/spinnerPrivacy"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#FFFFFF"
+                android:layout_marginTop="8dp" />
+
+            <Spinner
+                android:id="@+id/spinnerAutoUpload"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#FFFFFF"
+                android:layout_marginTop="8dp" />
+
+            <Spinner
+                android:id="@+id/spinnerUploadType"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#FFFFFF"
+                android:layout_marginTop="8dp" />
+
+            <EditText
+                android:id="@+id/etDelay"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="60"
+                android:inputType="number"
+                android:hint="Upload Delay"
+                android:padding="12dp"
+                android:background="#FFFFFF"
+                android:layout_marginTop="8dp" />
+
+            <EditText
+                android:id="@+id/etStartPart"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="1"
+                android:inputType="number"
+                android:hint="Start Part"
+                android:padding="12dp"
+                android:background="#FFFFFF"
+                android:layout_marginTop="8dp" />
+
+            <Button
+                android:id="@+id/btnRunWorkflow"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:text="Run Workflow"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:backgroundTint="#D32F2F"
+                android:textColor="#FFFFFF"
+                android:layout_marginTop="16dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp">
+
+                <Button
+                    android:id="@+id/btnCheckStatus"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Cek Status"
+                    android:backgroundTint="#FF9800"
+                    android:textColor="#FFFFFF" />
+
+                <Button
+                    android:id="@+id/btnOpenActions"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Actions"
+                    android:backgroundTint="#2196F3"
+                    android:textColor="#FFFFFF"
+                    android:layout_marginStart="8dp" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btnLogout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Logout"
+                android:backgroundTint="#757575"
+                android:textColor="#FFFFFF"
+                android:layout_marginTop="8dp" />
+
+            <TextView
+                android:id="@+id/tvStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="12dp"
+                android:background="#FFFFFF"
+                android:textSize="13sp"
+                android:fontFamily="monospace"
+                android:layout_marginTop="12dp"
+                android:minHeight="80dp" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>
