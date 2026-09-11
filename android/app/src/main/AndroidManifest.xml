@@ -13,6 +13,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 
     <application
         android:name=".YadApp"
@@ -51,13 +52,5 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
-            <activity android:name=".videoeditor.LogsActivity"
-            android:exported="false" />
-        <activity android:name=".videoeditor.TextEditorActivity"
-            android:exported="false" />
-        <activity android:name=".videoeditor.BroadcastActivity"
-            android:exported="false" />
-        <activity android:name=".videoeditor.FeatureAdderActivity"
-            android:exported="false" />
     </application>
 </manifest>
