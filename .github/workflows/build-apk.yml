@@ -35,7 +35,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: yad-pipeline-apk
+          name: yad-apk
           path: android/app/build/outputs/apk/debug/*.apk
           retention-days: 30
       - name: Create Release
