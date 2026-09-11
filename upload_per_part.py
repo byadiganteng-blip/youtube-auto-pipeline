@@ -8,7 +8,6 @@ import pickle
 import random
 import time
 import re
-import subprocess
 from auto_hashtag import AutoHashtag
 from anti_detect import AntiDetectBot
 from content_detector import ContentDetector
