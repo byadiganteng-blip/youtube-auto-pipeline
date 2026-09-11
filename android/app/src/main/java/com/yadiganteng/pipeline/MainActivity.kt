@@ -53,6 +53,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnLogout: Button
     private lateinit var btnOpenActions: Button
     private lateinit var btnCheckStatus: Button
+    private lateinit var btnOpenFiles: Button
     private lateinit var btnRunWorkflow: Button
     private lateinit var tvStatus: TextView
     private lateinit var progressBar: ProgressBar
@@ -63,7 +64,7 @@ class MainActivity : AppCompatActivity() {
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            result.data?.data?.let { uri -> readTokenFromFile(uri) }
+            result.data?.data?.let { readTokenFromFile(it) }
         }
     }
 
@@ -90,6 +91,7 @@ class MainActivity : AppCompatActivity() {
         btnLogout = findViewById(R.id.btnLogout)
         btnOpenActions = findViewById(R.id.btnOpenActions)
         btnCheckStatus = findViewById(R.id.btnCheckStatus)
+        btnOpenFiles = findViewById(R.id.btnOpenFiles)
         btnRunWorkflow = findViewById(R.id.btnRunWorkflow)
         tvStatus = findViewById(R.id.tvStatus)
         progressBar = findViewById(R.id.progressBar)
@@ -102,19 +104,22 @@ class MainActivity : AppCompatActivity() {
         btnLogout.setOnClickListener { logout() }
         btnOpenActions.setOnClickListener { openActions() }
         btnCheckStatus.setOnClickListener { checkStatus() }
+        btnOpenFiles.setOnClickListener {
+            val intent = Intent(this, FilesActivity::class.java)
+            intent.putExtra("token", githubToken)
+            startActivity(intent)
+        }
         btnRunWorkflow.setOnClickListener { runWorkflow() }
     }
 
     private fun setupSpinners() {
         spinnerProcessMode.adapter = createAdapter(listOf("remove_watermark", "skip_watermark"))
         spinnerVideoSize.adapter = createAdapter(listOf(
-            "original", "yt_shorts", "tiktok", "ig_reels", "fb_reels",
-            "whatsapp_status", "ig_feed_square", "ig_feed_portrait",
-            "yt_landscape", "yt_4k", "fb_video", "twitter"
+            "original", "yt_shorts", "tiktok", "ig_reels", "fb_reels", "whatsapp_status",
+            "ig_feed_square", "ig_feed_portrait", "yt_landscape", "yt_4k", "fb_video", "twitter"
         ))
         spinnerVideoQuality.adapter = createAdapter(listOf(
-            "original", "144p", "240p", "360p", "480p",
-            "720p", "1080p", "1440p", "2160p"
+            "original", "144p", "240p", "360p", "480p", "720p", "1080p", "1440p", "2160p"
         ))
         spinnerMethod.adapter = createAdapter(listOf("blur", "inpaint"))
         spinnerPrivacy.adapter = createAdapter(listOf("public", "unlisted", "private"))
@@ -138,11 +143,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun readTokenFromFile(uri: Uri) {
         try {
-            val inputStream = contentResolver.openInputStream(uri)
-            val reader = BufferedReader(InputStreamReader(inputStream))
-            val content = reader.readText().trim()
-            reader.close()
-
+            val content = contentResolver.openInputStream(uri)!!.bufferedReader().readText().trim()
             val token = extractToken(content)
             if (token.isNotEmpty()) {
                 etToken.setText(token)
@@ -161,10 +162,8 @@ class MainActivity : AppCompatActivity() {
             if (json.has("github_token")) return json.getString("github_token").trim()
             if (json.has("token")) return json.getString("token").trim()
         } catch (_: Exception) {}
-
         val cleaned = content.replace("\n", "").replace("\r", "").replace(" ", "")
         if (cleaned.startsWith("ghp_") || cleaned.startsWith("github_pat_")) return cleaned
-
         return content.lines().firstOrNull {
             it.trim().startsWith("ghp_") || it.trim().startsWith("github_pat_")
         }?.trim() ?: ""
@@ -207,27 +206,21 @@ class MainActivity : AppCompatActivity() {
             .header("Accept", "application/vnd.github.v3+json")
             .build()
         client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: java.io.IOException) {
-                runOnUiThread { callback(false) }
-            }
-            override fun onResponse(call: Call, response: Response) {
-                runOnUiThread { callback(response.isSuccessful) }
-            }
+            override fun onFailure(call: Call, e: java.io.IOException) { runOnUiThread { callback(false) } }
+            override fun onResponse(call: Call, response: Response) { runOnUiThread { callback(response.isSuccessful) } }
         })
     }
 
     private fun logout() {
         AlertDialog.Builder(this)
-            .setTitle("Logout")
-            .setMessage("Hapus token?")
+            .setTitle("Logout").setMessage("Hapus token?")
             .setPositiveButton("Ya") { _, _ ->
                 getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit { remove(KEY_TOKEN) }
                 githubToken = ""
                 etToken.setText("")
                 showSetup()
             }
-            .setNegativeButton("Batal", null)
-            .show()
+            .setNegativeButton("Batal", null).show()
     }
 
     private fun runWorkflow() {
@@ -251,11 +244,7 @@ class MainActivity : AppCompatActivity() {
             put("start_part", etStartPart.text.toString())
         }
 
-        val json = JSONObject().apply {
-            put("ref", "main")
-            put("inputs", inputs)
-        }
-
+        val json = JSONObject().apply { put("ref", "main"); put("inputs", inputs) }
         val apiUrl = "https://api.github.com/repos/$OWNER/$REPO/actions/workflows/$WORKFLOW/dispatches"
         val body = json.toString().toRequestBody("application/json".toMediaType())
 
@@ -271,19 +260,12 @@ class MainActivity : AppCompatActivity() {
 
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: java.io.IOException) {
-                runOnUiThread {
-                    showLoading(false)
-                    setStatus("Gagal: ${e.message}")
-                }
+                runOnUiThread { showLoading(false); setStatus("Gagal: ${e.message}") }
             }
             override fun onResponse(call: Call, response: Response) {
                 runOnUiThread {
                     showLoading(false)
-                    if (response.code == 204) {
-                        setStatus("Workflow berhasil di-trigger!")
-                    } else {
-                        setStatus("Error ${response.code}: ${response.body?.string()}")
-                    }
+                    setStatus(if (response.code == 204) "✅ Workflow triggered!" else "Error ${response.code}: ${response.body?.string()}")
                 }
             }
         })
@@ -291,11 +273,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun checkStatus() {
         val url = "https://api.github.com/repos/$OWNER/$REPO/actions/runs?per_page=1"
-        val request = Request.Builder()
-            .url(url)
+        val request = Request.Builder().url(url)
             .header("Authorization", "token $githubToken")
-            .header("Accept", "application/vnd.github.v3+json")
-            .build()
+            .header("Accept", "application/vnd.github.v3+json").build()
 
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: java.io.IOException) {
@@ -305,15 +285,12 @@ class MainActivity : AppCompatActivity() {
                 runOnUiThread {
                     if (response.isSuccessful) {
                         try {
-                            val json = JSONObject(response.body?.string() ?: "{}")
-                            val runs = json.optJSONArray("workflow_runs")
+                            val runs = JSONObject(response.body?.string() ?: "{}").optJSONArray("workflow_runs")
                             if (runs != null && runs.length() > 0) {
                                 val run = runs.getJSONObject(0)
                                 setStatus("Status: ${run.optString("status")}\nConclusion: ${run.optString("conclusion")}")
                             }
-                        } catch (e: Exception) {
-                            setStatus("Error: ${e.message}")
-                        }
+                        } catch (e: Exception) { setStatus("Error: ${e.message}") }
                     }
                 }
             }
@@ -324,22 +301,11 @@ class MainActivity : AppCompatActivity() {
         startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/$OWNER/$REPO/actions")))
     }
 
-    private fun showSetup() {
-        layoutSetup.visibility = View.VISIBLE
-        layoutForm.visibility = View.GONE
-    }
-
-    private fun showForm() {
-        layoutSetup.visibility = View.GONE
-        layoutForm.visibility = View.VISIBLE
-    }
-
+    private fun showSetup() { layoutSetup.visibility = View.VISIBLE; layoutForm.visibility = View.GONE }
+    private fun showForm() { layoutSetup.visibility = View.GONE; layoutForm.visibility = View.VISIBLE }
     private fun showLoading(show: Boolean) {
         progressBar.visibility = if (show) View.VISIBLE else View.GONE
         btnRunWorkflow.isEnabled = !show
     }
-
-    private fun setStatus(text: String) {
-        tvStatus.text = text
-    }
+    private fun setStatus(text: String) { tvStatus.text = text }
 }
