@@ -1,48 +1,33 @@
 # YouTube Auto Pipeline + APK Android
 
-Repo ini berisi:
-1. **Pipeline YouTube** - auto upload video ke YouTube per part
-2. **APK Android** - trigger workflow dari HP
-
 ## Fitur Pipeline
-- Anti-Detect Bot
-- Content Detection
-- Watermark Remover (blur/inpaint)
-- Split per Part
-- **Video Size Preset** (12 platform)
-- **Video Quality** (144p - 2160p)
-- Auto Hashtag + Title per Part
-- Auto Upload YouTube
-- Pilih Mode: Remove / Skip Watermark
-- Pilih Tipe Upload: Video / Reels
+- Anti-detect bot, content detector
+- Watermark remover (blur/inpaint)
+- Split per part
+- Video size preset (12 platform)
+- Video quality (144p - 2160p)
+- Auto hashtag + title
+- Auto upload YouTube
+- Pilih mode: remove/skip watermark
+- Pilih tipe upload: video/reels
 
 ## Fitur APK
-- Setup GitHub Token (input / upload file)
+- Setup GitHub Token (input/upload file)
 - Auto-verify token
 - Simpan token (auto login)
-- Input URL video
-- Pilih semua opsi pipeline
+- Input URL video + pilih semua opsi pipeline
 - Run workflow langsung
 - Cek status real-time
-- Buka GitHub Actions
+- **Buka Actions**
+- **📁 Artifacts & Releases (BARU)**
+  - Lihat daftar artifacts
+  - Lihat daftar releases
+  - **Download langsung ke HP**
+  - **Hapus langsung dari APK**
 
 ## Build APK
-APK otomatis di-build via GitHub Actions saat:
-- Push ke `main` (jika ada perubahan di `android/`)
-- Manual run workflow `Build APK`
+Otomatis via GitHub Actions saat push ke `main`.
 
-Download APK dari:
-- Tab **Actions** → pilih run → Artifacts
-- Tab **Releases** → pilih tag `apk-vX`
-
-## Cara Pakai APK
-1. Install APK
-2. Buka app → Setup GitHub Token
-3. Isi token atau upload file `token.txt`
-4. Isi form pipeline
-5. Klik **Run Workflow**
-6. Cek status di GitHub Actions
-
----
+Download APK dari tab **Releases** atau **Actions → Artifacts**.
 
 Created By Yad
