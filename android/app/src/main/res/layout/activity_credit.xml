@@ -1,68 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="match_parent"
-    android:background="@color/bg_light">
+    android:layout_width="match_parent" android:layout_height="match_parent">
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="vertical">
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="vertical" android:background="@drawable/header_gradient"
-            android:padding="40dp" android:gravity="center">
-            <FrameLayout android:layout_width="100dp" android:layout_height="100dp"
-                android:background="@drawable/logo_bg" android:elevation="10dp">
-                <ImageView android:layout_width="70dp" android:layout_height="70dp"
-                    android:layout_gravity="center" android:src="@drawable/ic_launcher_foreground" />
-            </FrameLayout>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="Yad Pipeline" android:textSize="28sp" android:textStyle="bold"
-                android:textColor="#FFFFFF" android:layout_marginTop="16dp" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="v3.0.0" android:textSize="14sp" android:textColor="#FFEBEE" />
-        </LinearLayout>
-
-        <androidx.cardview.widget.CardView xmlns:app="http://schemas.android.com/apk/res-auto"
-            android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_margin="16dp" app:cardCornerRadius="16dp" app:cardElevation="6dp">
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:orientation="vertical" android:padding="24dp" android:gravity="center">
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="💝" android:textSize="60sp" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="CREDITS" android:textSize="24sp" android:textStyle="bold"
-                    android:textColor="@color/brand_primary" android:letterSpacing="0.3"
-                    android:layout_marginTop="8dp" />
-                <View android:layout_width="60dp" android:layout_height="3dp"
-                    android:background="@color/brand_accent" android:layout_marginTop="12dp"
-                    android:layout_marginBottom="24dp" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="CREATED BY" android:textSize="12sp"
-                    android:textColor="@color/text_secondary" android:letterSpacing="0.2" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="KARYADI" android:textSize="22sp" android:textStyle="bold"
-                    android:textColor="@color/text_primary" android:layout_marginTop="4dp" />
-                <View android:layout_width="40dp" android:layout_height="2dp"
-                    android:background="@color/brand_primary" android:layout_marginTop="20dp"
-                    android:layout_marginBottom="20dp" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="CODING BY" android:textSize="12sp"
-                    android:textColor="@color/text_secondary" android:letterSpacing="0.2" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="KARYADI" android:textSize="22sp" android:textStyle="bold"
-                    android:textColor="@color/text_primary" android:layout_marginTop="4dp" />
-                <View android:layout_width="40dp" android:layout_height="2dp"
-                    android:background="@color/brand_primary" android:layout_marginTop="20dp"
-                    android:layout_marginBottom="20dp" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="DESIGNED BY" android:textSize="12sp"
-                    android:textColor="@color/text_secondary" android:letterSpacing="0.2" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="KARYADI" android:textSize="22sp" android:textStyle="bold"
-                    android:textColor="@color/text_primary" android:layout_marginTop="4dp" />
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
-
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:text="© 2026 KARYADI · All Rights Reserved"
-            android:textSize="11sp" android:textColor="@color/text_secondary"
-            android:gravity="center" android:padding="16dp" />
+        android:orientation="vertical" android:padding="30dp" android:gravity="center">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="💝" android:textSize="60sp" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="CREDITS" android:textSize="24sp" android:textStyle="bold"
+            android:layout_marginTop="16dp" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="CREATED BY KARYADI" android:textSize="18sp"
+            android:layout_marginTop="20dp" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="CODING BY KARYADI" android:textSize="18sp"
+            android:layout_marginTop="8dp" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="DESIGNED BY KARYADI" android:textSize="18sp"
+            android:layout_marginTop="8dp" />
     </LinearLayout>
 </ScrollView>
