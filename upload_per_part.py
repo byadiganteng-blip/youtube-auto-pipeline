@@ -22,46 +22,6 @@ except ImportError:
     sys.exit(1)
 
 
-def get_video_dimensions(path):
-    try:
-        result = subprocess.run(
-            ['ffprobe', '-v', 'error', '-select_streams', 'v:0',
-             '-show_entries', 'stream=width,height',
-             '-of', 'csv=s=x:p=0', path],
-            capture_output=True, text=True, timeout=15
-        )
-        dims = result.stdout.strip().split('x')
-        if len(dims) == 2:
-            return int(dims[0]), int(dims[1])
-    except:
-        pass
-    return 0, 0
-
-
-def convert_to_reels(input_path, output_path):
-    print("[*] Convert ke Reels (9:16)...")
-    w, h = get_video_dimensions(input_path)
-    if w == 0 or h == 0:
-        return input_path
-
-    target_w, target_h = 1080, 1920
-    if h > w and abs((w / h) - (9 / 16)) < 0.05:
-        return input_path
-
-    vf = "scale=" + str(target_w) + ":" + str(target_h) + ":force_original_aspect_ratio=increase,crop=" + str(target_w) + ":" + str(target_h) + ",setsar=1"
-    cmd = [
-        'ffmpeg', '-i', input_path, '-vf', vf,
-        '-c:v', 'libx264', '-preset', 'fast', '-crf', '23',
-        '-c:a', 'aac', '-b:a', '192k',
-        '-movflags', '+faststart', '-t', '60',
-        output_path, '-y', '-loglevel', 'error'
-    ]
-    result = subprocess.run(cmd, capture_output=True, timeout=600)
-    if result.returncode == 0 and os.path.exists(output_path):
-        return output_path
-    return input_path
-
-
 def get_service():
     creds = None
     if os.path.exists('token.pickle'):
@@ -150,11 +110,6 @@ def main():
         print("  Upload " + str(i) + "/" + str(len(videos)) + ": " + filename)
         print("=" * 70)
 
-        actual_path = video_path
-        if args.upload_type == 'reels':
-            reels_path = video_path.replace('.mp4', '_reels.mp4')
-            actual_path = convert_to_reels(video_path, reels_path)
-
         time.sleep(random.uniform(5.0, 15.0))
 
         title = gen.generate_title(filename, args.upload_type)
@@ -164,7 +119,7 @@ def main():
         print("Title: " + title)
 
         try:
-            vid = upload_single(youtube, actual_path, title, description, hashtags, args.privacy)
+            vid = upload_single(youtube, video_path, title, description, hashtags, args.privacy)
             if vid:
                 url = "https://youtu.be/" + vid
                 print("[+] Uploaded: " + url)
@@ -174,12 +129,6 @@ def main():
         except Exception as e:
             print("[!] Error: " + str(e))
             failed.append(filename)
-
-        if args.upload_type == 'reels' and actual_path != video_path:
-            try:
-                os.remove(actual_path)
-            except:
-                pass
 
         if i < len(videos):
             time.sleep(args.delay)
