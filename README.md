@@ -13,9 +13,9 @@
 10. Auto Setup Secret
 11. Pilih Mode: Remove / Skip Watermark
 12. Pilih Tipe Upload: Video / Reels
-13. Auto Baca Refresh & Access Token dari youtube_token.txt (JSON)
+13. Opsi A: Playground Default Client (tidak butuh client_secret)
 
-## Format youtube_token.txt
+## Format youtube_token.txt (JSON)
 {
   "refresh_token": "1//04...",
   "access_token": "ya29.a0..."
@@ -24,7 +24,10 @@
 ## Setup
 - token.txt : GitHub PAT
 - api_key.txt : YouTube API Key
-- client_secrets.json : OAuth credentials
-- youtube_token.txt : Refresh + Access token (JSON) ATAU base64 token.pickle
+- youtube_token.txt : Refresh + Access token (JSON)
+
+## Note
+Opsi A pakai client_id 407408718192 (OAuth Playground default).
+Tidak butuh client_secrets.json untuk generate token.
 
 Created By Yad
