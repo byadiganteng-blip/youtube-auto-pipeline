@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:fillViewport="true" android:background="@color/bg_light">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:background="#1A237E"
+            android:padding="30dp" android:gravity="center">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="👑" android:textSize="60sp" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="ADMIN PANEL" android:textSize="24sp"
+                android:textStyle="bold" android:textColor="#FFFFFF" android:layout_marginTop="8dp" />
+            <TextView android:id="@+id/tvAdminInfo" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:textSize="12sp"
+                android:textColor="#E8EAF6" android:layout_marginTop="8dp" android:gravity="center" />
+            <TextView android:id="@+id/tvLoginTime" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:textSize="11sp"
+                android:textColor="#9FA8DA" android:layout_marginTop="4dp" />
+        </LinearLayout>
+
+        <androidx.cardview.widget.CardView android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_margin="16dp"
+            app:cardCornerRadius="16dp" app:cardElevation="6dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:padding="20dp">
+
+                <Button android:id="@+id/btnPushUpdate"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="🚀  Push Update" android:backgroundTint="#4CAF50"
+                    android:textColor="#FFFFFF" />
+                <Button android:id="@+id/btnForceUpdate"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="⚡  Force Update" android:backgroundTint="#F44336"
+                    android:textColor="#FFFFFF" android:layout_marginTop="8dp" />
+                <Button android:id="@+id/btnAddFeature"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="➕  Tambah Fitur" android:backgroundTint="#2196F3"
+                    android:textColor="#FFFFFF" android:layout_marginTop="8dp" />
+                <Button android:id="@+id/btnManageTokens"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="🔑  Manage Tokens" android:backgroundTint="#9C27B0"
+                    android:textColor="#FFFFFF" android:layout_marginTop="8dp" />
+                <Button android:id="@+id/btnEditWorkflow"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="✏️  Edit Workflow" android:backgroundTint="#FF9800"
+                    android:textColor="#FFFFFF" android:layout_marginTop="8dp" />
+                <Button android:id="@+id/btnViewLogs"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="📋  View Logs" android:backgroundTint="#607D8B"
+                    android:textColor="#FFFFFF" android:layout_marginTop="8dp" />
+                <Button android:id="@+id/btnViewAllDevices"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="📱  View Devices" android:backgroundTint="#00BCD4"
+                    android:textColor="#FFFFFF" android:layout_marginTop="8dp" />
+                <Button android:id="@+id/btnBroadcast"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="📢  Broadcast" android:backgroundTint="#E91E63"
+                    android:textColor="#FFFFFF" android:layout_marginTop="8dp" />
+                <Button android:id="@+id/btnLogout"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="🚪  Logout" android:backgroundTint="#757575"
+                    android:textColor="#FFFFFF" android:layout_marginTop="24dp" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+    </LinearLayout>
+</ScrollView>
