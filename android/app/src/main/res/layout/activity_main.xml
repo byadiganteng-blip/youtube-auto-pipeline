@@ -14,7 +14,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="🎬 Yad Pipeline"
+            android:text="Yad Pipeline"
             android:textSize="24sp"
             android:textStyle="bold"
             android:textColor="#D32F2F"
@@ -56,7 +56,7 @@
                 android:id="@+id/btnUploadTokenFile"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="📁 Upload Token dari File"
+                android:text="Upload Token dari File"
                 android:backgroundTint="#2196F3"
                 android:textColor="#FFFFFF"
                 android:layout_marginTop="8dp" />
@@ -65,7 +65,7 @@
                 android:id="@+id/btnSaveToken"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="💾 Simpan Token"
+                android:text="Simpan Token"
                 android:backgroundTint="#4CAF50"
                 android:textColor="#FFFFFF"
                 android:layout_marginTop="8dp" />
@@ -78,12 +78,9 @@
             android:orientation="vertical"
             android:visibility="gone">
 
-            <EditText
-                android:id="@+id/etUrl"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="URL Video"
-                android:padding="12dp"
+            <EditText android:id="@+id/etUrl"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:hint="URL Video" android:padding="12dp"
                 android:background="#FFFFFF" />
 
             <Spinner android:id="@+id/spinnerProcessMode"
@@ -132,47 +129,37 @@
                 android:padding="12dp" android:background="#FFFFFF"
                 android:layout_marginTop="8dp" />
 
-            <Button
-                android:id="@+id/btnRunWorkflow"
-                android:layout_width="match_parent"
-                android:layout_height="55dp"
-                android:text="🚀 Run Workflow"
-                android:textSize="18sp" android:textStyle="bold"
-                android:backgroundTint="#D32F2F" android:textColor="#FFFFFF"
-                android:layout_marginTop="16dp" />
+            <Button android:id="@+id/btnRunWorkflow"
+                android:layout_width="match_parent" android:layout_height="55dp"
+                android:text="Run Workflow" android:textSize="18sp"
+                android:textStyle="bold" android:backgroundTint="#D32F2F"
+                android:textColor="#FFFFFF" android:layout_marginTop="16dp" />
 
-            <Button
-                android:id="@+id/btnOpenFiles"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="📁 Artifacts &amp; Releases (Download/Delete)"
-                android:backgroundTint="#9C27B0"
-                android:textColor="#FFFFFF"
-                android:layout_marginTop="8dp" />
+            <Button android:id="@+id/btnOpenFiles"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Artifacts &amp; Releases" android:backgroundTint="#9C27B0"
+                android:textColor="#FFFFFF" android:layout_marginTop="8dp" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
+            <LinearLayout android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:orientation="horizontal"
                 android:layout_marginTop="8dp">
 
                 <Button android:id="@+id/btnCheckStatus"
                     android:layout_width="0dp" android:layout_height="wrap_content"
-                    android:layout_weight="1" android:text="📊 Status"
+                    android:layout_weight="1" android:text="Status"
                     android:backgroundTint="#FF9800" android:textColor="#FFFFFF" />
 
                 <Button android:id="@+id/btnOpenActions"
                     android:layout_width="0dp" android:layout_height="wrap_content"
-                    android:layout_weight="1" android:text="🌐 Actions"
+                    android:layout_weight="1" android:text="Actions"
                     android:backgroundTint="#2196F3" android:textColor="#FFFFFF"
                     android:layout_marginStart="8dp" />
             </LinearLayout>
 
             <Button android:id="@+id/btnLogout"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:text="🚪 Logout"
-                android:backgroundTint="#757575" android:textColor="#FFFFFF"
-                android:layout_marginTop="8dp" />
+                android:text="Logout" android:backgroundTint="#757575"
+                android:textColor="#FFFFFF" android:layout_marginTop="8dp" />
 
             <TextView android:id="@+id/tvStatus"
                 android:layout_width="match_parent" android:layout_height="wrap_content"
