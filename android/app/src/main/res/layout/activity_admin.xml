@@ -1,134 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#F5F5F5">
-
-    <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <LinearLayout
-            android:orientation="vertical"
-            android:background="#1A237E"
-            android:padding="24dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <TextView
-                android:text="ADMIN PANEL"
-                android:textColor="#FFFFFF"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:layout_gravity="center"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-            <TextView
-                android:id="@+id/tvAdminStatus"
-                android:text="👑 ADMIN MODE AKTIF"
-                android:textColor="#FFD54F"
-                android:textSize="14sp"
-                android:layout_gravity="center"
-                android:layout_marginTop="8dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-            <TextView
-                android:id="@+id/tvAdminEmail"
-                android:textColor="#FFFFFF"
-                android:textSize="12sp"
-                android:layout_gravity="center"
-                android:layout_marginTop="4dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-            <TextView
-                android:id="@+id/tvAdminLogin"
-                android:textColor="#B0BEC5"
-                android:textSize="12sp"
-                android:layout_gravity="center"
-                android:layout_marginTop="4dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:orientation="vertical"
-            android:background="#FFFFFF"
-            android:padding="16dp"
-            android:layout_margin="12dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <Button android:id="@+id/btnPushUpdate"
-                android:text="🚀 PUSH UPDATE"
-                android:backgroundTint="#4CAF50"
-                android:textColor="#FFFFFF"
-                android:layout_marginBottom="8dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
-
-            <Button android:id="@+id/btnForceUpdate"
-                android:text="⚡ FORCE UPDATE"
-                android:backgroundTint="#F44336"
-                android:textColor="#FFFFFF"
-                android:layout_marginBottom="8dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
-
-            <Button android:id="@+id/btnTambahFitur"
-                android:text="➕ TAMBAH FITUR"
-                android:backgroundTint="#2196F3"
-                android:textColor="#FFFFFF"
-                android:layout_marginBottom="8dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
-
-            <Button android:id="@+id/btnManageTokens"
-                android:text="🔑 MANAGE TOKENS"
-                android:backgroundTint="#9C27B0"
-                android:textColor="#FFFFFF"
-                android:layout_marginBottom="8dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
-
-            <Button android:id="@+id/btnEditWorkflow"
-                android:text="📝 EDIT WORKFLOW"
-                android:backgroundTint="#FF9800"
-                android:textColor="#FFFFFF"
-                android:layout_marginBottom="8dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
-
-            <Button android:id="@+id/btnViewLogs"
-                android:text="📋 VIEW LOGS"
-                android:backgroundTint="#607D8B"
-                android:textColor="#FFFFFF"
-                android:layout_marginBottom="8dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
-
-            <Button android:id="@+id/btnViewDevices"
-                android:text="📱 VIEW DEVICES"
-                android:backgroundTint="#00BCD4"
-                android:textColor="#FFFFFF"
-                android:layout_marginBottom="8dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
-
-            <Button android:id="@+id/btnBroadcast"
-                android:text="📢 BROADCAST"
-                android:backgroundTint="#E91E63"
-                android:textColor="#FFFFFF"
-                android:layout_marginBottom="8dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
-
-            <Button android:id="@+id/btnLogout"
-                android:text="🚪 LOGOUT"
-                android:backgroundTint="#757575"
-                android:textColor="#FFFFFF"
-                android:layout_marginTop="16dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
-        </LinearLayout>
+    android:layout_width="match_parent" android:layout_height="match_parent">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:padding="20dp">
+        <TextView android:id="@+id/tvAdminInfo" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="👑 ADMIN" android:textSize="20sp"
+            android:textStyle="bold" android:padding="20dp" />
+        <Button android:id="@+id/btnPushUpdate" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="🚀 Push Update" />
+        <Button android:id="@+id/btnForceUpdate" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="⚡ Force Update"
+            android:layout_marginTop="8dp" />
+        <Button android:id="@+id/btnAddFeature" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="➕ Add Feature"
+            android:layout_marginTop="8dp" />
+        <Button android:id="@+id/btnManageTokens" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="🔑 Tokens"
+            android:layout_marginTop="8dp" />
+        <Button android:id="@+id/btnEditWorkflow" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="✏️ Workflow"
+            android:layout_marginTop="8dp" />
+        <Button android:id="@+id/btnViewLogs" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="📋 Logs"
+            android:layout_marginTop="8dp" />
+        <Button android:id="@+id/btnBroadcast" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="📢 Broadcast"
+            android:layout_marginTop="8dp" />
+        <Button android:id="@+id/btnViewAllDevices" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="📱 Devices"
+            android:layout_marginTop="8dp" />
+        <Button android:id="@+id/btnLogout" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="🚪 Logout"
+            android:layout_marginTop="20dp" />
     </LinearLayout>
 </ScrollView>
