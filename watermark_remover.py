@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Watermark Remover + Split + Resize + Quality Control"""
+"""Watermark Remover + Split + Resize + Quality"""
 
 import os
 import sys
@@ -10,9 +10,6 @@ import tempfile
 import shutil
 
 
-# ==========================================
-# VIDEO SIZE PRESETS
-# ==========================================
 VIDEO_PRESETS = {
     'original': None,
     'yt_shorts': (1080, 1920),
@@ -28,10 +25,6 @@ VIDEO_PRESETS = {
     'twitter': (1280, 720),
 }
 
-
-# ==========================================
-# VIDEO QUALITY PRESETS
-# ==========================================
 VIDEO_QUALITY = {
     'original': None,
     '144p': {'width': 256, 'height': 144, 'bitrate': '100k'},
@@ -46,21 +39,16 @@ VIDEO_QUALITY = {
 
 
 def get_preset_size(preset_name):
-    if preset_name in VIDEO_PRESETS:
-        return VIDEO_PRESETS[preset_name]
-    return None
+    return VIDEO_PRESETS.get(preset_name)
 
 
 def get_quality_size(quality_name):
-    if quality_name in VIDEO_QUALITY:
-        return VIDEO_QUALITY[quality_name]
-    return None
+    return VIDEO_QUALITY.get(quality_name)
 
 
 def build_vf_filter(preset_name, quality_name):
     target_w = None
     target_h = None
-
     quality = get_quality_size(quality_name)
     if quality:
         target_w = quality['width']
@@ -73,14 +61,13 @@ def build_vf_filter(preset_name, quality_name):
     if target_w is None or target_h is None:
         return None
 
-    vf = (
+    return (
         "scale=" + str(target_w) + ":" + str(target_h) +
         ":force_original_aspect_ratio=decrease,"
         "pad=" + str(target_w) + ":" + str(target_h) +
         ":(ow-iw)/2:(oh-ih)/2:black,"
         "setsar=1"
     )
-    return vf
 
 
 def get_duration(path):
@@ -116,20 +103,11 @@ def split_only(input_path, output_dir, part_duration=300, preset='original', qua
     vf = build_vf_filter(preset, quality)
     quality_info = get_quality_size(quality)
 
-    if vf:
-        print("[*] Resize AKTIF")
-        if quality_info:
-            print("[*] Target: " + str(quality_info['width']) + "x" + str(quality_info['height']) +
-                  " @ " + quality_info['bitrate'])
-    else:
-        print("[*] Resize: TIDAK (original)")
-
     duration = get_duration(input_path)
     if duration <= 0:
         sys.exit(1)
 
     num_parts = int((duration + part_duration - 1) // part_duration)
-    print("[*] Duration: " + str(round(duration, 1)) + "s")
     print("[*] Will create " + str(num_parts) + " parts")
 
     base_name = os.path.splitext(os.path.basename(input_path))[0]
@@ -147,34 +125,26 @@ def split_only(input_path, output_dir, part_duration=300, preset='original', qua
         print("[*] Part " + str(part_idx) + "/" + str(num_parts))
 
         if vf:
-            cmd = [
-                'ffmpeg', '-ss', str(start_sec), '-i', input_path,
-                '-t', str(part_duration), '-vf', vf,
-            ]
+            cmd = ['ffmpeg', '-ss', str(start_sec), '-i', input_path,
+                   '-t', str(part_duration), '-vf', vf]
             if quality_info:
                 cmd.extend(['-b:v', quality_info['bitrate']])
-            cmd.extend([
-                '-c:v', 'libx264', '-preset', 'fast',
-                '-c:a', 'aac', '-b:a', '192k',
-                '-movflags', '+faststart',
-                final_path, '-y', '-loglevel', 'error'
-            ])
+            cmd.extend(['-c:v', 'libx264', '-preset', 'fast',
+                       '-c:a', 'aac', '-b:a', '192k',
+                       '-movflags', '+faststart',
+                       final_path, '-y', '-loglevel', 'error'])
         else:
-            cmd = [
-                'ffmpeg', '-ss', str(start_sec), '-i', input_path,
-                '-t', str(part_duration), '-c', 'copy',
-                '-avoid_negative_ts', 'make_zero',
-                '-movflags', '+faststart',
-                final_path, '-y', '-loglevel', 'warning'
-            ]
+            cmd = ['ffmpeg', '-ss', str(start_sec), '-i', input_path,
+                   '-t', str(part_duration), '-c', 'copy',
+                   '-avoid_negative_ts', 'make_zero',
+                   '-movflags', '+faststart',
+                   final_path, '-y', '-loglevel', 'warning']
 
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=1800)
 
         if result.returncode == 0 and os.path.exists(final_path):
             size = os.path.getsize(final_path) / (1024 * 1024)
             print("    [+] Part " + str(part_idx) + ": " + str(round(size, 1)) + " MB")
-        else:
-            print("    [!] Part " + str(part_idx) + " gagal")
 
     print("[+] Complete in " + str(round(time.time() - start_time, 1)) + "s")
 
@@ -244,8 +214,6 @@ def remove_and_split(input_path, output_dir, watermarks, method='blur',
     duration = total / fps if fps > 0 else 0
     cap.release()
 
-    print("[*] Input: " + str(width) + "x" + str(height) + " @ " + str(round(fps, 1)) + "fps")
-
     num_parts = int((duration + part_duration - 1) // part_duration)
     frames_per_part = int(part_duration * fps)
     print("[*] Will create " + str(num_parts) + " parts")
@@ -275,36 +243,29 @@ def remove_and_split(input_path, output_dir, watermarks, method='blur',
 
     def finalize_part(part_idx, temp_vid):
         final_path = os.path.join(output_dir, base_name + "_part" + str(part_idx).zfill(3) + "_no_wm.mp4")
-
         if vf:
             cmd = ['ffmpeg', '-i', temp_vid, '-vf', vf]
             if quality_info:
                 cmd.extend(['-b:v', quality_info['bitrate']])
             if audio_ok:
-                cmd.extend([
-                    '-c:v', 'libx264', '-preset', 'fast',
-                    '-c:a', 'aac', '-b:a', '192k',
-                    '-movflags', '+faststart',
-                    final_path, '-y', '-loglevel', 'error'
-                ])
+                cmd.extend(['-c:v', 'libx264', '-preset', 'fast',
+                           '-c:a', 'aac', '-b:a', '192k',
+                           '-movflags', '+faststart',
+                           final_path, '-y', '-loglevel', 'error'])
             else:
-                cmd.extend([
-                    '-c:v', 'libx264', '-preset', 'fast',
-                    '-an', '-movflags', '+faststart',
-                    final_path, '-y', '-loglevel', 'error'
-                ])
+                cmd.extend(['-c:v', 'libx264', '-preset', 'fast',
+                           '-an', '-movflags', '+faststart',
+                           final_path, '-y', '-loglevel', 'error'])
             subprocess.run(cmd, capture_output=True, timeout=1800)
         else:
             if audio_ok:
                 start_sec = (part_idx - 1) * part_duration
-                cmd = [
-                    'ffmpeg', '-ss', str(start_sec), '-i', temp_vid,
-                    '-t', str(part_duration), '-i', input_path,
-                    '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k',
-                    '-map', '0:v:0', '-map', '1:a:0?', '-shortest',
-                    '-movflags', '+faststart',
-                    final_path, '-y', '-loglevel', 'error'
-                ]
+                cmd = ['ffmpeg', '-ss', str(start_sec), '-i', temp_vid,
+                       '-t', str(part_duration), '-i', input_path,
+                       '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k',
+                       '-map', '0:v:0', '-map', '1:a:0?', '-shortest',
+                       '-movflags', '+faststart',
+                       final_path, '-y', '-loglevel', 'error']
                 subprocess.run(cmd, capture_output=True, timeout=600)
             else:
                 shutil.move(temp_vid, final_path)
@@ -377,23 +338,8 @@ def main():
     if not os.path.exists(args.input):
         sys.exit(1)
 
-    print("=" * 70)
-    print("  VIDEO CONFIG")
-    print("=" * 70)
-    print("[*] Video size preset: " + args.video_size)
+    print("[*] Video size: " + args.video_size)
     print("[*] Video quality: " + args.video_quality)
-
-    preset_size = get_preset_size(args.video_size)
-    quality_info = get_quality_size(args.video_quality)
-
-    if quality_info:
-        print("[*] Resolusi: " + str(quality_info['width']) + "x" + str(quality_info['height']))
-        print("[*] Bitrate: " + quality_info['bitrate'])
-    elif preset_size:
-        print("[*] Resolusi (preset): " + str(preset_size[0]) + "x" + str(preset_size[1]))
-    else:
-        print("[*] Resolusi: original")
-    print("")
 
     if args.process_mode == 'skip_watermark':
         split_only(args.input, args.output_dir, args.part_duration,
@@ -405,7 +351,7 @@ def main():
                         args.video_size, args.video_quality)
 
     out_files = [f for f in os.listdir(args.output_dir) if f.endswith('.mp4')]
-    print("[*] Total output: " + str(len(out_files)) + " files")
+    print("[*] Total output: " + str(len(out_files)))
 
 
 if __name__ == '__main__':
