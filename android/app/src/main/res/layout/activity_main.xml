@@ -1,158 +1,369 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent" android:layout_height="match_parent"
-    android:fillViewport="true" android:background="@color/bg_light">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@color/bg_light">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="vertical" android:background="@drawable/header_gradient"
-            android:paddingTop="40dp" android:paddingBottom="30dp" android:gravity="center">
-            <FrameLayout android:layout_width="90dp" android:layout_height="90dp"
-                android:background="@drawable/logo_bg" android:elevation="8dp">
-                <ImageView android:layout_width="60dp" android:layout_height="60dp"
-                    android:layout_gravity="center" android:src="@drawable/ic_launcher_foreground" />
+        <!-- HEADER dengan admin tap area -->
+        <LinearLayout
+            android:id="@+id/adminTapArea"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/header_gradient"
+            android:paddingTop="40dp"
+            android:paddingBottom="30dp"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true">
+
+            <FrameLayout
+                android:layout_width="90dp"
+                android:layout_height="90dp"
+                android:background="@drawable/logo_bg"
+                android:elevation="8dp">
+                <ImageView
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_launcher_foreground" />
             </FrameLayout>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="Yad Pipeline" android:textSize="28sp" android:textStyle="bold"
-                android:textColor="#FFFFFF" android:layout_marginTop="12dp" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="Auto Token • No Login Required" android:textSize="13sp"
-                android:textColor="#FFEBEE" android:layout_marginTop="4dp" />
-            <View android:layout_width="60dp" android:layout_height="3dp"
-                android:background="#FFC107" android:layout_marginTop="12dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Universal Video Editor"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:layout_marginTop="12dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Edit • Upload • Auto Split"
+                android:textSize="13sp"
+                android:textColor="#FFEBEE"
+                android:layout_marginTop="4dp" />
+
+            <View
+                android:layout_width="60dp"
+                android:layout_height="3dp"
+                android:background="#FFC107"
+                android:layout_marginTop="12dp" />
         </LinearLayout>
 
-        <ProgressBar android:id="@+id/progressBar" android:layout_width="wrap_content"
-            android:layout_height="wrap_content" android:layout_gravity="center"
-            android:visibility="gone" android:layout_marginTop="16dp"
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            android:layout_marginTop="16dp"
             android:indeterminateTint="@color/brand_primary" />
 
-        <androidx.cardview.widget.CardView android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:layout_margin="16dp"
-            app:cardCornerRadius="16dp" app:cardElevation="6dp">
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:orientation="vertical" android:padding="20dp">
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:orientation="horizontal" android:gravity="center_vertical">
+        <!-- VIDEO EDITOR QUICK ACCESS -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp">
+
+            <Button
+                android:id="@+id/btnVideoEditor"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="🎬 Editor"
+                android:backgroundTint="#673AB7"
+                android:textColor="#FFFFFF"
+                android:layout_marginEnd="4dp" />
+
+            <Button
+                android:id="@+id/btnStatistics"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="📊 Stats"
+                android:backgroundTint="#00BCD4"
+                android:textColor="#FFFFFF"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp" />
+
+            <Button
+                android:id="@+id/btnSettings"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="⚙️"
+                android:backgroundTint="#607D8B"
+                android:textColor="#FFFFFF"
+                android:layout_marginStart="4dp" />
+        </LinearLayout>
+
+        <!-- MAIN CONFIG -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="6dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
                     <View android:layout_width="4dp" android:layout_height="20dp"
                         android:background="@color/brand_primary" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="Konfigurasi Pipeline" android:textSize="18sp"
-                        android:textStyle="bold" android:layout_marginStart="10dp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Konfigurasi Pipeline"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:layout_marginStart="10dp" />
                 </LinearLayout>
 
-                <TextView android:id="@+id/tvTokenInfo" android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:text="🔐 Memuat..."
-                    android:textSize="12sp" android:padding="12dp"
-                    android:background="@drawable/card_bg" android:layout_marginTop="12dp"
+                <TextView android:id="@+id/tvTokenInfo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="🔐 Memuat..."
+                    android:textSize="12sp"
+                    android:padding="12dp"
+                    android:background="@drawable/card_bg"
+                    android:layout_marginTop="12dp"
                     android:textStyle="bold" />
 
-                <EditText android:id="@+id/etUrl" android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:hint="URL Video"
-                    android:inputType="textUri" android:padding="14dp"
-                    android:background="@drawable/card_bg" android:layout_marginTop="12dp" />
+                <EditText android:id="@+id/etUrl"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="URL Video"
+                    android:inputType="textUri"
+                    android:padding="14dp"
+                    android:background="@drawable/card_bg"
+                    android:layout_marginTop="12dp" />
 
-                <TextView android:text="Process Mode" android:textSize="12sp" android:textStyle="bold"
-                    android:layout_marginTop="12dp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                <Spinner android:id="@+id/spinnerProcessMode" android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:background="@drawable/card_bg" />
+                <TextView android:text="Process Mode" android:textSize="12sp"
+                    android:textStyle="bold" android:layout_marginTop="12dp"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                <Spinner android:id="@+id/spinnerProcessMode"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:background="@drawable/card_bg" />
 
-                <TextView android:text="Video Size" android:textSize="12sp" android:textStyle="bold"
-                    android:layout_marginTop="12dp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                <Spinner android:id="@+id/spinnerVideoSize" android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:background="@drawable/card_bg" />
+                <TextView android:text="Video Size" android:textSize="12sp"
+                    android:textStyle="bold" android:layout_marginTop="12dp"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                <Spinner android:id="@+id/spinnerVideoSize"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:background="@drawable/card_bg" />
 
-                <TextView android:text="Video Quality" android:textSize="12sp" android:textStyle="bold"
-                    android:layout_marginTop="12dp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                <Spinner android:id="@+id/spinnerVideoQuality" android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:background="@drawable/card_bg" />
+                <TextView android:text="Video Quality" android:textSize="12sp"
+                    android:textStyle="bold" android:layout_marginTop="12dp"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                <Spinner android:id="@+id/spinnerVideoQuality"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:background="@drawable/card_bg" />
 
-                <TextView android:text="Watermark Method" android:textSize="12sp" android:textStyle="bold"
-                    android:layout_marginTop="12dp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                <Spinner android:id="@+id/spinnerMethod" android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:background="@drawable/card_bg" />
+                <TextView android:text="Watermark Method" android:textSize="12sp"
+                    android:textStyle="bold" android:layout_marginTop="12dp"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                <Spinner android:id="@+id/spinnerMethod"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:background="@drawable/card_bg" />
 
-                <EditText android:id="@+id/etPartDuration" android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:text="300"
-                    android:inputType="number" android:hint="Part Duration (detik)"
-                    android:padding="14dp" android:background="@drawable/card_bg" android:layout_marginTop="12dp" />
+                <!-- CUSTOM WATERMARK -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="20dp">
+                    <View android:layout_width="4dp" android:layout_height="20dp"
+                        android:background="@color/purple" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Custom Watermark"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:layout_marginStart="10dp" />
+                </LinearLayout>
 
-                <TextView android:text="Privacy" android:textSize="12sp" android:textStyle="bold"
-                    android:layout_marginTop="12dp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                <Spinner android:id="@+id/spinnerPrivacy" android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:background="@drawable/card_bg" />
+                <EditText android:id="@+id/etWatermarkText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Contoh: @KaryadiCoding"
+                    android:inputType="text"
+                    android:padding="14dp"
+                    android:background="@drawable/card_bg"
+                    android:layout_marginTop="8dp" />
 
-                <TextView android:text="Auto Upload" android:textSize="12sp" android:textStyle="bold"
-                    android:layout_marginTop="12dp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                <Spinner android:id="@+id/spinnerAutoUpload" android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:background="@drawable/card_bg" />
+                <TextView android:text="Posisi Watermark" android:textSize="12sp"
+                    android:textStyle="bold" android:layout_marginTop="12dp"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                <Spinner android:id="@+id/spinnerWatermarkPosition"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:background="@drawable/card_bg" />
 
-                <TextView android:text="Upload Type" android:textSize="12sp" android:textStyle="bold"
-                    android:layout_marginTop="12dp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                <Spinner android:id="@+id/spinnerUploadType" android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:background="@drawable/card_bg" />
+                <TextView android:text="Gaya Watermark" android:textSize="12sp"
+                    android:textStyle="bold" android:layout_marginTop="12dp"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                <Spinner android:id="@+id/spinnerWatermarkStyle"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:background="@drawable/card_bg" />
 
-                <EditText android:id="@+id/etDelay" android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:text="60"
-                    android:inputType="number" android:hint="Upload Delay"
-                    android:padding="14dp" android:background="@drawable/card_bg" android:layout_marginTop="12dp" />
+                <EditText android:id="@+id/etPartDuration"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="300" android:inputType="number"
+                    android:hint="Part Duration (detik)"
+                    android:padding="14dp" android:background="@drawable/card_bg"
+                    android:layout_marginTop="12dp" />
 
-                <EditText android:id="@+id/etStartPart" android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:text="1"
-                    android:inputType="number" android:hint="Start Part"
-                    android:padding="14dp" android:background="@drawable/card_bg" android:layout_marginTop="12dp" />
+                <TextView android:text="Privacy" android:textSize="12sp"
+                    android:textStyle="bold" android:layout_marginTop="12dp"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                <Spinner android:id="@+id/spinnerPrivacy"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:background="@drawable/card_bg" />
 
-                <Button android:id="@+id/btnRunWorkflow" android:layout_width="match_parent"
-                    android:layout_height="60dp" android:text="🚀  RUN WORKFLOW"
-                    android:textSize="17sp" android:textStyle="bold" android:textColor="#FFFFFF"
+                <TextView android:text="Auto Upload" android:textSize="12sp"
+                    android:textStyle="bold" android:layout_marginTop="12dp"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                <Spinner android:id="@+id/spinnerAutoUpload"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:background="@drawable/card_bg" />
+
+                <TextView android:text="Upload Type" android:textSize="12sp"
+                    android:textStyle="bold" android:layout_marginTop="12dp"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                <Spinner android:id="@+id/spinnerUploadType"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:background="@drawable/card_bg" />
+
+                <EditText android:id="@+id/etDelay"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="60" android:inputType="number"
+                    android:hint="Upload Delay"
+                    android:padding="14dp" android:background="@drawable/card_bg"
+                    android:layout_marginTop="12dp" />
+
+                <EditText android:id="@+id/etStartPart"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="1" android:inputType="number"
+                    android:hint="Start Part"
+                    android:padding="14dp" android:background="@drawable/card_bg"
+                    android:layout_marginTop="12dp" />
+
+                <!-- TOKEN UPLOAD (muncul hanya saat auto_upload=true) -->
+                <LinearLayout
+                    android:id="@+id/layoutTokenUpload"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    android:layout_marginTop="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+                        <View android:layout_width="4dp" android:layout_height="20dp"
+                            android:background="@color/danger" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Upload Token"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:layout_marginStart="10dp" />
+                    </LinearLayout>
+
+                    <Button android:id="@+id/btnUploadYtToken"
+                        android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:text="📤  Upload YouTube Token"
+                        android:textColor="#FFFFFF" android:backgroundTint="@color/danger"
+                        android:layout_marginTop="10dp" />
+
+                    <Button android:id="@+id/btnUploadApiKey"
+                        android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:text="🔑  Upload API Key"
+                        android:textColor="#FFFFFF" android:backgroundTint="@color/success"
+                        android:layout_marginTop="10dp" />
+                </LinearLayout>
+
+                <!-- RUN BUTTON -->
+                <Button android:id="@+id/btnRunWorkflow"
+                    android:layout_width="match_parent" android:layout_height="60dp"
+                    android:text="🚀  RUN WORKFLOW"
+                    android:textSize="17sp" android:textStyle="bold"
+                    android:textColor="#FFFFFF"
                     android:background="@drawable/header_gradient"
                     android:layout_marginTop="20dp" android:elevation="4dp" />
 
-                <Button android:id="@+id/btnOpenFiles" android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:text="📁  Artifacts &amp; Releases"
+                <Button android:id="@+id/btnOpenFiles"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="📁  Artifacts &amp; Releases"
                     android:textColor="#FFFFFF" android:backgroundTint="@color/purple"
                     android:layout_marginTop="10dp" style="@style/BtnPrimary" />
 
-                <Button android:id="@+id/btnOpenActionsView" android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:text="📋  Actions History"
+                <Button android:id="@+id/btnOpenActionsView"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="📋  Actions History"
                     android:textColor="#FFFFFF" android:backgroundTint="#673AB7"
                     android:layout_marginTop="10dp" style="@style/BtnPrimary" />
 
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:orientation="horizontal" android:layout_marginTop="10dp">
-                    <Button android:id="@+id/btnCheckStatus" android:layout_width="0dp"
-                        android:layout_height="wrap_content" android:layout_weight="1"
-                        android:text="📊 Status" android:textColor="#FFFFFF"
-                        android:backgroundTint="@color/warning" android:layout_marginEnd="5dp" />
-                    <Button android:id="@+id/btnOpenActions" android:layout_width="0dp"
-                        android:layout_height="wrap_content" android:layout_weight="1"
-                        android:text="🌐 GitHub" android:textColor="#FFFFFF"
-                        android:backgroundTint="@color/info" android:layout_marginStart="5dp" />
-                </LinearLayout>
+                <Button android:id="@+id/btnCheckStatus"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="📊  Check Status"
+                    android:textColor="#FFFFFF" android:backgroundTint="@color/warning"
+                    android:layout_marginTop="10dp" />
 
-                <Button android:id="@+id/btnCredit" android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:text="💝  Credits"
+                <Button android:id="@+id/btnInstructions"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="📖  Instruksi Pemakaian"
+                    android:textColor="#FFFFFF" android:backgroundTint="#00BCD4"
+                    android:layout_marginTop="10dp" />
+
+                <Button android:id="@+id/btnCredit"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="💝  Credits"
                     android:textColor="#FFFFFF" android:backgroundTint="#E91E63"
                     android:layout_marginTop="10dp" style="@style/BtnPrimary" />
 
-                <Button android:id="@+id/btnLogout" android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:text="🔄 Reset ke Token Build"
+                <Button android:id="@+id/btnLogout"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="🔄  Reset Token"
                     android:textColor="#FFFFFF" android:backgroundTint="@color/text_secondary"
                     android:layout_marginTop="10dp" />
 
-                <TextView android:id="@+id/tvStatus" android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:padding="16dp"
-                    android:background="@drawable/card_bg" android:textSize="12sp"
-                    android:fontFamily="monospace" android:layout_marginTop="16dp"
-                    android:minHeight="80dp" android:gravity="top" />
+                <TextView android:id="@+id/tvStatus"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:padding="16dp" android:background="@drawable/card_bg"
+                    android:textSize="12sp" android:fontFamily="monospace"
+                    android:layout_marginTop="16dp" android:minHeight="80dp"
+                    android:gravity="top" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
             android:text="CREATED BY KARYADI · CODING KARYADI · DESIGNED BY KARYADI"
-            android:textSize="10sp" android:textStyle="bold" android:textColor="@color/text_secondary"
+            android:textSize="10sp" android:textStyle="bold"
+            android:textColor="@color/text_secondary"
             android:gravity="center" android:padding="16dp" android:letterSpacing="0.1" />
     </LinearLayout>
 </ScrollView>
