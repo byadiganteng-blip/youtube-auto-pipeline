@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/bg_light">
@@ -31,10 +32,18 @@
                 android:textStyle="bold"
                 android:textColor="#FFFFFF"
                 android:layout_marginTop="12dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Edit langsung di HP (offline)"
+                android:textSize="13sp"
+                android:textColor="#FFEBEE"
+                android:layout_marginTop="4dp" />
         </LinearLayout>
 
+        <!-- Pilih Video -->
         <androidx.cardview.widget.CardView
-            xmlns:app="http://schemas.android.com/apk/res-auto"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
@@ -47,9 +56,35 @@
                 android:orientation="vertical"
                 android:padding="20dp">
 
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="✂️ Basic Editing" android:textSize="16sp"
-                    android:textStyle="bold" android:layout_marginBottom="12dp" />
+                <Button android:id="@+id/btnSelectVideo"
+                    android:layout_width="match_parent"
+                    android:layout_height="55dp"
+                    android:text="📁  Pilih Video dari Galeri"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:backgroundTint="@color/brand_primary"
+                    android:textColor="#FFFFFF" />
+
+                <TextView android:id="@+id/tvSelectedVideo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Belum ada video dipilih"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"
+                    android:padding="12dp"
+                    android:background="@drawable/card_bg"
+                    android:layout_marginTop="12dp"
+                    android:gravity="center" />
+
+                <!-- Basic Editing -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="✂️ Basic Editing"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginBottom="12dp" />
 
                 <Button android:id="@+id/btnTrim"
                     android:layout_width="match_parent" android:layout_height="wrap_content"
@@ -74,9 +109,14 @@
                     android:backgroundTint="@color/success" android:textColor="#FFFFFF"
                     android:layout_marginTop="8dp" />
 
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="⚡ Advanced" android:textSize="16sp"
-                    android:textStyle="bold" android:layout_marginTop="20dp"
+                <!-- Advanced -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="⚡ Advanced"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="20dp"
                     android:layout_marginBottom="12dp" />
 
                 <Button android:id="@+id/btnSpeed"
@@ -96,14 +136,19 @@
                     android:backgroundTint="#673AB7" android:textColor="#FFFFFF"
                     android:layout_marginTop="8dp" />
 
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="📦 Convert &amp; Optimize" android:textSize="16sp"
-                    android:textStyle="bold" android:layout_marginTop="20dp"
+                <!-- Convert & Optimize -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="📦 Convert &amp; Optimize"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="20dp"
                     android:layout_marginBottom="12dp" />
 
                 <Button android:id="@+id/btnExtractAudio"
                     android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:text="🎵  Extract Audio"
+                    android:text="🎵  Extract Audio (MP3)"
                     android:backgroundTint="#009688" android:textColor="#FFFFFF" />
 
                 <Button android:id="@+id/btnCompress"
