@@ -12,50 +12,26 @@ on:
         required: true
         default: "remove_watermark"
         type: choice
-        options:
-          - remove_watermark
-          - skip_watermark
+        options: [remove_watermark, skip_watermark]
       video_size:
         description: "Ukuran Video"
         required: true
         default: "original"
         type: choice
-        options:
-          - original
-          - yt_shorts
-          - tiktok
-          - ig_reels
-          - fb_reels
-          - whatsapp_status
-          - ig_feed_square
-          - ig_feed_portrait
-          - yt_landscape
-          - yt_4k
-          - fb_video
-          - twitter
+        options: [original, yt_shorts, tiktok, ig_reels, fb_reels, whatsapp_status,
+                  ig_feed_square, ig_feed_portrait, yt_landscape, yt_4k, fb_video, twitter]
       video_quality:
         description: "Kualitas Video"
         required: true
         default: "original"
         type: choice
-        options:
-          - original
-          - 144p
-          - 240p
-          - 360p
-          - 480p
-          - 720p
-          - 1080p
-          - 1440p
-          - 2160p
+        options: [original, 144p, 240p, 360p, 480p, 720p, 1080p, 1440p, 2160p]
       method:
         description: "Metode Watermark"
         required: false
         default: "blur"
         type: choice
-        options:
-          - blur
-          - inpaint
+        options: [blur, inpaint]
       part_duration:
         description: "Durasi per Part (detik)"
         required: true
@@ -71,26 +47,19 @@ on:
         required: true
         default: "public"
         type: choice
-        options:
-          - public
-          - unlisted
-          - private
+        options: [public, unlisted, private]
       auto_upload:
         description: "Auto Upload?"
         required: true
         default: "false"
         type: choice
-        options:
-          - "true"
-          - "false"
+        options: ["true", "false"]
       upload_type:
         description: "Tipe Upload"
         required: true
         default: "video"
         type: choice
-        options:
-          - video
-          - reels
+        options: [video, reels]
       upload_delay:
         description: "Delay upload"
         required: false
