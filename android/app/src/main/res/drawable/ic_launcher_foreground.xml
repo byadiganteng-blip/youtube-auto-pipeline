@@ -1,19 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="108dp"
-    android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
-
-    <!-- Film strip / video icon -->
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
     <group android:translateX="27" android:translateY="27">
-        <path
-            android:fillColor="#FFFFFF"
-            android:pathData="M6,4 C4.9,4 4,4.9 4,6 L4,48 C4,49.1 4.9,50 6,50 L48,50 C49.1,50 50,49.1 50,48 L50,6 C50,4.9 49.1,4 48,4 Z M14,44 L8,44 L8,38 L14,38 Z M14,34 L8,34 L8,28 L14,28 Z M14,24 L8,24 L8,18 L14,18 Z M14,14 L8,14 L8,8 L14,8 Z M46,44 L20,44 L20,8 L46,8 Z M46,34 L40,34 L40,28 L46,28 Z M46,24 L40,24 L40,18 L46,18 Z M46,14 L40,14 L40,8 L46,8 Z"/>
-
-        <!-- Play button -->
-        <path
-            android:fillColor="#FFC107"
-            android:pathData="M28,20 L28,36 L40,28 Z"/>
+        <path android:fillColor="#FFFFFF" android:pathData="M6,4 L48,4 L48,50 L6,50 Z M14,44 L8,44 L8,38 L14,38 Z M14,34 L8,34 L8,28 L14,28 Z M14,24 L8,24 L8,18 L14,18 Z M14,14 L8,14 L8,8 L14,8 Z M46,44 L20,44 L20,8 L46,8 Z M46,34 L40,34 L40,28 L46,28 Z M46,24 L40,24 L40,18 L46,18 Z M46,14 L40,14 L40,8 L46,8 Z"/>
+        <path android:fillColor="#FFC107" android:pathData="M28,20 L28,36 L40,28 Z"/>
     </group>
 </vector>
