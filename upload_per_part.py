@@ -10,7 +10,6 @@ import time
 import re
 from auto_hashtag import AutoHashtag
 from anti_detect import AntiDetectBot
-from content_detector import ContentDetector
 
 try:
     from google.auth.transport.requests import Request
@@ -82,13 +81,10 @@ def main():
     parser.add_argument('--upload-type', default='video', choices=['video', 'reels'])
     args = parser.parse_args()
 
-    print("=" * 70)
-    print("  AUTO UPLOAD - Type: " + args.upload_type.upper())
-    print("=" * 70)
-
     videos = sorted(glob.glob(os.path.join(args.input_dir, "*.mp4")))
     if not videos:
         return
+
     print("[*] Found " + str(len(videos)) + " videos")
 
     bot = AntiDetectBot()
@@ -123,8 +119,6 @@ def main():
                 url = "https://youtu.be/" + vid
                 print("[+] Uploaded: " + url)
                 uploaded.append({'part': part_num, 'url': url})
-            else:
-                failed.append(filename)
         except Exception as e:
             print("[!] Error: " + str(e))
             failed.append(filename)
