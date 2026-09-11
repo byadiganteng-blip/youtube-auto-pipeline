@@ -8,13 +8,31 @@ on:
         required: true
         type: string
       process_mode:
-        description: "Mode"
+        description: "Mode: Hapus Watermark atau Langsung Upload?"
         required: true
         default: "remove_watermark"
         type: choice
         options:
           - remove_watermark
           - skip_watermark
+      video_size:
+        description: "Ukuran Video (preset untuk platform)"
+        required: true
+        default: "original"
+        type: choice
+        options:
+          - original
+          - yt_shorts
+          - tiktok
+          - ig_reels
+          - fb_reels
+          - whatsapp_status
+          - ig_feed_square
+          - ig_feed_portrait
+          - yt_landscape
+          - yt_4k
+          - fb_video
+          - twitter
       method:
         description: "Metode Remove Watermark"
         required: false
@@ -102,13 +120,17 @@ jobs:
 
       - name: Process Video
         run: |
+          echo "=========================================="
+          echo "  Video Size Preset: ${{ github.event.inputs.video_size }}"
+          echo "=========================================="
           python watermark_remover.py \
             --input "input/video.mp4" \
             --output-dir "output" \
             --method "${{ github.event.inputs.method }}" \
             --part-duration "${{ github.event.inputs.part_duration }}" \
             --samples "${{ github.event.inputs.samples }}" \
-            --process-mode "${{ github.event.inputs.process_mode }}"
+            --process-mode "${{ github.event.inputs.process_mode }}" \
+            --video-size "${{ github.event.inputs.video_size }}"
           ls -lah output/
 
       - name: Generate Metadata
@@ -164,6 +186,7 @@ jobs:
           body: |
             Source: ${{ github.event.inputs.video_url }}
             Mode: ${{ github.event.inputs.process_mode }}
-            Type: ${{ github.event.inputs.upload_type }}
+            Video Size: ${{ github.event.inputs.video_size }}
+            Upload Type: ${{ github.event.inputs.upload_type }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
