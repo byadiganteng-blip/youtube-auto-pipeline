@@ -34,10 +34,7 @@ class ContentDetector:
         },
         'freefire': {'strong': ['free fire', 'freefire', 'booyah']},
         'pubg': {'strong': ['pubg', 'pubg mobile']},
-        'genshin': {
-            'strong': ['genshin', 'genshin impact'],
-            'characters': ['zhongli', 'hutao', 'raiden', 'kazuha'],
-        },
+        'genshin': {'strong': ['genshin', 'genshin impact']},
         'valorant': {'strong': ['valorant', 'valo']},
         'topup': {'strong': ['top up', 'topup', 'diamond murah']},
         'gaming': {'strong': ['gameplay', 'highlight', 'gaming']},
