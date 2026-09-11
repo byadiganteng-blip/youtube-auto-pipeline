@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:text="Kirim broadcast ke semua device"
+        android:textSize="14sp"
+        android:layout_marginBottom="8dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <EditText android:id="@+id/etBroadcastMsg"
+        android:hint="Isi pesan broadcast..."
+        android:gravity="top"
+        android:inputType="textMultiLine"
+        android:minLines="4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <Button android:id="@+id/btnSendBroadcast"
+        android:text="📢 Kirim"
+        android:backgroundTint="#E91E63"
+        android:textColor="#FFFFFF"
+        android:layout_marginTop="12dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+</LinearLayout>

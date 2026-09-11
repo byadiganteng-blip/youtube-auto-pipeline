@@ -51,5 +51,13 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+            <activity android:name=".videoeditor.LogsActivity"
+            android:exported="false" />
+        <activity android:name=".videoeditor.TextEditorActivity"
+            android:exported="false" />
+        <activity android:name=".videoeditor.BroadcastActivity"
+            android:exported="false" />
+        <activity android:name=".videoeditor.FeatureAdderActivity"
+            android:exported="false" />
     </application>
 </manifest>
