@@ -11,18 +11,11 @@ import shutil
 
 
 VIDEO_PRESETS = {
-    'original': None,
-    'yt_shorts': (1080, 1920),
-    'tiktok': (1080, 1920),
-    'ig_reels': (1080, 1920),
-    'fb_reels': (1080, 1920),
-    'whatsapp_status': (1080, 1920),
-    'ig_feed_square': (1080, 1080),
-    'ig_feed_portrait': (1080, 1350),
-    'yt_landscape': (1920, 1080),
-    'yt_4k': (3840, 2160),
-    'fb_video': (1920, 1080),
-    'twitter': (1280, 720),
+    'original': None, 'yt_shorts': (1080, 1920), 'tiktok': (1080, 1920),
+    'ig_reels': (1080, 1920), 'fb_reels': (1080, 1920), 'whatsapp_status': (1080, 1920),
+    'ig_feed_square': (1080, 1080), 'ig_feed_portrait': (1080, 1350),
+    'yt_landscape': (1920, 1080), 'yt_4k': (3840, 2160),
+    'fb_video': (1920, 1080), 'twitter': (1280, 720),
 }
 
 VIDEO_QUALITY = {
@@ -38,115 +31,77 @@ VIDEO_QUALITY = {
 }
 
 
-def get_preset_size(preset_name):
-    return VIDEO_PRESETS.get(preset_name)
-
-
-def get_quality_size(quality_name):
-    return VIDEO_QUALITY.get(quality_name)
+def get_preset_size(p): return VIDEO_PRESETS.get(p)
+def get_quality_size(q): return VIDEO_QUALITY.get(q)
 
 
 def build_vf_filter(preset_name, quality_name):
-    target_w = None
-    target_h = None
+    target_w = target_h = None
     quality = get_quality_size(quality_name)
     if quality:
-        target_w = quality['width']
-        target_h = quality['height']
+        target_w, target_h = quality['width'], quality['height']
     else:
         preset = get_preset_size(preset_name)
-        if preset:
-            target_w, target_h = preset
-
-    if target_w is None or target_h is None:
-        return None
-
-    return (
-        "scale=" + str(target_w) + ":" + str(target_h) +
-        ":force_original_aspect_ratio=decrease,"
-        "pad=" + str(target_w) + ":" + str(target_h) +
-        ":(ow-iw)/2:(oh-ih)/2:black,"
-        "setsar=1"
-    )
+        if preset: target_w, target_h = preset
+    if target_w is None: return None
+    return ("scale=" + str(target_w) + ":" + str(target_h) +
+            ":force_original_aspect_ratio=decrease,"
+            "pad=" + str(target_w) + ":" + str(target_h) +
+            ":(ow-iw)/2:(oh-ih)/2:black,setsar=1")
 
 
 def get_duration(path):
     try:
-        result = subprocess.run(
-            ['ffprobe', '-v', 'error', '-show_entries', 'format=duration',
-             '-of', 'default=noprint_wrappers=1:nokey=1', path],
-            capture_output=True, text=True, timeout=15
-        )
+        result = subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration',
+                                 '-of', 'default=noprint_wrappers=1:nokey=1', path],
+                                capture_output=True, text=True, timeout=15)
         return float(result.stdout.strip())
-    except:
-        return 0
+    except: return 0
 
 
 def has_audio(path):
     try:
-        result = subprocess.run(
-            ['ffprobe', '-v', 'error', '-select_streams', 'a:0',
-             '-show_entries', 'stream=codec_type',
-             '-of', 'default=noprint_wrappers=1:nokey=1', path],
-            capture_output=True, text=True, timeout=10
-        )
+        result = subprocess.run(['ffprobe', '-v', 'error', '-select_streams', 'a:0',
+                                 '-show_entries', 'stream=codec_type',
+                                 '-of', 'default=noprint_wrappers=1:nokey=1', path],
+                                capture_output=True, text=True, timeout=10)
         return 'audio' in result.stdout.lower()
-    except:
-        return False
+    except: return False
 
 
 def split_only(input_path, output_dir, part_duration=300, preset='original', quality='original'):
     print("[*] Mode: SKIP WATERMARK")
-    print("[*] Preset: " + preset)
-    print("[*] Quality: " + quality)
-
     vf = build_vf_filter(preset, quality)
     quality_info = get_quality_size(quality)
 
     duration = get_duration(input_path)
-    if duration <= 0:
-        sys.exit(1)
+    if duration <= 0: sys.exit(1)
 
     num_parts = int((duration + part_duration - 1) // part_duration)
     print("[*] Will create " + str(num_parts) + " parts")
 
     base_name = os.path.splitext(os.path.basename(input_path))[0]
-    clean_name = ""
-    for ch in base_name:
-        clean_name += ch if (ch.isalnum() or ch in '_-') else '_'
-    base_name = clean_name
-
-    start_time = time.time()
+    clean_name = "".join(ch if (ch.isalnum() or ch in '_-') else '_' for ch in base_name)
 
     for part_idx in range(1, num_parts + 1):
         start_sec = (part_idx - 1) * part_duration
-        final_path = os.path.join(output_dir, base_name + "_part" + str(part_idx).zfill(3) + "_no_wm.mp4")
-
+        final_path = os.path.join(output_dir, clean_name + "_part" + str(part_idx).zfill(3) + "_no_wm.mp4")
         print("[*] Part " + str(part_idx) + "/" + str(num_parts))
 
         if vf:
-            cmd = ['ffmpeg', '-ss', str(start_sec), '-i', input_path,
-                   '-t', str(part_duration), '-vf', vf]
-            if quality_info:
-                cmd.extend(['-b:v', quality_info['bitrate']])
-            cmd.extend(['-c:v', 'libx264', '-preset', 'fast',
-                       '-c:a', 'aac', '-b:a', '192k',
-                       '-movflags', '+faststart',
-                       final_path, '-y', '-loglevel', 'error'])
+            cmd = ['ffmpeg', '-ss', str(start_sec), '-i', input_path, '-t', str(part_duration), '-vf', vf]
+            if quality_info: cmd.extend(['-b:v', quality_info['bitrate']])
+            cmd.extend(['-c:v', 'libx264', '-preset', 'fast', '-c:a', 'aac', '-b:a', '192k',
+                       '-movflags', '+faststart', final_path, '-y', '-loglevel', 'error'])
         else:
-            cmd = ['ffmpeg', '-ss', str(start_sec), '-i', input_path,
-                   '-t', str(part_duration), '-c', 'copy',
-                   '-avoid_negative_ts', 'make_zero',
-                   '-movflags', '+faststart',
+            cmd = ['ffmpeg', '-ss', str(start_sec), '-i', input_path, '-t', str(part_duration),
+                   '-c', 'copy', '-avoid_negative_ts', 'make_zero', '-movflags', '+faststart',
                    final_path, '-y', '-loglevel', 'warning']
 
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=1800)
-
         if result.returncode == 0 and os.path.exists(final_path):
             size = os.path.getsize(final_path) / (1024 * 1024)
             print("    [+] Part " + str(part_idx) + ": " + str(round(size, 1)) + " MB")
-
-    print("[+] Complete in " + str(round(time.time() - start_time, 1)) + "s")
 
 
 def detect_watermarks(path, samples=30):
@@ -163,14 +118,11 @@ def detect_watermarks(path, samples=30):
     for i in range(0, total, step):
         cap.set(cv2.CAP_PROP_POS_FRAMES, i)
         ret, frame = cap.read()
-        if ret:
-            frames.append(frame)
-        if len(frames) >= samples:
-            break
+        if ret: frames.append(frame)
+        if len(frames) >= samples: break
     cap.release()
 
-    if len(frames) < 2:
-        return []
+    if len(frames) < 2: return []
 
     h, w = frames[0].shape[:2]
     grays = [cv2.cvtColor(f, cv2.COLOR_BGR2GRAY) for f in frames]
@@ -196,16 +148,12 @@ def detect_watermarks(path, samples=30):
     return watermarks
 
 
-def remove_and_split(input_path, output_dir, watermarks, method='blur',
-                     part_duration=300, preset='original', quality='original'):
+def remove_and_split(input_path, output_dir, watermarks, method='blur', part_duration=300,
+                     preset='original', quality='original'):
     import cv2
     import numpy as np
 
     print("[*] Mode: REMOVE WATERMARK")
-    print("[*] Method: " + method)
-    print("[*] Preset: " + preset)
-    print("[*] Quality: " + quality)
-
     cap = cv2.VideoCapture(input_path)
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -229,63 +177,46 @@ def remove_and_split(input_path, output_dir, watermarks, method='blur',
     frame_in_part = 0
     temp_video = None
     out = None
-    start_time = time.time()
     audio_ok = has_audio(input_path)
-
     vf = build_vf_filter(preset, quality)
     quality_info = get_quality_size(quality)
 
-    base_name = os.path.splitext(os.path.basename(input_path))[0]
-    clean_name = ""
-    for ch in base_name:
-        clean_name += ch if (ch.isalnum() or ch in '_-') else '_'
-    base_name = clean_name
+    base_name = "".join(ch if (ch.isalnum() or ch in '_-') else '_'
+                        for ch in os.path.splitext(os.path.basename(input_path))[0])
 
     def finalize_part(part_idx, temp_vid):
         final_path = os.path.join(output_dir, base_name + "_part" + str(part_idx).zfill(3) + "_no_wm.mp4")
         if vf:
             cmd = ['ffmpeg', '-i', temp_vid, '-vf', vf]
-            if quality_info:
-                cmd.extend(['-b:v', quality_info['bitrate']])
+            if quality_info: cmd.extend(['-b:v', quality_info['bitrate']])
             if audio_ok:
-                cmd.extend(['-c:v', 'libx264', '-preset', 'fast',
-                           '-c:a', 'aac', '-b:a', '192k',
-                           '-movflags', '+faststart',
-                           final_path, '-y', '-loglevel', 'error'])
+                cmd.extend(['-c:v', 'libx264', '-preset', 'fast', '-c:a', 'aac', '-b:a', '192k',
+                           '-movflags', '+faststart', final_path, '-y', '-loglevel', 'error'])
             else:
-                cmd.extend(['-c:v', 'libx264', '-preset', 'fast',
-                           '-an', '-movflags', '+faststart',
-                           final_path, '-y', '-loglevel', 'error'])
+                cmd.extend(['-c:v', 'libx264', '-preset', 'fast', '-an',
+                           '-movflags', '+faststart', final_path, '-y', '-loglevel', 'error'])
             subprocess.run(cmd, capture_output=True, timeout=1800)
         else:
             if audio_ok:
                 start_sec = (part_idx - 1) * part_duration
-                cmd = ['ffmpeg', '-ss', str(start_sec), '-i', temp_vid,
-                       '-t', str(part_duration), '-i', input_path,
-                       '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k',
-                       '-map', '0:v:0', '-map', '1:a:0?', '-shortest',
-                       '-movflags', '+faststart',
+                cmd = ['ffmpeg', '-ss', str(start_sec), '-i', temp_vid, '-t', str(part_duration),
+                       '-i', input_path, '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k',
+                       '-map', '0:v:0', '-map', '1:a:0?', '-shortest', '-movflags', '+faststart',
                        final_path, '-y', '-loglevel', 'error']
                 subprocess.run(cmd, capture_output=True, timeout=600)
             else:
                 shutil.move(temp_vid, final_path)
-
-        if os.path.exists(temp_vid):
-            os.remove(temp_vid)
-
+        if os.path.exists(temp_vid): os.remove(temp_vid)
         if os.path.exists(final_path):
-            size = os.path.getsize(final_path) / (1024 * 1024)
-            print("    [+] Part " + str(part_idx) + ": " + str(round(size, 1)) + " MB")
+            print("    [+] Part " + str(part_idx) + ": " +
+                  str(round(os.path.getsize(final_path) / (1024 * 1024), 1)) + " MB")
 
     while True:
         ret, frame = cap.read()
-        if not ret:
-            break
-
+        if not ret: break
         if frame_in_part == 0:
             temp_video = tempfile.mktemp(suffix='_noaudio.mp4')
-            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-            out = cv2.VideoWriter(temp_video, fourcc, fps, (width, height))
+            out = cv2.VideoWriter(temp_video, cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
 
         if method == 'blur':
             for wm in watermarks:
@@ -314,9 +245,7 @@ def remove_and_split(input_path, output_dir, watermarks, method='blur',
         out.release()
         if temp_video and os.path.exists(temp_video):
             finalize_part(part_num, temp_video)
-
     cap.release()
-    print("[+] Complete in " + str(round(time.time() - start_time, 1)) + "s")
 
 
 def main():
@@ -326,32 +255,19 @@ def main():
     parser.add_argument('--method', default='blur')
     parser.add_argument('--samples', type=int, default=30)
     parser.add_argument('--part-duration', type=int, default=300)
-    parser.add_argument('--process-mode', default='remove_watermark',
-                        choices=['remove_watermark', 'skip_watermark'])
-    parser.add_argument('--video-size', default='original',
-                        choices=list(VIDEO_PRESETS.keys()))
-    parser.add_argument('--video-quality', default='original',
-                        choices=list(VIDEO_QUALITY.keys()))
+    parser.add_argument('--process-mode', default='remove_watermark')
+    parser.add_argument('--video-size', default='original')
+    parser.add_argument('--video-quality', default='original')
     args = parser.parse_args()
 
     os.makedirs(args.output_dir, exist_ok=True)
-    if not os.path.exists(args.input):
-        sys.exit(1)
-
-    print("[*] Video size: " + args.video_size)
-    print("[*] Video quality: " + args.video_quality)
 
     if args.process_mode == 'skip_watermark':
-        split_only(args.input, args.output_dir, args.part_duration,
-                   args.video_size, args.video_quality)
+        split_only(args.input, args.output_dir, args.part_duration, args.video_size, args.video_quality)
     else:
         watermarks = detect_watermarks(args.input, args.samples)
-        remove_and_split(args.input, args.output_dir, watermarks,
-                        args.method, args.part_duration,
-                        args.video_size, args.video_quality)
-
-    out_files = [f for f in os.listdir(args.output_dir) if f.endswith('.mp4')]
-    print("[*] Total output: " + str(len(out_files)))
+        remove_and_split(args.input, args.output_dir, watermarks, args.method,
+                        args.part_duration, args.video_size, args.video_quality)
 
 
 if __name__ == '__main__':
