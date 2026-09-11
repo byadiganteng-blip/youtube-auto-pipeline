@@ -147,9 +147,7 @@ class MainActivity : AppCompatActivity() {
             val token = extractToken(content)
             if (token.isNotEmpty()) {
                 etToken.setText(token)
-                Toast.makeText(this, "Token dibaca dari file", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(this, "Token tidak ditemukan", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Token dibaca", Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {
             Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_LONG).show()
@@ -160,7 +158,6 @@ class MainActivity : AppCompatActivity() {
         try {
             val json = JSONObject(content)
             if (json.has("github_token")) return json.getString("github_token").trim()
-            if (json.has("token")) return json.getString("token").trim()
         } catch (_: Exception) {}
         val cleaned = content.replace("\n", "").replace("\r", "").replace(" ", "")
         if (cleaned.startsWith("ghp_") || cleaned.startsWith("github_pat_")) return cleaned
@@ -175,9 +172,7 @@ class MainActivity : AppCompatActivity() {
         if (githubToken.isNotEmpty()) {
             etToken.setText(githubToken)
             showForm()
-        } else {
-            showSetup()
-        }
+        } else showSetup()
     }
 
     private fun saveToken() {
@@ -188,23 +183,17 @@ class MainActivity : AppCompatActivity() {
             showLoading(false)
             if (ok) {
                 githubToken = token
-                getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit {
-                    putString(KEY_TOKEN, token)
-                }
+                getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit { putString(KEY_TOKEN, token) }
                 Toast.makeText(this, "Token VALID", Toast.LENGTH_SHORT).show()
                 showForm()
-            } else {
-                Toast.makeText(this, "Token INVALID", Toast.LENGTH_LONG).show()
-            }
+            } else Toast.makeText(this, "Token INVALID", Toast.LENGTH_LONG).show()
         }
     }
 
     private fun verifyToken(token: String, callback: (Boolean) -> Unit) {
-        val request = Request.Builder()
-            .url("https://api.github.com/user")
+        val request = Request.Builder().url("https://api.github.com/user")
             .header("Authorization", "token $token")
-            .header("Accept", "application/vnd.github.v3+json")
-            .build()
+            .header("Accept", "application/vnd.github.v3+json").build()
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: java.io.IOException) { runOnUiThread { callback(false) } }
             override fun onResponse(call: Call, response: Response) { runOnUiThread { callback(response.isSuccessful) } }
@@ -212,15 +201,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun logout() {
-        AlertDialog.Builder(this)
-            .setTitle("Logout").setMessage("Hapus token?")
+        AlertDialog.Builder(this).setTitle("Logout").setMessage("Hapus token?")
             .setPositiveButton("Ya") { _, _ ->
                 getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit { remove(KEY_TOKEN) }
                 githubToken = ""
                 etToken.setText("")
                 showSetup()
-            }
-            .setNegativeButton("Batal", null).show()
+            }.setNegativeButton("Batal", null).show()
     }
 
     private fun runWorkflow() {
@@ -229,7 +216,6 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, "URL wajib diisi", Toast.LENGTH_LONG).show()
             return
         }
-
         val inputs = JSONObject().apply {
             put("video_url", url)
             put("process_mode", spinnerProcessMode.selectedItem.toString())
@@ -243,21 +229,15 @@ class MainActivity : AppCompatActivity() {
             put("upload_delay", etDelay.text.toString())
             put("start_part", etStartPart.text.toString())
         }
-
         val json = JSONObject().apply { put("ref", "main"); put("inputs", inputs) }
         val apiUrl = "https://api.github.com/repos/$OWNER/$REPO/actions/workflows/$WORKFLOW/dispatches"
         val body = json.toString().toRequestBody("application/json".toMediaType())
-
-        val request = Request.Builder()
-            .url(apiUrl)
+        val request = Request.Builder().url(apiUrl)
             .header("Authorization", "token $githubToken")
             .header("Accept", "application/vnd.github.v3+json")
-            .post(body)
-            .build()
-
+            .post(body).build()
         showLoading(true)
         setStatus("Mengirim...")
-
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: java.io.IOException) {
                 runOnUiThread { showLoading(false); setStatus("Gagal: ${e.message}") }
@@ -265,7 +245,7 @@ class MainActivity : AppCompatActivity() {
             override fun onResponse(call: Call, response: Response) {
                 runOnUiThread {
                     showLoading(false)
-                    setStatus(if (response.code == 204) "✅ Workflow triggered!" else "Error ${response.code}: ${response.body?.string()}")
+                    setStatus(if (response.code == 204) "✅ Triggered!" else "Error ${response.code}")
                 }
             }
         })
@@ -276,7 +256,6 @@ class MainActivity : AppCompatActivity() {
         val request = Request.Builder().url(url)
             .header("Authorization", "token $githubToken")
             .header("Accept", "application/vnd.github.v3+json").build()
-
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: java.io.IOException) {
                 runOnUiThread { setStatus("Error: ${e.message}") }
