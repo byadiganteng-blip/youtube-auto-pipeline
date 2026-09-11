@@ -16,7 +16,7 @@ on:
           - remove_watermark
           - skip_watermark
       video_size:
-        description: "Ukuran Video (preset untuk platform)"
+        description: "Ukuran Video (aspect ratio / platform)"
         required: true
         default: "original"
         type: choice
@@ -33,6 +33,21 @@ on:
           - yt_4k
           - fb_video
           - twitter
+      video_quality:
+        description: "Kualitas Video (resolusi)"
+        required: true
+        default: "original"
+        type: choice
+        options:
+          - original
+          - 144p
+          - 240p
+          - 360p
+          - 480p
+          - 720p
+          - 1080p
+          - 1440p
+          - 2160p
       method:
         description: "Metode Remove Watermark"
         required: false
@@ -121,7 +136,8 @@ jobs:
       - name: Process Video
         run: |
           echo "=========================================="
-          echo "  Video Size Preset: ${{ github.event.inputs.video_size }}"
+          echo "  Video Size: ${{ github.event.inputs.video_size }}"
+          echo "  Video Quality: ${{ github.event.inputs.video_quality }}"
           echo "=========================================="
           python watermark_remover.py \
             --input "input/video.mp4" \
@@ -130,7 +146,8 @@ jobs:
             --part-duration "${{ github.event.inputs.part_duration }}" \
             --samples "${{ github.event.inputs.samples }}" \
             --process-mode "${{ github.event.inputs.process_mode }}" \
-            --video-size "${{ github.event.inputs.video_size }}"
+            --video-size "${{ github.event.inputs.video_size }}" \
+            --video-quality "${{ github.event.inputs.video_quality }}"
           ls -lah output/
 
       - name: Generate Metadata
@@ -187,6 +204,7 @@ jobs:
             Source: ${{ github.event.inputs.video_url }}
             Mode: ${{ github.event.inputs.process_mode }}
             Video Size: ${{ github.event.inputs.video_size }}
+            Video Quality: ${{ github.event.inputs.video_quality }}
             Upload Type: ${{ github.event.inputs.upload_type }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
