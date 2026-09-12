@@ -72,7 +72,7 @@
 ==============================================================================
   4. KOTLIN - DEEP ANALYSIS
 ==============================================================================
-  Total Kotlin LOC  : 1360
+  Total Kotlin LOC  : 1350
   Classes declared  : 23
   Files w/ findViewById: 10
   Files w/ setContentView: 13
@@ -80,10 +80,10 @@
   Intent targets: 4
 
 -- Intent reference check --------------------------------------------------
-  OK FeatureAdderActivity
-  OK LogsActivity
-  OK TextEditorActivity
   OK BroadcastActivity
+  OK TextEditorActivity
+  OK LogsActivity
+  OK FeatureAdderActivity
 
 ==============================================================================
   5. RESOURCES (DEEP)
@@ -162,14 +162,11 @@
   14. BUILD PREDICTIONS
 ==============================================================================
   OK Manifest refer ke .YadApp
-  [PREDICT] SecureConfig pakai lateinit - bisa crash kalau belum init
+  OK SecureConfig pakai nullable
 
 ==============================================================================
   15. AUTO-FIX
 ==============================================================================
-
-  [FIX] SecureConfig lateinit -> nullable
-  [FIX] SecureConfig lateinit -> nullable
 
 ==============================================================================
   16. RINGKASAN
@@ -177,8 +174,8 @@
   Errors   : 0
   Warnings : 1
   Info     : 0
-  Fixes    : 1
-  Predictions: 1
+  Fixes    : 0
+  Predictions: 0
 
   Per kategori:
     performance: 1
