@@ -87,9 +87,9 @@
   Intent targets     : 4
 
 ── Intent reference check ──────────────────────────────────────────────────
+  ✅ TextEditorActivity
   ✅ BroadcastActivity
   ✅ FeatureAdderActivity
-  ✅ TextEditorActivity
   ✅ LogsActivity
 
 ==============================================================================
