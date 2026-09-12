@@ -1,1 +1,4 @@
+[ERROR] [android/app/src/main/java/com/universal/videoeditor/MainActivity.kt] android/app/src/main/java/com/universal/videoeditor/MainActivity.kt: R.id.etEmail tidak ada
+[ERROR] [android/app/src/main/java/com/universal/videoeditor/MainActivity.kt] android/app/src/main/java/com/universal/videoeditor/MainActivity.kt: R.id.etToken tidak ada
+[ERROR] [android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt] android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt: R.id.cardRun tidak ada
 [WARNING] [android/app/src/main/java/com/universal/videoeditor/AdminApi.kt] android/app/src/main/java/com/universal/videoeditor/AdminApi.kt: network call di main thread?

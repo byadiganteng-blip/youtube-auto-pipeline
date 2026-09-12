@@ -15,8 +15,8 @@
 ==============================================================================
   1. INVENTARIS FILE
 ==============================================================================
-  Kotlin      : 19
-  XML (res/)  : 32
+  Kotlin      : 12
+  XML (res/)  : 23
   Gradle      : 3
   Manifest    : OK
 
@@ -26,7 +26,7 @@
 
 -- app/build.gradle --------------------------------------------------------
   OK Curly brace balance
-  Dependencies: 11
+  Dependencies: 10
     - androidx.core:core-ktx:1.12.0
     - androidx.appcompat:appcompat:1.6.1
     - com.google.android.material:material:1.11.0
@@ -36,7 +36,6 @@
     - org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3
     - com.squareup.okhttp3:okhttp:4.12.0
     - org.json:json:20231013
-    - androidx.security:security-crypto:1.1.0-alpha06
     - androidx.multidex:multidex:2.0.1
   Gradle version: 8.2
 
@@ -48,52 +47,41 @@
     [activity ] .MainActivity
     [activity ] .FilesActivity
     [activity ] .ActionsActivity
-    [activity ] .CreditActivity
-    [activity ] .InstructionsActivity
     [activity ] .AdminActivity
     [activity ] .VideoEditorActivity
+    [activity ] .InstructionsActivity
+    [activity ] .CreditActivity
     [activity ] .StatisticsActivity
     [activity ] .SettingsActivity
-    [provider ] androidx.core.content.FileProvider
 
--- Permissions (10) --------------------------------------------------------
+-- Permissions (4) ---------------------------------------------------------
     [normal] android.permission.INTERNET
     [normal] android.permission.ACCESS_NETWORK_STATE
-    [normal] android.permission.WRITE_EXTERNAL_STORAGE
     [normal] android.permission.READ_EXTERNAL_STORAGE
-    [normal] android.permission.POST_NOTIFICATIONS
-    [normal] android.permission.REQUEST_INSTALL_PACKAGES
-    [normal] android.permission.FOREGROUND_SERVICE
-    [normal] android.permission.READ_MEDIA_VIDEO
-    [normal] android.permission.READ_MEDIA_AUDIO
-    [normal] android.permission.READ_MEDIA_IMAGES
+    [normal] android.permission.WRITE_EXTERNAL_STORAGE
   Application name: .YadApp
 
 ==============================================================================
   4. KOTLIN - DEEP ANALYSIS
 ==============================================================================
-  Total Kotlin LOC  : 1350
-  Classes declared  : 23
-  Files w/ findViewById: 10
-  Files w/ setContentView: 13
-  Item layouts: ['item_run']
-  Intent targets: 4
+  Total Kotlin LOC  : 586
+  Classes declared  : 15
+  Files w/ findViewById: 4
+  Files w/ setContentView: 9
+  Item layouts: ['dialog_admin_login', 'item_run']
+  Intent targets: 0
 
 -- Intent reference check --------------------------------------------------
-  OK BroadcastActivity
-  OK TextEditorActivity
-  OK LogsActivity
-  OK FeatureAdderActivity
 
 ==============================================================================
   5. RESOURCES (DEEP)
 ==============================================================================
-  Colors     : 37
-  Strings    : 28
-  Dimens     : 18
-  Styles     : 3
+  Colors     : 9
+  Strings    : 2
+  Dimens     : 0
+  Styles     : 1
   Drawables  : 38 (incl. built-in)
-  Layouts    : 38 (incl. built-in)
+  Layouts    : 31 (incl. built-in)
 
 ==============================================================================
   6. CROSS-CHECK RESOURCES
@@ -102,16 +90,15 @@
 ==============================================================================
   7. KOTLIN + LAYOUT MATCHING (SMART)
 ==============================================================================
-  Item layout IDs: ['cardRun', 'tvIcon', 'tvName', 'tvStatus', 'tvTime']
-  OK android/app/src/main/java/com/universal/videoeditor/LogsActivity.kt -> activity_logs.xml
+  Item layout IDs: ['etEmail', 'etToken', 'tvName', 'tvStatus', 'tvTime']
   OK android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt -> activity_instructions.xml
-  OK android/app/src/main/java/com/universal/videoeditor/BroadcastActivity.kt -> activity_broadcast.xml
   OK android/app/src/main/java/com/universal/videoeditor/VideoEditorActivity.kt -> activity_video_editor.xml
-  OK android/app/src/main/java/com/universal/videoeditor/TextEditorActivity.kt -> activity_text_editor.xml
   OK android/app/src/main/java/com/universal/videoeditor/StatisticsActivity.kt -> activity_statistics.xml
-  OK android/app/src/main/java/com/universal/videoeditor/MainActivity.kt -> activity_main.xml
-  OK android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt -> activity_actions.xml
-  OK android/app/src/main/java/com/universal/videoeditor/FeatureAdderActivity.kt -> activity_feature_adder.xml
+  [!] android/app/src/main/java/com/universal/videoeditor/MainActivity.kt -> activity_main.xml - ID hilang: ['etEmail', 'etToken']
+  [X] android/app/src/main/java/com/universal/videoeditor/MainActivity.kt: R.id.etEmail tidak ada [android/app/src/main/java/com/universal/videoeditor/MainActivity.kt:None]
+  [X] android/app/src/main/java/com/universal/videoeditor/MainActivity.kt: R.id.etToken tidak ada [android/app/src/main/java/com/universal/videoeditor/MainActivity.kt:None]
+  [!] android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt -> activity_actions.xml - ID hilang: ['cardRun']
+  [X] android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt: R.id.cardRun tidak ada [android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt:None]
   OK android/app/src/main/java/com/universal/videoeditor/SettingsActivity.kt -> activity_settings.xml
   OK android/app/src/main/java/com/universal/videoeditor/FilesActivity.kt -> activity_files.xml
   OK android/app/src/main/java/com/universal/videoeditor/CreditActivity.kt -> activity_credit.xml
@@ -123,13 +110,12 @@
   OK [activity] MainActivity
   OK [activity] FilesActivity
   OK [activity] ActionsActivity
-  OK [activity] CreditActivity
-  OK [activity] InstructionsActivity
   OK [activity] AdminActivity
   OK [activity] VideoEditorActivity
+  OK [activity] InstructionsActivity
+  OK [activity] CreditActivity
   OK [activity] StatisticsActivity
   OK [activity] SettingsActivity
-  [i] [provider] FileProvider - library class (skip)
 
 ==============================================================================
   9. DUPLICATE DETECTION
@@ -139,9 +125,7 @@
 ==============================================================================
   10. DEAD CODE DETECTION
 ==============================================================================
-  [!] 2 kandidat dead code:
-     AdminManager (android/app/src/main/java/com/universal/videoeditor/AdminManager.kt)
-     SecurePrefs (android/app/src/main/java/com/universal/videoeditor/SecurePrefs.kt)
+  OK Tidak ada dead code
 
 ==============================================================================
   11. SECURITY ANALYSIS
@@ -156,7 +140,7 @@
 ==============================================================================
   13. DEPENDENCY GRAPH
 ==============================================================================
-  Files dalam graph: 19
+  Files dalam graph: 12
 
 ==============================================================================
   14. BUILD PREDICTIONS
@@ -171,13 +155,14 @@
 ==============================================================================
   16. RINGKASAN
 ==============================================================================
-  Errors   : 0
+  Errors   : 3
   Warnings : 1
   Info     : 0
   Fixes    : 0
   Predictions: 0
 
   Per kategori:
+    layout: 3
     performance: 1
 
 ==============================================================================

@@ -1,6 +1,24 @@
 {
   "issues": [
     {
+      "msg": "android/app/src/main/java/com/universal/videoeditor/MainActivity.kt: R.id.etEmail tidak ada",
+      "severity": "error",
+      "category": "layout",
+      "file": "android/app/src/main/java/com/universal/videoeditor/MainActivity.kt"
+    },
+    {
+      "msg": "android/app/src/main/java/com/universal/videoeditor/MainActivity.kt: R.id.etToken tidak ada",
+      "severity": "error",
+      "category": "layout",
+      "file": "android/app/src/main/java/com/universal/videoeditor/MainActivity.kt"
+    },
+    {
+      "msg": "android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt: R.id.cardRun tidak ada",
+      "severity": "error",
+      "category": "layout",
+      "file": "android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt"
+    },
+    {
       "msg": "android/app/src/main/java/com/universal/videoeditor/AdminApi.kt: network call di main thread?",
       "severity": "warning",
       "category": "performance",
@@ -10,13 +28,14 @@
   "fixes": [],
   "predictions": [],
   "summary": {
-    "errors": 0,
+    "errors": 3,
     "warnings": 1,
     "infos": 0,
     "fixes": 0
   },
   "categories": {
+    "layout": 3,
     "performance": 1
   },
-  "timestamp": "2026-09-12T06:18:37.118132"
+  "timestamp": "2026-09-12T06:28:41.762305"
 }
