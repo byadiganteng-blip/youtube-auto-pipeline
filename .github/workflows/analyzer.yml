@@ -1,0 +1,101 @@
+name: Ultimate Analyzer
+
+on:
+  workflow_dispatch:
+    inputs:
+      auto_fix:
+        description: "Auto-fix issues?"
+        required: true
+        default: "true"
+        type: choice
+        options: ["true", "false"]
+      commit_fixes:
+        description: "Commit & push fixes?"
+        required: true
+        default: "true"
+        type: choice
+        options: ["true", "false"]
+  push:
+    branches: [main]
+    paths:
+      - "android/**"
+      - "scripts/ultimate_analyzer.py"
+      - ".github/workflows/analyzer.yml"
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run Ultimate Analyzer
+        env:
+          WORKDIR: ${{ github.workspace }}
+          OUTPUT_DIR: output
+          AUTO_FIX: ${{ github.event.inputs.auto_fix || 'true' }}
+        run: python scripts/ultimate_analyzer.py
+
+      - name: Show report summary
+        if: always()
+        run: |
+          echo "## 📊 Ultimate Analyzer Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f output/report.txt ]; then
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            tail -50 output/report.txt >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Commit fixes
+        if: |
+          always() &&
+          (github.event.inputs.commit_fixes == 'true' || github.event_name == 'push')
+        run: |
+          git config user.name "yad-analyzer[bot]"
+          git config user.email "yad-analyzer@users.noreply.github.com"
+
+          if [ -n "$(git status --porcelain)" ]; then
+            git add -A
+            git commit -m "🤖 Auto-fix by Ultimate Analyzer
+
+            - Analyzer applied $(cat output/fixes_applied.txt 2>/dev/null | wc -l) fixes
+            - Report in artifact
+            Created by KARYADI, Coding by KARYADI"
+            git push
+            echo "✅ Fixes committed & pushed"
+          else
+            echo "ℹ️  No changes to commit"
+          fi
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: analyzer-report-${{ github.run_number }}
+          path: output/
+
+      - name: Create ZIP bundle
+        if: always()
+        run: |
+          cd output
+          zip -r ../analyzer-result.zip ./*
+          cd ..
+
+      - name: Upload ZIP
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: analyzer-result-zip
+          path: analyzer-result.zip
