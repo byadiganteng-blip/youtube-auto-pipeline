@@ -304,6 +304,48 @@ defined_drawables = set()
 defined_mipmaps = set()
 defined_layouts = set()
 defined_xmls = set()
+# ============================================================
+# ANDROID BUILT-IN LAYOUTS (jangan dianggap missing)
+# ============================================================
+ANDROID_BUILTIN_LAYOUTS = {
+    "simple_spinner_item",
+    "simple_spinner_dropdown_item",
+    "simple_list_item_1",
+    "simple_list_item_2",
+    "simple_list_item_single_choice",
+    "simple_list_item_multiple_choice",
+    "simple_list_item_checked",
+    "simple_expandable_list_item_1",
+    "simple_expandable_list_item_2",
+    "simple_selectable_list_item",
+    "simple_dropdown_item_1line",
+    "simple_list_item_activated_1",
+    "simple_list_item_activated_2",
+    "activity_list_item",
+    "list_content",
+    "browser_link_context_header",
+    "two_line_list_item",
+    "select_dialog_item",
+    "select_dialog_singlechoice",
+    "select_dialog_multichoice",
+}
+
+ANDROID_BUILTIN_DRAWABLES = {
+    "ic_menu_close_clear_cancel", "ic_menu_edit", "ic_menu_save",
+    "ic_menu_delete", "ic_menu_add", "ic_menu_info_details",
+    "ic_menu_refresh", "ic_menu_share", "ic_menu_view",
+    "ic_dialog_alert", "ic_dialog_info",
+    "presence_online", "presence_offline", "presence_away",
+    "presence_invisible", "presence_busy",
+    "btn_default", "btn_radio", "btn_star_big_off",
+    "ic_media_play", "ic_media_pause", "ic_media_next", "ic_media_previous",
+    "ic_input_add", "ic_input_delete", "ic_input_get",
+    "ic_partial_secure", "ic_secure", "ic_lock_idle_lock",
+    "ic_launcher", "ic_launcher_round",
+    "edit_text", "list_selector_background",
+    "progress_horizontal", "progress_indeterminate_horizontal",
+}
+
 defined_arrays = set()
 defined_bools = set()
 defined_integers = set()
@@ -381,6 +423,10 @@ for root, _, fs in os.walk(RES_DIR):
         for m in re.finditer(r'@xml/(\w+)', content):
             if m.group(1) not in defined_xmls:
                 unresolved["xml"].append((rel, m.group(1)))
+
+# Tambahkan Android built-in layouts ke defined set
+defined_layouts |= ANDROID_BUILTIN_LAYOUTS
+defined_drawables |= ANDROID_BUILTIN_DRAWABLES
 
 # Kotlin
 for kt in kt_files:
