@@ -1,1 +1,1 @@
-[WARNING] [android/app/src/main/java/com/universal/videoeditor/SecureConfig.kt] SecureConfig.kt: pakai 'lateinit' — bisa crash kalau belum init
+[WARNING] [android/app/src/main/java/com/universal/videoeditor/AdminApi.kt] android/app/src/main/java/com/universal/videoeditor/AdminApi.kt: network call di main thread?

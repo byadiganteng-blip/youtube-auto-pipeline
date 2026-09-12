@@ -1,21 +1,26 @@
 {
   "issues": [
     {
-      "msg": "SecureConfig.kt: pakai 'lateinit' — bisa crash kalau belum init",
+      "msg": "android/app/src/main/java/com/universal/videoeditor/AdminApi.kt: network call di main thread?",
       "severity": "warning",
-      "category": "kotlin",
-      "file": "android/app/src/main/java/com/universal/videoeditor/SecureConfig.kt"
+      "category": "performance",
+      "file": "android/app/src/main/java/com/universal/videoeditor/AdminApi.kt"
     }
   ],
-  "fixes": [],
+  "fixes": [
+    "SecureConfig lateinit -> nullable"
+  ],
+  "predictions": [
+    "SecureConfig pakai lateinit - bisa crash kalau belum init"
+  ],
   "summary": {
     "errors": 0,
     "warnings": 1,
     "infos": 0,
-    "fixes": 0
+    "fixes": 1
   },
   "categories": {
-    "kotlin": 1
+    "performance": 1
   },
-  "timestamp": "2026-09-12T05:21:20.362238"
+  "timestamp": "2026-09-12T05:31:16.510723"
 }

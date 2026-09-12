@@ -1,5 +1,5 @@
 ==============================================================================
-  ULTIMATE ANALYZER v2 — youtube-auto-pipeline
+  ULTIMATE ANALYZER v3
   Created by KARYADI, Coding by KARYADI
 ==============================================================================
 
@@ -18,14 +18,14 @@
   Kotlin      : 19
   XML (res/)  : 32
   Gradle      : 3
-  Manifest    : ✅
+  Manifest    : OK
 
 ==============================================================================
-  2. GRADLE ANALYSIS
+  2. GRADLE ANALYSIS (DEEP)
 ==============================================================================
 
-── app/build.gradle ────────────────────────────────────────────────────────
-  ✅ Curly brace balance
+-- app/build.gradle --------------------------------------------------------
+  OK Curly brace balance
   Dependencies: 11
     - androidx.core:core-ktx:1.12.0
     - androidx.appcompat:appcompat:1.6.1
@@ -38,15 +38,13 @@
     - org.json:json:20231013
     - androidx.security:security-crypto:1.1.0-alpha06
     - androidx.multidex:multidex:2.0.1
-
-── settings.gradle ─────────────────────────────────────────────────────────
-  ✅ Repositories mode set
+  Gradle version: 8.2
 
 ==============================================================================
-  3. ANDROIDMANIFEST
+  3. ANDROIDMANIFEST (DEEP)
 ==============================================================================
 
-── Components ──────────────────────────────────────────────────────────────
+-- Components --------------------------------------------------------------
     [activity ] .MainActivity
     [activity ] .FilesActivity
     [activity ] .ActionsActivity
@@ -58,119 +56,134 @@
     [activity ] .SettingsActivity
     [provider ] androidx.core.content.FileProvider
 
-── Permissions (10) ────────────────────────────────────────────────────────
-    - android.permission.INTERNET
-    - android.permission.ACCESS_NETWORK_STATE
-    - android.permission.WRITE_EXTERNAL_STORAGE
-    - android.permission.READ_EXTERNAL_STORAGE
-    - android.permission.POST_NOTIFICATIONS
-    - android.permission.REQUEST_INSTALL_PACKAGES
-    - android.permission.FOREGROUND_SERVICE
-    - android.permission.READ_MEDIA_VIDEO
-    - android.permission.READ_MEDIA_AUDIO
-    - android.permission.READ_MEDIA_IMAGES
-
-── Resource references ─────────────────────────────────────────────────────
-    @mipmap/ic_launcher
-    @mipmap/ic_launcher_round
-    @string/app_name
-    @style/Theme
-    @xml/file_paths
+-- Permissions (10) --------------------------------------------------------
+    [normal] android.permission.INTERNET
+    [normal] android.permission.ACCESS_NETWORK_STATE
+    [normal] android.permission.WRITE_EXTERNAL_STORAGE
+    [normal] android.permission.READ_EXTERNAL_STORAGE
+    [normal] android.permission.POST_NOTIFICATIONS
+    [normal] android.permission.REQUEST_INSTALL_PACKAGES
+    [normal] android.permission.FOREGROUND_SERVICE
+    [normal] android.permission.READ_MEDIA_VIDEO
+    [normal] android.permission.READ_MEDIA_AUDIO
+    [normal] android.permission.READ_MEDIA_IMAGES
+  Application name: .YadApp
 
 ==============================================================================
-  4. KOTLIN — DEEP ANALYSIS
+  4. KOTLIN - DEEP ANALYSIS
 ==============================================================================
-  Classes declared   : 23
-  Files with findViewById: 10
-  Files with setContentView: 13
-  Item layouts (adapter): ['item_run']
-  Intent targets     : 4
+  Total Kotlin LOC  : 1360
+  Classes declared  : 23
+  Files w/ findViewById: 10
+  Files w/ setContentView: 13
+  Item layouts: ['item_run']
+  Intent targets: 4
 
-── Intent reference check ──────────────────────────────────────────────────
-  ✅ TextEditorActivity
-  ✅ BroadcastActivity
-  ✅ FeatureAdderActivity
-  ✅ LogsActivity
+-- Intent reference check --------------------------------------------------
+  OK FeatureAdderActivity
+  OK LogsActivity
+  OK TextEditorActivity
+  OK BroadcastActivity
 
 ==============================================================================
-  5. RESOURCES
+  5. RESOURCES (DEEP)
 ==============================================================================
   Colors     : 37
   Strings    : 28
   Dimens     : 18
   Styles     : 3
-  Drawables  : 6
-  Mipmaps    : 2
-  Layouts    : 18
-  XMLs       : 1
+  Drawables  : 38 (incl. built-in)
+  Layouts    : 38 (incl. built-in)
 
 ==============================================================================
   6. CROSS-CHECK RESOURCES
 ==============================================================================
 
 ==============================================================================
-  7. KOTLIN ↔ LAYOUT MATCHING (SMART)
+  7. KOTLIN + LAYOUT MATCHING (SMART)
 ==============================================================================
-  ✅ android/app/src/main/java/com/universal/videoeditor/LogsActivity.kt → activity_logs.xml (+5 item IDs) — semua OK
-  ✅ android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt → activity_instructions.xml (+5 item IDs) — semua OK
-  ✅ android/app/src/main/java/com/universal/videoeditor/BroadcastActivity.kt → activity_broadcast.xml (+5 item IDs) — semua OK
-  ✅ android/app/src/main/java/com/universal/videoeditor/VideoEditorActivity.kt → activity_video_editor.xml (+5 item IDs) — semua OK
-  ✅ android/app/src/main/java/com/universal/videoeditor/TextEditorActivity.kt → activity_text_editor.xml (+5 item IDs) — semua OK
-  ✅ android/app/src/main/java/com/universal/videoeditor/StatisticsActivity.kt → activity_statistics.xml (+5 item IDs) — semua OK
-  ✅ android/app/src/main/java/com/universal/videoeditor/MainActivity.kt → activity_main.xml (+5 item IDs) — semua OK
-  ✅ android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt → activity_actions.xml (+5 item IDs) — semua OK
-  ✅ android/app/src/main/java/com/universal/videoeditor/FeatureAdderActivity.kt → activity_feature_adder.xml (+5 item IDs) — semua OK
-  ✅ android/app/src/main/java/com/universal/videoeditor/SettingsActivity.kt → activity_settings.xml (+5 item IDs) — semua OK
-  ✅ android/app/src/main/java/com/universal/videoeditor/FilesActivity.kt → activity_files.xml (+5 item IDs) — semua OK
-  ✅ android/app/src/main/java/com/universal/videoeditor/CreditActivity.kt → activity_credit.xml (+5 item IDs) — semua OK
-  ✅ android/app/src/main/java/com/universal/videoeditor/AdminActivity.kt → activity_admin.xml (+5 item IDs) — semua OK
+  Item layout IDs: ['cardRun', 'tvIcon', 'tvName', 'tvStatus', 'tvTime']
+  OK android/app/src/main/java/com/universal/videoeditor/LogsActivity.kt -> activity_logs.xml
+  OK android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt -> activity_instructions.xml
+  OK android/app/src/main/java/com/universal/videoeditor/BroadcastActivity.kt -> activity_broadcast.xml
+  OK android/app/src/main/java/com/universal/videoeditor/VideoEditorActivity.kt -> activity_video_editor.xml
+  OK android/app/src/main/java/com/universal/videoeditor/TextEditorActivity.kt -> activity_text_editor.xml
+  OK android/app/src/main/java/com/universal/videoeditor/StatisticsActivity.kt -> activity_statistics.xml
+  OK android/app/src/main/java/com/universal/videoeditor/MainActivity.kt -> activity_main.xml
+  OK android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt -> activity_actions.xml
+  OK android/app/src/main/java/com/universal/videoeditor/FeatureAdderActivity.kt -> activity_feature_adder.xml
+  OK android/app/src/main/java/com/universal/videoeditor/SettingsActivity.kt -> activity_settings.xml
+  OK android/app/src/main/java/com/universal/videoeditor/FilesActivity.kt -> activity_files.xml
+  OK android/app/src/main/java/com/universal/videoeditor/CreditActivity.kt -> activity_credit.xml
+  OK android/app/src/main/java/com/universal/videoeditor/AdminActivity.kt -> activity_admin.xml
 
 ==============================================================================
-  8. MANIFEST ↔ KOTLIN
+  8. MANIFEST + KOTLIN
 ==============================================================================
-  ✅ [activity] MainActivity
-  ✅ [activity] FilesActivity
-  ✅ [activity] ActionsActivity
-  ✅ [activity] CreditActivity
-  ✅ [activity] InstructionsActivity
-  ✅ [activity] AdminActivity
-  ✅ [activity] VideoEditorActivity
-  ✅ [activity] StatisticsActivity
-  ✅ [activity] SettingsActivity
-  ℹ️  [provider] FileProvider — library class (skip)
+  OK [activity] MainActivity
+  OK [activity] FilesActivity
+  OK [activity] ActionsActivity
+  OK [activity] CreditActivity
+  OK [activity] InstructionsActivity
+  OK [activity] AdminActivity
+  OK [activity] VideoEditorActivity
+  OK [activity] StatisticsActivity
+  OK [activity] SettingsActivity
+  [i] [provider] FileProvider - library class (skip)
 
 ==============================================================================
-  9. AUTO-FIX
+  9. DUPLICATE DETECTION
 ==============================================================================
+  OK Tidak ada duplicate class
 
 ==============================================================================
-  10. ADDITIONAL CHECKS
+  10. DEAD CODE DETECTION
 ==============================================================================
-  📦 Gradle version : 8.2
-
-── Critical files ──────────────────────────────────────────────────────────
-  ✅ Manifest
-  ✅ App Gradle
-  ✅ Root Gradle
-  ✅ Settings Gradle
-  ✅ Colors
-  ✅ Strings
-  ✅ Themes
-  ✅ YadApp.kt: SecureConfig.init OK
-  🟡 SecureConfig.kt: pakai 'lateinit' — bisa crash kalau belum init [android/app/src/main/java/com/universal/videoeditor/SecureConfig.kt:None]
+  [!] 2 kandidat dead code:
+     AdminManager (android/app/src/main/java/com/universal/videoeditor/AdminManager.kt)
+     SecurePrefs (android/app/src/main/java/com/universal/videoeditor/SecurePrefs.kt)
 
 ==============================================================================
-  11. RINGKASAN
+  11. SECURITY ANALYSIS
 ==============================================================================
-  🔴 Errors   : 0
-  🟡 Warnings : 1
-  🔵 Info     : 0
-  🔧 Fixes    : 0
+  OK Tidak ada isu keamanan
+
+==============================================================================
+  12. PERFORMANCE ANALYSIS
+==============================================================================
+  [!] android/app/src/main/java/com/universal/videoeditor/AdminApi.kt: network call di main thread? [android/app/src/main/java/com/universal/videoeditor/AdminApi.kt:None]
+
+==============================================================================
+  13. DEPENDENCY GRAPH
+==============================================================================
+  Files dalam graph: 19
+
+==============================================================================
+  14. BUILD PREDICTIONS
+==============================================================================
+  OK Manifest refer ke .YadApp
+  [PREDICT] SecureConfig pakai lateinit - bisa crash kalau belum init
+
+==============================================================================
+  15. AUTO-FIX
+==============================================================================
+
+  [FIX] SecureConfig lateinit -> nullable
+  [FIX] SecureConfig lateinit -> nullable
+
+==============================================================================
+  16. RINGKASAN
+==============================================================================
+  Errors   : 0
+  Warnings : 1
+  Info     : 0
+  Fixes    : 1
+  Predictions: 1
 
   Per kategori:
-    kotlin: 1
+    performance: 1
 
 ==============================================================================
-  ✅ Analisis selesai
+  Analisis v3 selesai
   Created by KARYADI, Coding by KARYADI
 ==============================================================================
