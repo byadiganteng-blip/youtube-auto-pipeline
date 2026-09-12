@@ -20,7 +20,7 @@
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
-        android:label="Universal Video Editor"
+        android:label="@string/app_name"
         android:theme="@style/Theme.YadPipeline"
         android:requestLegacyExternalStorage="true"
         android:usesCleartextTraffic="true"
