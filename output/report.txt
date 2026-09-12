@@ -1,0 +1,169 @@
+==============================================================================
+  ULTIMATE ANALYZER — youtube-auto-pipeline
+  Created by KARYADI, Coding by KARYADI
+==============================================================================
+
+==============================================================================
+  0. PROJECT STRUCTURE
+==============================================================================
+  Android dir : android
+  Source dir  : android/app/src/main
+  Kotlin dir  : android/app/src/main/java/com/universal/videoeditor
+  Res dir     : android/app/src/main/res
+  Auto-fix    : True
+
+==============================================================================
+  1. INVENTARIS FILE
+==============================================================================
+  Kotlin      : 19
+  XML (res/)  : 32
+  Gradle      : 3
+  Manifest    : ✅
+
+==============================================================================
+  2. GRADLE ANALYSIS
+==============================================================================
+
+── app/build.gradle (1843 bytes) ───────────────────────────────────────────
+  ✅ Curly brace balance
+  Dependencies: 11
+    - androidx.core:core-ktx:1.12.0
+    - androidx.appcompat:appcompat:1.6.1
+    - com.google.android.material:material:1.11.0
+    - androidx.constraintlayout:constraintlayout:2.1.4
+    - androidx.recyclerview:recyclerview:1.3.2
+    - androidx.cardview:cardview:1.0.0
+    - org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3
+    - com.squareup.okhttp3:okhttp:4.12.0
+    - org.json:json:20231013
+    - androidx.security:security-crypto:1.1.0-alpha06
+    - androidx.multidex:multidex:2.0.1
+
+── settings.gradle ─────────────────────────────────────────────────────────
+  ✅ Repositories mode: FAIL_ON_PROJECT_REPOS atau PREFER_SETTINGS
+
+==============================================================================
+  3. ANDROID MANIFEST
+==============================================================================
+
+── Activities, Services, Receivers, Providers ──────────────────────────────
+    [activity ] .MainActivity
+    [activity ] .FilesActivity
+    [activity ] .ActionsActivity
+    [activity ] .CreditActivity
+    [activity ] .InstructionsActivity
+    [activity ] .AdminActivity
+    [activity ] .VideoEditorActivity
+    [activity ] .StatisticsActivity
+    [activity ] .SettingsActivity
+    [provider ] androidx.core.content.FileProvider
+
+── Permissions (10) ────────────────────────────────────────────────────────
+    - android.permission.INTERNET
+    - android.permission.ACCESS_NETWORK_STATE
+    - android.permission.WRITE_EXTERNAL_STORAGE
+    - android.permission.READ_EXTERNAL_STORAGE
+    - android.permission.POST_NOTIFICATIONS
+    - android.permission.REQUEST_INSTALL_PACKAGES
+    - android.permission.FOREGROUND_SERVICE
+    - android.permission.READ_MEDIA_VIDEO
+    - android.permission.READ_MEDIA_AUDIO
+    - android.permission.READ_MEDIA_IMAGES
+
+── Resource references di manifest ─────────────────────────────────────────
+    @mipmap/ic_launcher
+    @mipmap/ic_launcher_round
+    @string/app_name
+    @style/Theme
+    @xml/file_paths
+
+==============================================================================
+  4. KOTLIN ANALYSIS
+==============================================================================
+  Classes declared   : 23
+  Files using layout : 13
+  Intent targets     : 4
+
+── Cek Intent reference ────────────────────────────────────────────────────
+  ✅ FeatureAdderActivity
+  ✅ LogsActivity
+  ✅ BroadcastActivity
+  ✅ TextEditorActivity
+
+==============================================================================
+  5. RESOURCE ANALYSIS
+==============================================================================
+  Colors     : 37
+  Strings    : 28
+  Dimens     : 18
+  Styles     : 3
+  Drawables  : 6
+  Mipmaps    : 2
+  Layouts    : 18
+  XMLs       : 1
+
+==============================================================================
+  6. CROSS-CHECK RESOURCE REFERENCES
+==============================================================================
+
+==============================================================================
+  7. KOTLIN vs LAYOUT MATCHING
+==============================================================================
+  ✅ android/app/src/main/java/com/universal/videoeditor/LogsActivity.kt → activity_logs.xml — semua ID ada
+  ✅ android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt → activity_instructions.xml — semua ID ada
+  ✅ android/app/src/main/java/com/universal/videoeditor/BroadcastActivity.kt → activity_broadcast.xml — semua ID ada
+  ✅ android/app/src/main/java/com/universal/videoeditor/VideoEditorActivity.kt → activity_video_editor.xml — semua ID ada
+  ✅ android/app/src/main/java/com/universal/videoeditor/TextEditorActivity.kt → activity_text_editor.xml — semua ID ada
+  ✅ android/app/src/main/java/com/universal/videoeditor/StatisticsActivity.kt → activity_statistics.xml — semua ID ada
+  ✅ android/app/src/main/java/com/universal/videoeditor/MainActivity.kt → activity_main.xml — semua ID ada
+  ❌ android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt → activity_actions.xml — 5 ID hilang:
+       R.id.cardRun
+  🔴 android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt: R.id.cardRun tidak ada di activity_actions.xml [android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt:None]
+       R.id.tvIcon
+  🔴 android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt: R.id.tvIcon tidak ada di activity_actions.xml [android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt:None]
+       R.id.tvName
+  🔴 android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt: R.id.tvName tidak ada di activity_actions.xml [android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt:None]
+       R.id.tvStatus
+  🔴 android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt: R.id.tvStatus tidak ada di activity_actions.xml [android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt:None]
+       R.id.tvTime
+  🔴 android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt: R.id.tvTime tidak ada di activity_actions.xml [android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt:None]
+  ✅ android/app/src/main/java/com/universal/videoeditor/FeatureAdderActivity.kt → activity_feature_adder.xml — semua ID ada
+  ✅ android/app/src/main/java/com/universal/videoeditor/SettingsActivity.kt → activity_settings.xml — semua ID ada
+  ✅ android/app/src/main/java/com/universal/videoeditor/FilesActivity.kt → activity_files.xml — semua ID ada
+  ✅ android/app/src/main/java/com/universal/videoeditor/CreditActivity.kt → activity_credit.xml — semua ID ada
+  ✅ android/app/src/main/java/com/universal/videoeditor/AdminActivity.kt → activity_admin.xml — semua ID ada
+
+==============================================================================
+  8. ANDROIDMANIFEST vs CLASS
+==============================================================================
+  ✅ [activity] MainActivity
+  ✅ [activity] FilesActivity
+  ✅ [activity] ActionsActivity
+  ✅ [activity] CreditActivity
+  ✅ [activity] InstructionsActivity
+  ✅ [activity] AdminActivity
+  ✅ [activity] VideoEditorActivity
+  ✅ [activity] StatisticsActivity
+  ✅ [activity] SettingsActivity
+  🔴 Manifest [provider] 'androidx.core.content.FileProvider' tidak ada di Kotlin [AndroidManifest.xml:None]
+
+==============================================================================
+  9. AUTO-FIX
+==============================================================================
+
+==============================================================================
+  10. FINAL CHECK
+==============================================================================
+
+==============================================================================
+  SUMMARY
+==============================================================================
+  🔴 Errors   : 6
+  🟡 Warnings : 0
+  🔵 Info     : 0
+  🔧 Fixes    : 0
+
+==============================================================================
+  ✅ Analisis selesai
+  Created by KARYADI, Coding by KARYADI
+==============================================================================
