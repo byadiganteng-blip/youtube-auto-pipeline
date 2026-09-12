@@ -1,31 +1,6 @@
 {
   "issues": [
     {
-      "msg": "android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt: R.id.cardRun tidak ada di activity_actions.xml",
-      "severity": "error",
-      "file": "android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt"
-    },
-    {
-      "msg": "android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt: R.id.tvIcon tidak ada di activity_actions.xml",
-      "severity": "error",
-      "file": "android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt"
-    },
-    {
-      "msg": "android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt: R.id.tvName tidak ada di activity_actions.xml",
-      "severity": "error",
-      "file": "android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt"
-    },
-    {
-      "msg": "android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt: R.id.tvStatus tidak ada di activity_actions.xml",
-      "severity": "error",
-      "file": "android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt"
-    },
-    {
-      "msg": "android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt: R.id.tvTime tidak ada di activity_actions.xml",
-      "severity": "error",
-      "file": "android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt"
-    },
-    {
       "msg": "Manifest [provider] 'androidx.core.content.FileProvider' tidak ada di Kotlin",
       "severity": "error",
       "file": "AndroidManifest.xml"
@@ -33,10 +8,10 @@
   ],
   "fixes": [],
   "summary": {
-    "errors": 6,
+    "errors": 1,
     "warnings": 0,
     "infos": 0,
     "fixes": 0
   },
-  "timestamp": "2026-09-12T04:58:17.428029"
+  "timestamp": "2026-09-12T05:03:53.551356"
 }
