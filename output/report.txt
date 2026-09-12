@@ -85,8 +85,8 @@
   Intent targets     : 4
 
 ── Cek Intent reference ────────────────────────────────────────────────────
-  ✅ LogsActivity
   ✅ FeatureAdderActivity
+  ✅ LogsActivity
   ✅ BroadcastActivity
   ✅ TextEditorActivity
 
