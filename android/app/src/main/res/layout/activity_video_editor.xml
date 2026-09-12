@@ -1,49 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="match_parent"
-    android:background="@color/bg_light">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="vertical">
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="vertical" android:background="@drawable/header_gradient"
-            android:padding="30dp" android:gravity="center">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="🎬" android:textSize="50sp" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="Video Editor" android:textSize="24sp" android:textStyle="bold"
-                android:textColor="#FFFFFF" android:layout_marginTop="12dp" />
-        </LinearLayout>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="vertical" android:padding="20dp">
-            <Button android:id="@+id/btnTrim" android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:text="✂️ Trim" />
-            <Button android:id="@+id/btnCrop" android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:text="🖼️ Crop"
-                android:layout_marginTop="8dp" />
-            <Button android:id="@+id/btnRotate" android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:text="🔄 Rotate"
-                android:layout_marginTop="8dp" />
-            <Button android:id="@+id/btnFlip" android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:text="🪞 Flip"
-                android:layout_marginTop="8dp" />
-            <Button android:id="@+id/btnSpeed" android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:text="⚡ Speed"
-                android:layout_marginTop="8dp" />
-            <Button android:id="@+id/btnVolume" android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:text="🔊 Volume"
-                android:layout_marginTop="8dp" />
-            <Button android:id="@+id/btnFilter" android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:text="🎨 Filter"
-                android:layout_marginTop="8dp" />
-            <Button android:id="@+id/btnExtractAudio" android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:text="🎵 Extract Audio"
-                android:layout_marginTop="8dp" />
-            <Button android:id="@+id/btnCompress" android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:text="📦 Compress"
-                android:layout_marginTop="8dp" />
-            <Button android:id="@+id/btnConvertFormat" android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:text="🔄 Convert"
-                android:layout_marginTop="8dp" />
-        </LinearLayout>
-    </LinearLayout>
-</ScrollView>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:padding="16dp"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+    <TextView android:text="Video Editor" android:textSize="18sp" android:textStyle="bold"
+        android:layout_width="match_parent" android:layout_height="wrap_content"/>
+    <TextView android:text="Editor - coming soon"
+        android:layout_marginTop="16dp"
+        android:layout_width="match_parent" android:layout_height="wrap_content"/>
+</LinearLayout>

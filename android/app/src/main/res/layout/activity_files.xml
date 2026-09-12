@@ -1,43 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="match_parent"
-    android:orientation="vertical" android:background="@color/bg_light">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="horizontal" android:padding="16dp"
-        android:background="@drawable/header_gradient">
-        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
-            android:layout_weight="1" android:text="📁 Files" android:textSize="20sp"
-            android:textStyle="bold" android:textColor="#FFFFFF" />
-        <Button android:id="@+id/btnSelectMode" android:layout_width="wrap_content"
-            android:layout_height="wrap_content" android:text="☑" android:minWidth="0dp"
-            android:backgroundTint="#FFFFFF" android:textColor="@color/brand_primary" />
-        <Button android:id="@+id/btnRefresh" android:layout_width="wrap_content"
-            android:layout_height="wrap_content" android:text="🔄" android:minWidth="0dp"
-            android:backgroundTint="#FFFFFF" android:textColor="@color/brand_primary" />
-    </LinearLayout>
-    <TextView android:id="@+id/tvSelectedInfo" android:layout_width="match_parent"
-        android:layout_height="wrap_content" android:padding="8dp" android:text="0 item"
-        android:gravity="center" android:visibility="gone" />
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="horizontal" android:padding="8dp">
-        <Button android:id="@+id/btnDownloadSelected" android:layout_width="0dp"
-            android:layout_height="wrap_content" android:layout_weight="1"
-            android:text="⬇️" android:visibility="gone" />
-        <Button android:id="@+id/btnDeleteSelected" android:layout_width="0dp"
-            android:layout_height="wrap_content" android:layout_weight="1"
-            android:text="🗑️" android:visibility="gone" />
-    </LinearLayout>
-    <ProgressBar android:id="@+id/progressBar" android:layout_width="wrap_content"
-        android:layout_height="wrap_content" android:layout_gravity="center"
-        android:visibility="gone" />
-    <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:text="ARTIFACTS" android:padding="12dp" android:textStyle="bold" />
-    <androidx.recyclerview.widget.RecyclerView android:id="@+id/recyclerArtifacts"
-        android:layout_width="match_parent" android:layout_height="0dp"
-        android:layout_weight="1" />
-    <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:text="RELEASES" android:padding="12dp" android:textStyle="bold" />
-    <androidx.recyclerview.widget.RecyclerView android:id="@+id/recyclerReleases"
-        android:layout_width="match_parent" android:layout_height="0dp"
-        android:layout_weight="1" />
+    android:orientation="vertical" android:padding="16dp"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+    <TextView android:text="Files" android:textSize="18sp" android:textStyle="bold"
+        android:layout_width="match_parent" android:layout_height="wrap_content"/>
+    <TextView android:text="File manager - coming soon"
+        android:layout_marginTop="16dp"
+        android:layout_width="match_parent" android:layout_height="wrap_content"/>
 </LinearLayout>
