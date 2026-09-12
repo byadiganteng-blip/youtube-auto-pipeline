@@ -1,37 +1,40 @@
 {
   "issues": [
     {
-      "msg": "android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt: R.id.cardRun tidak ada di activity_actions.xml",
+      "msg": "@layout/simple_spinner_dropdown_item tidak ada (dari android/app/src/main/java/com/universal/videoeditor/FeatureAdderActivity.kt)",
       "severity": "error",
-      "file": "android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt"
+      "category": "resource",
+      "file": "android/app/src/main/java/com/universal/videoeditor/FeatureAdderActivity.kt"
     },
     {
-      "msg": "android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt: R.id.tvIcon tidak ada di activity_actions.xml",
+      "msg": "@layout/simple_spinner_item tidak ada (dari android/app/src/main/java/com/universal/videoeditor/SettingsActivity.kt)",
       "severity": "error",
-      "file": "android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt"
+      "category": "resource",
+      "file": "android/app/src/main/java/com/universal/videoeditor/SettingsActivity.kt"
     },
     {
-      "msg": "android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt: R.id.tvName tidak ada di activity_actions.xml",
+      "msg": "YadApp.kt: tidak panggil SecureConfig.init(this)",
       "severity": "error",
-      "file": "android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt"
+      "category": "kotlin",
+      "file": "android/app/src/main/java/com/universal/videoeditor/YadApp.kt"
     },
     {
-      "msg": "android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt: R.id.tvTime tidak ada di activity_actions.xml",
-      "severity": "error",
-      "file": "android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt"
-    },
-    {
-      "msg": "Manifest [provider] 'androidx.core.content.FileProvider' tidak ada di Kotlin",
-      "severity": "error",
-      "file": "AndroidManifest.xml"
+      "msg": "SecureConfig.kt: pakai 'lateinit' — bisa crash kalau belum init",
+      "severity": "warning",
+      "category": "kotlin",
+      "file": "android/app/src/main/java/com/universal/videoeditor/SecureConfig.kt"
     }
   ],
   "fixes": [],
   "summary": {
-    "errors": 5,
-    "warnings": 0,
+    "errors": 3,
+    "warnings": 1,
     "infos": 0,
     "fixes": 0
   },
-  "timestamp": "2026-09-12T05:08:52.718375"
+  "categories": {
+    "resource": 2,
+    "kotlin": 2
+  },
+  "timestamp": "2026-09-12T05:13:14.554452"
 }

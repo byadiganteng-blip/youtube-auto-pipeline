@@ -1,5 +1,5 @@
 ==============================================================================
-  ULTIMATE ANALYZER — youtube-auto-pipeline
+  ULTIMATE ANALYZER v2 — youtube-auto-pipeline
   Created by KARYADI, Coding by KARYADI
 ==============================================================================
 
@@ -24,7 +24,7 @@
   2. GRADLE ANALYSIS
 ==============================================================================
 
-── app/build.gradle (1843 bytes) ───────────────────────────────────────────
+── app/build.gradle ────────────────────────────────────────────────────────
   ✅ Curly brace balance
   Dependencies: 11
     - androidx.core:core-ktx:1.12.0
@@ -40,13 +40,13 @@
     - androidx.multidex:multidex:2.0.1
 
 ── settings.gradle ─────────────────────────────────────────────────────────
-  ✅ Repositories mode: FAIL_ON_PROJECT_REPOS atau PREFER_SETTINGS
+  ✅ Repositories mode set
 
 ==============================================================================
-  3. ANDROID MANIFEST
+  3. ANDROIDMANIFEST
 ==============================================================================
 
-── Activities, Services, Receivers, Providers ──────────────────────────────
+── Components ──────────────────────────────────────────────────────────────
     [activity ] .MainActivity
     [activity ] .FilesActivity
     [activity ] .ActionsActivity
@@ -70,7 +70,7 @@
     - android.permission.READ_MEDIA_AUDIO
     - android.permission.READ_MEDIA_IMAGES
 
-── Resource references di manifest ─────────────────────────────────────────
+── Resource references ─────────────────────────────────────────────────────
     @mipmap/ic_launcher
     @mipmap/ic_launcher_round
     @string/app_name
@@ -78,20 +78,22 @@
     @xml/file_paths
 
 ==============================================================================
-  4. KOTLIN ANALYSIS
+  4. KOTLIN — DEEP ANALYSIS
 ==============================================================================
   Classes declared   : 23
-  Files using layout : 13
+  Files with findViewById: 10
+  Files with setContentView: 13
+  Item layouts (adapter): ['item_run']
   Intent targets     : 4
 
-── Cek Intent reference ────────────────────────────────────────────────────
-  ✅ FeatureAdderActivity
-  ✅ LogsActivity
+── Intent reference check ──────────────────────────────────────────────────
   ✅ BroadcastActivity
   ✅ TextEditorActivity
+  ✅ LogsActivity
+  ✅ FeatureAdderActivity
 
 ==============================================================================
-  5. RESOURCE ANALYSIS
+  5. RESOURCES
 ==============================================================================
   Colors     : 37
   Strings    : 28
@@ -103,36 +105,34 @@
   XMLs       : 1
 
 ==============================================================================
-  6. CROSS-CHECK RESOURCE REFERENCES
+  6. CROSS-CHECK RESOURCES
 ==============================================================================
 
-==============================================================================
-  7. KOTLIN vs LAYOUT MATCHING
-==============================================================================
-  ✅ android/app/src/main/java/com/universal/videoeditor/LogsActivity.kt → activity_logs.xml — semua ID ada
-  ✅ android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt → activity_instructions.xml — semua ID ada
-  ✅ android/app/src/main/java/com/universal/videoeditor/BroadcastActivity.kt → activity_broadcast.xml — semua ID ada
-  ✅ android/app/src/main/java/com/universal/videoeditor/VideoEditorActivity.kt → activity_video_editor.xml — semua ID ada
-  ✅ android/app/src/main/java/com/universal/videoeditor/TextEditorActivity.kt → activity_text_editor.xml — semua ID ada
-  ✅ android/app/src/main/java/com/universal/videoeditor/StatisticsActivity.kt → activity_statistics.xml — semua ID ada
-  ✅ android/app/src/main/java/com/universal/videoeditor/MainActivity.kt → activity_main.xml — semua ID ada
-  ❌ android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt → activity_actions.xml — 4 ID hilang:
-       R.id.cardRun
-  🔴 android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt: R.id.cardRun tidak ada di activity_actions.xml [android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt:None]
-       R.id.tvIcon
-  🔴 android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt: R.id.tvIcon tidak ada di activity_actions.xml [android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt:None]
-       R.id.tvName
-  🔴 android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt: R.id.tvName tidak ada di activity_actions.xml [android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt:None]
-       R.id.tvTime
-  🔴 android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt: R.id.tvTime tidak ada di activity_actions.xml [android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt:None]
-  ✅ android/app/src/main/java/com/universal/videoeditor/FeatureAdderActivity.kt → activity_feature_adder.xml — semua ID ada
-  ✅ android/app/src/main/java/com/universal/videoeditor/SettingsActivity.kt → activity_settings.xml — semua ID ada
-  ✅ android/app/src/main/java/com/universal/videoeditor/FilesActivity.kt → activity_files.xml — semua ID ada
-  ✅ android/app/src/main/java/com/universal/videoeditor/CreditActivity.kt → activity_credit.xml — semua ID ada
-  ✅ android/app/src/main/java/com/universal/videoeditor/AdminActivity.kt → activity_admin.xml — semua ID ada
+  ❌ @layout unresolved (2):
+     android/app/src/main/java/com/universal/videoeditor/FeatureAdderActivity.kt → @layout/simple_spinner_dropdown_item
+  🔴 @layout/simple_spinner_dropdown_item tidak ada (dari android/app/src/main/java/com/universal/videoeditor/FeatureAdderActivity.kt) [android/app/src/main/java/com/universal/videoeditor/FeatureAdderActivity.kt:None]
+     android/app/src/main/java/com/universal/videoeditor/SettingsActivity.kt → @layout/simple_spinner_item
+  🔴 @layout/simple_spinner_item tidak ada (dari android/app/src/main/java/com/universal/videoeditor/SettingsActivity.kt) [android/app/src/main/java/com/universal/videoeditor/SettingsActivity.kt:None]
 
 ==============================================================================
-  8. ANDROIDMANIFEST vs CLASS
+  7. KOTLIN ↔ LAYOUT MATCHING (SMART)
+==============================================================================
+  ✅ android/app/src/main/java/com/universal/videoeditor/LogsActivity.kt → activity_logs.xml (+5 item IDs) — semua OK
+  ✅ android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt → activity_instructions.xml (+5 item IDs) — semua OK
+  ✅ android/app/src/main/java/com/universal/videoeditor/BroadcastActivity.kt → activity_broadcast.xml (+5 item IDs) — semua OK
+  ✅ android/app/src/main/java/com/universal/videoeditor/VideoEditorActivity.kt → activity_video_editor.xml (+5 item IDs) — semua OK
+  ✅ android/app/src/main/java/com/universal/videoeditor/TextEditorActivity.kt → activity_text_editor.xml (+5 item IDs) — semua OK
+  ✅ android/app/src/main/java/com/universal/videoeditor/StatisticsActivity.kt → activity_statistics.xml (+5 item IDs) — semua OK
+  ✅ android/app/src/main/java/com/universal/videoeditor/MainActivity.kt → activity_main.xml (+5 item IDs) — semua OK
+  ✅ android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt → activity_actions.xml (+5 item IDs) — semua OK
+  ✅ android/app/src/main/java/com/universal/videoeditor/FeatureAdderActivity.kt → activity_feature_adder.xml (+5 item IDs) — semua OK
+  ✅ android/app/src/main/java/com/universal/videoeditor/SettingsActivity.kt → activity_settings.xml (+5 item IDs) — semua OK
+  ✅ android/app/src/main/java/com/universal/videoeditor/FilesActivity.kt → activity_files.xml (+5 item IDs) — semua OK
+  ✅ android/app/src/main/java/com/universal/videoeditor/CreditActivity.kt → activity_credit.xml (+5 item IDs) — semua OK
+  ✅ android/app/src/main/java/com/universal/videoeditor/AdminActivity.kt → activity_admin.xml (+5 item IDs) — semua OK
+
+==============================================================================
+  8. MANIFEST ↔ KOTLIN
 ==============================================================================
   ✅ [activity] MainActivity
   ✅ [activity] FilesActivity
@@ -143,23 +143,39 @@
   ✅ [activity] VideoEditorActivity
   ✅ [activity] StatisticsActivity
   ✅ [activity] SettingsActivity
-  🔴 Manifest [provider] 'androidx.core.content.FileProvider' tidak ada di Kotlin [AndroidManifest.xml:None]
+  ℹ️  [provider] FileProvider — library class (skip)
 
 ==============================================================================
   9. AUTO-FIX
 ==============================================================================
 
 ==============================================================================
-  10. FINAL CHECK
+  10. ADDITIONAL CHECKS
 ==============================================================================
+  📦 Gradle version : 8.2
+
+── Critical files ──────────────────────────────────────────────────────────
+  ✅ Manifest
+  ✅ App Gradle
+  ✅ Root Gradle
+  ✅ Settings Gradle
+  ✅ Colors
+  ✅ Strings
+  ✅ Themes
+  🔴 YadApp.kt: tidak panggil SecureConfig.init(this) [android/app/src/main/java/com/universal/videoeditor/YadApp.kt:None]
+  🟡 SecureConfig.kt: pakai 'lateinit' — bisa crash kalau belum init [android/app/src/main/java/com/universal/videoeditor/SecureConfig.kt:None]
 
 ==============================================================================
-  SUMMARY
+  11. RINGKASAN
 ==============================================================================
-  🔴 Errors   : 5
-  🟡 Warnings : 0
+  🔴 Errors   : 3
+  🟡 Warnings : 1
   🔵 Info     : 0
   🔧 Fixes    : 0
+
+  Per kategori:
+    resource: 2
+    kotlin: 2
 
 ==============================================================================
   ✅ Analisis selesai
