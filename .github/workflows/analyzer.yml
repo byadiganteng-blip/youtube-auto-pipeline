@@ -40,21 +40,28 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Run Ultimate Analyzer
+      - name: Run Ultimate Analyzer v2
         env:
           WORKDIR: ${{ github.workspace }}
           OUTPUT_DIR: output
           AUTO_FIX: ${{ github.event.inputs.auto_fix || 'true' }}
         run: python scripts/ultimate_analyzer.py
 
-      - name: Show report summary
+      - name: Show report
         if: always()
         run: |
-          echo "## 📊 Ultimate Analyzer Report" >> $GITHUB_STEP_SUMMARY
+          echo "## 📊 Ultimate Analyzer v2 Report" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          if [ -f output/report.txt ]; then
+          if [ -f output/issues.txt ]; then
+            echo "### Issues:" >> $GITHUB_STEP_SUMMARY
             echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-            tail -50 output/report.txt >> $GITHUB_STEP_SUMMARY
+            head -50 output/issues.txt >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ -f output/fixes_applied.txt ]; then
+            echo "### Fixes:" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            cat output/fixes_applied.txt >> $GITHUB_STEP_SUMMARY
             echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           fi
 
@@ -68,30 +75,25 @@ jobs:
 
           if [ -n "$(git status --porcelain)" ]; then
             git add -A
-            git commit -m "🤖 Auto-fix by Ultimate Analyzer
+            git commit -m "🤖 Auto-fix by Ultimate Analyzer v2
 
-            - Analyzer applied $(cat output/fixes_applied.txt 2>/dev/null | wc -l) fixes
+            - Fixes: $(cat output/fixes_applied.txt 2>/dev/null | wc -l)
             - Report in artifact
             Created by KARYADI, Coding by KARYADI"
-            git push
-            echo "✅ Fixes committed & pushed"
-          else
-            echo "ℹ️  No changes to commit"
+            git push || echo "⚠️  Push failed"
           fi
 
-      - name: Upload report
+      - name: Upload artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: analyzer-report-${{ github.run_number }}
           path: output/
 
-      - name: Create ZIP bundle
+      - name: Create ZIP
         if: always()
         run: |
-          cd output
-          zip -r ../analyzer-result.zip ./*
-          cd ..
+          cd output && zip -r ../analyzer-result.zip ./* && cd ..
 
       - name: Upload ZIP
         if: always()

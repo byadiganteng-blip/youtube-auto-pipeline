@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # ============================================================
-# ULTIMATE ANALYZER — Deep analysis + auto-fix
-# 20+ lapisan analisis untuk Android project
+# ULTIMATE ANALYZER v2 — Deep analysis + smart auto-fix
+# Fix false positives, pahami RecyclerView adapter, dll.
 # Created by KARYADI, Coding by KARYADI
 # ============================================================
 
-import os, re, sys, json, subprocess, shutil
+import os, re, sys, json, hashlib
 from datetime import datetime
 from collections import Counter, defaultdict
 
@@ -17,10 +17,17 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 def P(name): return os.path.join(OUTPUT_DIR, name)
 
-REPORT_TXT = P("report.txt")
-REPORT_JSON= P("report.json")
-ISSUES_TXT = P("issues.txt")
-FIXES_TXT  = P("fixes_applied.txt")
+REPORT_TXT      = P("report.txt")
+REPORT_JSON     = P("report.json")
+ISSUES_TXT      = P("issues.txt")
+FIXES_TXT       = P("fixes_applied.txt")
+STRUCTURE_TXT   = P("project_structure.txt")
+KOTLIN_TXT      = P("kotlin_analysis.txt")
+LAYOUT_TXT      = P("layout_analysis.txt")
+RESOURCES_TXT   = P("resources_analysis.txt")
+MANIFEST_TXT    = P("manifest_analysis.txt")
+GRADLE_TXT      = P("gradle_analysis.txt")
+ENTRYPOINTS_TXT = P("entrypoints.txt")
 
 report = []
 all_issues = []
@@ -35,8 +42,8 @@ def section(t):
 def subsection(t):
     log(); log(f"── {t} " + "─" * max(1, 72 - len(t)))
 
-def issue(msg, sev="error", file=None, line=None):
-    entry = {"msg": msg, "severity": sev}
+def issue(msg, sev="error", file=None, line=None, category="general"):
+    entry = {"msg": msg, "severity": sev, "category": category}
     if file: entry["file"] = file
     if line: entry["line"] = line
     all_issues.append(entry)
@@ -47,10 +54,6 @@ def issue(msg, sev="error", file=None, line=None):
 def fix(msg):
     all_fixes.append(msg)
     log(f"  🔧 {msg}")
-
-# ============================================================
-# UTILITY
-# ============================================================
 
 def find_files(root, ext):
     out = []
@@ -64,9 +67,7 @@ def read(path):
     try:
         with open(path, "r", encoding="utf-8", errors="replace") as f:
             return f.read()
-    except Exception as e:
-        log(f"  ⚠️  Cannot read {path}: {e}")
-        return ""
+    except: return ""
 
 def write(path, content):
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -74,33 +75,41 @@ def write(path, content):
         f.write(content)
 
 # ============================================================
-# FIND PROJECT STRUCTURE
+# ANDROIDX/GOOGLE LIBRARY WHITELIST (untuk hindari false positive)
+# ============================================================
+
+ANDROIDX_PREFIXES = (
+    "androidx.", "com.google.android.", "com.android.", "com.google.firebase.",
+    "android.support.", "kotlin.", "org.jetbrains.", "java.", "javax.",
+    "okhttp3.", "com.squareup.", "org.json.", "com.google.gson.",
+)
+
+def is_library_class(name):
+    return any(name.startswith(p) for p in ANDROIDX_PREFIXES)
+
+# ============================================================
+# 0. PROJECT STRUCTURE
 # ============================================================
 
 log("=" * 78)
-log("  ULTIMATE ANALYZER — youtube-auto-pipeline")
+log("  ULTIMATE ANALYZER v2 — youtube-auto-pipeline")
 log("  Created by KARYADI, Coding by KARYADI")
 log("=" * 78)
 
 section("0. PROJECT STRUCTURE")
 
-# Cari folder android/
 android_dir = None
 for r, dirs, _ in os.walk(WORKDIR):
     if "android" in dirs:
-        android_dir = os.path.join(r, "android")
-        break
+        android_dir = os.path.join(r, "android"); break
 
 if not android_dir:
-    log("❌ Folder 'android/' tidak ditemukan!")
-    sys.exit(1)
+    log("❌ Folder 'android/' tidak ditemukan!"); sys.exit(1)
 
 APP_DIR = os.path.join(android_dir, "app")
 SRC_DIR = os.path.join(APP_DIR, "src", "main")
 RES_DIR = os.path.join(SRC_DIR, "res")
 KT_DIR  = None
-
-# Cari folder package Kotlin
 for r, _, fs in os.walk(os.path.join(SRC_DIR, "java")):
     if any(f.endswith(".kt") for f in fs):
         KT_DIR = r; break
@@ -112,7 +121,7 @@ log(f"  Res dir     : {os.path.relpath(RES_DIR, WORKDIR)}")
 log(f"  Auto-fix    : {AUTO_FIX}")
 
 # ============================================================
-# 1. INVENTARIS FILE
+# 1. INVENTARIS
 # ============================================================
 
 section("1. INVENTARIS FILE")
@@ -128,75 +137,82 @@ log(f"  Gradle      : {len(gradle_files)}")
 log(f"  Manifest    : {'✅' if os.path.exists(manifest) else '❌'}")
 
 # ============================================================
-# 2. GRADLE ANALYSIS
+# 2. GRADLE
 # ============================================================
 
 section("2. GRADLE ANALYSIS")
 
-app_gradle = os.path.join(APP_DIR, "build.gradle")
-if not os.path.exists(app_gradle):
-    app_gradle = os.path.join(APP_DIR, "build.gradle.kts")
+app_gradle = None
+for candidate in ["build.gradle", "build.gradle.kts"]:
+    p = os.path.join(APP_DIR, candidate)
+    if os.path.exists(p): app_gradle = p; break
 
 root_gradle = os.path.join(android_dir, "build.gradle")
 settings_gradle = os.path.join(android_dir, "settings.gradle")
 
-# --- 2a. app/build.gradle ---
-if os.path.exists(app_gradle):
+if app_gradle:
     content = read(app_gradle)
-    subsection(f"app/build.gradle ({len(content)} bytes)")
+    subsection("app/build.gradle")
 
-    # Cek balance curly brace
-    open_b  = content.count("{")
-    close_b = content.count("}")
+    open_b, close_b = content.count("{"), content.count("}")
     if open_b != close_b:
-        issue(f"app/build.gradle: curly brace tidak balance ({open_b} buka vs {close_b} tutup)",
-              file=os.path.relpath(app_gradle, WORKDIR))
+        issue(f"app/build.gradle: curly brace tidak balance ({open_b} vs {close_b})",
+              file=os.path.relpath(app_gradle, WORKDIR), category="gradle")
     else:
         log("  ✅ Curly brace balance")
 
-    # Cek plugins block
     if "plugins {" not in content and "plugins{" not in content:
-        issue("app/build.gradle: tidak ada blok 'plugins { }'",
-              file=os.path.relpath(app_gradle, WORKDIR))
+        issue("app/build.gradle: tidak ada 'plugins { }'",
+              file=os.path.relpath(app_gradle, WORKDIR), category="gradle")
 
-    # Cek namespace
     if "namespace" not in content:
         issue("app/build.gradle: tidak ada 'namespace'",
-              file=os.path.relpath(app_gradle, WORKDIR))
+              file=os.path.relpath(app_gradle, WORKDIR), category="gradle")
 
-    # Cek deprecated libs
-    for lib in ["nl.bravobit:android-ffmpeg", "com.arthenica:ffmpeg-kit"]:
+    if "compileSdk" not in content:
+        issue("app/build.gradle: tidak ada 'compileSdk'",
+              file=os.path.relpath(app_gradle, WORKDIR), category="gradle")
+
+    if "minSdk" not in content:
+        issue("app/build.gradle: tidak ada 'minSdk'",
+              file=os.path.relpath(app_gradle, WORKDIR), category="gradle")
+
+    # Deprecated library check
+    DEPRECATED_LIBS = [
+        "nl.bravobit:android-ffmpeg",
+        "com.arthenica:ffmpeg-kit",
+        "com.android.support",
+        "androidx.legacy",
+    ]
+    for lib in DEPRECATED_LIBS:
         if lib in content:
             issue(f"app/build.gradle: pakai library deprecated '{lib}'",
-                  file=os.path.relpath(app_gradle, WORKDIR))
+                  file=os.path.relpath(app_gradle, WORKDIR), category="gradle")
 
-    # Daftar dependency
     deps = re.findall(r'implementation\s+[\'"]([^\'"]+)[\'"]', content)
     log(f"  Dependencies: {len(deps)}")
     for d in deps: log(f"    - {d}")
 
-# --- 2b. settings.gradle ---
 if os.path.exists(settings_gradle):
     content = read(settings_gradle)
     subsection("settings.gradle")
-
     if "FAIL_ON_PROJECT_REPOS" in content or "PREFER_SETTINGS" in content:
-        log("  ✅ Repositories mode: FAIL_ON_PROJECT_REPOS atau PREFER_SETTINGS")
-
+        log("  ✅ Repositories mode set")
     if "jitpack.io" not in content:
-        issue("settings.gradle: tidak ada JitPack repository (kalau butuh)",
-              sev="info", file=os.path.relpath(settings_gradle, WORKDIR))
+        issue("settings.gradle: tidak ada JitPack",
+              sev="info", file=os.path.relpath(settings_gradle, WORKDIR),
+              category="gradle")
 
 # ============================================================
-# 3. ANDROID MANIFEST
+# 3. ANDROIDMANIFEST
 # ============================================================
 
-section("3. ANDROID MANIFEST")
+section("3. ANDROIDMANIFEST")
 
 manifest_classes = []
+manifest_refs = []  # reference ke class Kotlin
 if os.path.exists(manifest):
     content = read(manifest)
-    subsection("Activities, Services, Receivers, Providers")
 
     for m in re.finditer(r'<activity\s+android:name="([^"]+)"', content):
         manifest_classes.append(("activity", m.group(1)))
@@ -207,76 +223,79 @@ if os.path.exists(manifest):
     for m in re.finditer(r'<provider\s+android:name="([^"]+)"', content):
         manifest_classes.append(("provider", m.group(1)))
 
+    subsection("Components")
     for kind, name in manifest_classes:
         log(f"    [{kind:9s}] {name}")
 
-    # Cek permission
     perms = re.findall(r'<uses-permission\s+android:name="([^"]+)"', content)
     subsection(f"Permissions ({len(perms)})")
     for p in perms: log(f"    - {p}")
 
-    # Cek resource yang direferensi
-    subsection("Resource references di manifest")
+    subsection("Resource references")
     for m in re.finditer(r'@(\w+)/(\w+)', content):
-        kind, name = m.group(1), m.group(2)
-        log(f"    @{kind}/{name}")
+        log(f"    @{m.group(1)}/{m.group(2)}")
 
 # ============================================================
-# 4. KOTLIN ANALYSIS
+# 4. KOTLIN — DEEP
 # ============================================================
 
-section("4. KOTLIN ANALYSIS")
+section("4. KOTLIN — DEEP ANALYSIS")
 
-# Kumpulkan class, method, findViewById, layout
 declared_classes = {}
-called_ids_by_class = {}
-used_layouts = {}
+called_ids_by_file = {}
+called_layouts_by_file = {}
+called_item_layouts = set()   # ← untuk RecyclerView adapter
 called_activities = set()
+imports_by_file = {}
 
 for kt in kt_files:
     rel = os.path.relpath(kt, WORKDIR)
     src = read(kt)
 
-    # Class declarations
+    # Classes
     for m in re.finditer(r'(?:class|object|interface)\s+(\w+)', src):
         declared_classes[m.group(1)] = rel
 
-    # findViewById
-    ids = set()
-    for m in re.finditer(r'findViewById<[^>]*>\(R\.id\.(\w+)\)', src):
-        ids.add(m.group(1))
-    for m in re.finditer(r'findViewById\(R\.id\.(\w+)\)', src):
-        ids.add(m.group(1))
-    if ids: called_ids_by_class[rel] = ids
+    # findViewById → semua R.id.*
+    ids = set(re.findall(r'R\.id\.(\w+)', src))
+    if ids: called_ids_by_file[rel] = ids
 
     # setContentView
     for m in re.finditer(r'setContentView\(R\.layout\.(\w+)\)', src):
-        used_layouts[rel] = m.group(1)
+        called_layouts_by_file[rel] = m.group(1)
 
-    # Intent ke class
+    # Inflate (untuk RecyclerView adapter)
+    for m in re.finditer(r'inflate\(R\.layout\.(\w+)', src):
+        called_item_layouts.add(m.group(1))
+
+    # Intent
     for m in re.finditer(r'Intent\([^,]+,\s*(\w+)::class', src):
         called_activities.add(m.group(1))
 
+    # Imports (untuk cek missing dependency)
+    imports = set(re.findall(r'^import\s+([\w.]+)', src, re.MULTILINE))
+    imports_by_file[rel] = imports
+
 log(f"  Classes declared   : {len(declared_classes)}")
-log(f"  Files using layout : {len(used_layouts)}")
+log(f"  Files with findViewById: {len(called_ids_by_file)}")
+log(f"  Files with setContentView: {len(called_layouts_by_file)}")
+log(f"  Item layouts (adapter): {sorted(called_item_layouts)}")
 log(f"  Intent targets     : {len(called_activities)}")
 
-# Cek intent ke class yang tidak ada
-subsection("Cek Intent reference")
+subsection("Intent reference check")
 for target in called_activities:
     if target not in declared_classes:
-        issue(f"Intent ke '{target}' tapi class tidak ada",
-              file="Kotlin", sev="error")
+        issue(f"Intent ke '{target}' — class tidak ada",
+              file="Kotlin", category="kotlin")
     else:
         log(f"  ✅ {target}")
 
 # ============================================================
-# 5. RESOURCE ANALYSIS
+# 5. RESOURCES
 # ============================================================
 
-section("5. RESOURCE ANALYSIS")
+section("5. RESOURCES")
 
-# Kumpulkan resource yang didefinisikan
 defined_colors = set()
 defined_strings = set()
 defined_dimens = set()
@@ -285,39 +304,34 @@ defined_drawables = set()
 defined_mipmaps = set()
 defined_layouts = set()
 defined_xmls = set()
+defined_arrays = set()
+defined_bools = set()
+defined_integers = set()
 
-# values/*.xml
 values_dir = os.path.join(RES_DIR, "values")
 if os.path.exists(values_dir):
     for fn in os.listdir(values_dir):
         if not fn.endswith(".xml"): continue
         content = read(os.path.join(values_dir, fn))
-        for m in re.finditer(r'<color name="(\w+)"', content):
-            defined_colors.add(m.group(1))
-        for m in re.finditer(r'<string name="(\w+)"', content):
-            defined_strings.add(m.group(1))
-        for m in re.finditer(r'<dimen name="(\w+)"', content):
-            defined_dimens.add(m.group(1))
-        for m in re.finditer(r'<style name="([\w.]+)"', content):
-            defined_styles.add(m.group(1))
+        for m in re.finditer(r'<color name="(\w+)"', content): defined_colors.add(m.group(1))
+        for m in re.finditer(r'<string name="(\w+)"', content): defined_strings.add(m.group(1))
+        for m in re.finditer(r'<dimen name="(\w+)"', content): defined_dimens.add(m.group(1))
+        for m in re.finditer(r'<style name="([\w.]+)"', content): defined_styles.add(m.group(1))
+        for m in re.finditer(r'<array name="(\w+)"', content): defined_arrays.add(m.group(1))
+        for m in re.finditer(r'<bool name="(\w+)"', content): defined_bools.add(m.group(1))
+        for m in re.finditer(r'<integer name="(\w+)"', content): defined_integers.add(m.group(1))
 
-# Drawables & mipmaps
 for folder in os.listdir(RES_DIR):
     full = os.path.join(RES_DIR, folder)
     if not os.path.isdir(full): continue
-
     if folder.startswith("drawable"):
-        for fn in os.listdir(full):
-            defined_drawables.add(fn.rsplit(".", 1)[0])
+        for fn in os.listdir(full): defined_drawables.add(fn.rsplit(".", 1)[0])
     elif folder.startswith("mipmap"):
-        for fn in os.listdir(full):
-            defined_mipmaps.add(fn.rsplit(".", 1)[0])
+        for fn in os.listdir(full): defined_mipmaps.add(fn.rsplit(".", 1)[0])
     elif folder == "layout":
-        for fn in os.listdir(full):
-            defined_layouts.add(fn.rsplit(".", 1)[0])
+        for fn in os.listdir(full): defined_layouts.add(fn.rsplit(".", 1)[0])
     elif folder == "xml":
-        for fn in os.listdir(full):
-            defined_xmls.add(fn.rsplit(".", 1)[0])
+        for fn in os.listdir(full): defined_xmls.add(fn.rsplit(".", 1)[0])
 
 log(f"  Colors     : {len(defined_colors)}")
 log(f"  Strings    : {len(defined_strings)}")
@@ -332,11 +346,10 @@ log(f"  XMLs       : {len(defined_xmls)}")
 # 6. CROSS-CHECK RESOURCE REFERENCES
 # ============================================================
 
-section("6. CROSS-CHECK RESOURCE REFERENCES")
+section("6. CROSS-CHECK RESOURCES")
 
 unresolved = defaultdict(list)
 
-# Semua XML di res/ (layout, drawable, values, xml, mipmap)
 for root, _, fs in os.walk(RES_DIR):
     for fn in fs:
         if not fn.endswith(".xml"): continue
@@ -359,6 +372,9 @@ for root, _, fs in os.walk(RES_DIR):
         for m in re.finditer(r'@drawable/(\w+)', content):
             if m.group(1) not in defined_drawables:
                 unresolved["drawable"].append((rel, m.group(1)))
+        for m in re.finditer(r'@mipmap/(\w+)', content):
+            if m.group(1) not in defined_mipmaps:
+                unresolved["mipmap"].append((rel, m.group(1)))
         for m in re.finditer(r'@layout/(\w+)', content):
             if m.group(1) not in defined_layouts:
                 unresolved["layout"].append((rel, m.group(1)))
@@ -366,7 +382,7 @@ for root, _, fs in os.walk(RES_DIR):
             if m.group(1) not in defined_xmls:
                 unresolved["xml"].append((rel, m.group(1)))
 
-# Kotlin juga bisa referensi @color, @string
+# Kotlin
 for kt in kt_files:
     src = read(kt)
     rel = os.path.relpath(kt, WORKDIR)
@@ -376,85 +392,100 @@ for kt in kt_files:
     for m in re.finditer(r'R\.string\.(\w+)', src):
         if m.group(1) not in defined_strings:
             unresolved["string"].append((rel, m.group(1)))
+    for m in re.finditer(r'R\.drawable\.(\w+)', src):
+        if m.group(1) not in defined_drawables:
+            unresolved["drawable"].append((rel, m.group(1)))
+    for m in re.finditer(r'R\.layout\.(\w+)', src):
+        if m.group(1) not in defined_layouts:
+            unresolved["layout"].append((rel, m.group(1)))
+    for m in re.finditer(r'R\.style\.([\w.]+)', src):
+        if m.group(1) not in defined_styles:
+            unresolved["style"].append((rel, m.group(1)))
+    for m in re.finditer(r'R\.array\.(\w+)', src):
+        if m.group(1) not in defined_arrays:
+            unresolved["array"].append((rel, m.group(1)))
 
-# Laporkan
 for kind, entries in unresolved.items():
     if entries:
-        log(f"\n  ❌ @{kind} unresolved ({len(entries)}):")
-        for rel, name in entries:
-            log(f"     {rel}: @{kind}/{name}")
-            issue(f"@{kind}/{name} tidak ada", file=rel)
+        # Deduplicate
+        unique = list(set(entries))
+        log(f"\n  ❌ @{kind} unresolved ({len(unique)}):")
+        for rel, name in unique[:30]:
+            log(f"     {rel} → @{kind}/{name}")
+            issue(f"@{kind}/{name} tidak ada (dari {rel})", file=rel, category="resource")
     else:
         log(f"  ✅ @{kind} — semua OK")
 
 # ============================================================
-# 7. KOTLIN vs LAYOUT MATCHING
+# 7. KOTLIN ↔ LAYOUT MATCHING (SMART — pahami adapter)
 # ============================================================
 
-section("7. KOTLIN vs LAYOUT MATCHING")
+section("7. KOTLIN ↔ LAYOUT MATCHING (SMART)")
 
-for kt_rel, layout_name in used_layouts.items():
+for kt_rel, layout_name in called_layouts_by_file.items():
     if layout_name not in defined_layouts:
-        issue(f"{kt_rel}: setContentView(R.layout.{layout_name}) — layout tidak ada",
-              file=kt_rel, sev="error")
+        issue(f"{kt_rel}: R.layout.{layout_name} tidak ada",
+              file=kt_rel, category="layout")
         continue
 
-    # Baca layout
-    layout_path = os.path.join(RES_DIR, "layout", f"{layout_name}.xml")
-    layout_content = read(layout_path)
+    layout_content = read(os.path.join(RES_DIR, "layout", f"{layout_name}.xml"))
+    layout_ids = set(re.findall(r'android:id="@\+id/(\w+)"', layout_content))
 
-    # Collect IDs di layout
-    layout_ids = set()
-    for m in re.finditer(r'android:id="@\+id/(\w+)"', layout_content):
-        layout_ids.add(m.group(1))
-    # Include @+id/ dari @id/ (referensi)
-    for m in re.finditer(r'android:id="@id/(\w+)"', layout_content):
-        layout_ids.add(m.group(1))
+    # SMART: Item layout IDs juga tersedia untuk file ini (via adapter)
+    item_ids = set()
+    for item_layout in called_item_layouts:
+        item_path = os.path.join(RES_DIR, "layout", f"{item_layout}.xml")
+        if os.path.exists(item_path):
+            item_content = read(item_path)
+            item_ids |= set(re.findall(r'android:id="@\+id/(\w+)"', item_content))
 
-    # Cek findViewById di Kotlin
-    called_ids = called_ids_by_class.get(kt_rel, set())
-    missing = called_ids - layout_ids
+    available_ids = layout_ids | item_ids
+
+    called = called_ids_by_file.get(kt_rel, set())
+    missing = called - available_ids
 
     if missing:
-        log(f"  ❌ {kt_rel} → {layout_name}.xml — {len(missing)} ID hilang:")
+        log(f"  ❌ {kt_rel} → {layout_name}.xml + item layouts")
+        log(f"     ID hilang: {sorted(missing)}")
         for mid in sorted(missing):
-            log(f"       R.id.{mid}")
-            issue(f"{kt_rel}: R.id.{mid} tidak ada di {layout_name}.xml",
-                  file=kt_rel)
+            issue(f"{kt_rel}: R.id.{mid} tidak ada di {layout_name}.xml atau item layouts",
+                  file=kt_rel, category="layout")
     else:
-        log(f"  ✅ {kt_rel} → {layout_name}.xml — semua ID ada")
+        log(f"  ✅ {kt_rel} → {layout_name}.xml (+{len(item_ids)} item IDs) — semua OK")
 
 # ============================================================
-# 8. ANDROIDMANIFEST vs CLASS
+# 8. MANIFEST ↔ KOTLIN
 # ============================================================
 
-section("8. ANDROIDMANIFEST vs CLASS")
+section("8. MANIFEST ↔ KOTLIN")
 
 for kind, name in manifest_classes:
-    # Activity biasanya .MainActivity atau com.x.MainActivity
     short = name.split(".")[-1]
+    # Skip library classes (AndroidX, Google, dll)
+    if is_library_class(name):
+        log(f"  ℹ️  [{kind}] {short} — library class (skip)")
+        continue
+
     if short not in declared_classes:
         issue(f"Manifest [{kind}] '{name}' tidak ada di Kotlin",
-              file="AndroidManifest.xml")
+              file="AndroidManifest.xml", category="manifest")
     else:
         log(f"  ✅ [{kind}] {short}")
 
 # ============================================================
-# 9. AUTO-FIX
+# 9. AUTO-FIX (SMART)
 # ============================================================
 
 section("9. AUTO-FIX")
 
 if not AUTO_FIX:
-    log("  ⚠️  Auto-fix disabled (AUTO_FIX=false)")
+    log("  ⚠️  Auto-fix disabled")
 else:
-    # --- Fix 1: Tambah warna yang hilang ke colors.xml ---
+    # Fix 1: colors.xml
     colors_path = os.path.join(RES_DIR, "values", "colors.xml")
     missing_colors = set(n for _, n in unresolved.get("color", []))
     if missing_colors:
-        log(f"\n  🔧 Fix 1: Tambah {len(missing_colors)} warna ke colors.xml")
-
-        # Default color map
+        log(f"\n  🔧 Fix 1: Tambah {len(missing_colors)} warna")
         DEFAULT_COLOR_VALUES = {
             "primary": "#1A237E", "primary_dark": "#0D47A1", "accent": "#FF9800",
             "accent_dark": "#F57C00", "secondary": "#FF9800",
@@ -472,116 +503,83 @@ else:
             "pink": "#E91E63", "teal": "#009688", "cyan": "#00BCD4",
             "transparent": "#00000000", "semi_transparent": "#80000000",
         }
-
-        # Baca yang sudah ada
-        if os.path.exists(colors_path):
-            existing = read(colors_path)
-        else:
-            existing = '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n</resources>'
-
-        # Extract nama yang sudah ada
+        existing = read(colors_path) if os.path.exists(colors_path) \
+                   else '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n</resources>'
         existing_names = set(re.findall(r'<color name="(\w+)"', existing))
-
         to_add = []
         for c in sorted(missing_colors):
             if c in existing_names: continue
             value = DEFAULT_COLOR_VALUES.get(c)
             if not value:
-                # Tebak dari nama
                 if "dark" in c: value = "#212121"
                 elif "light" in c: value = "#F5F5F5"
                 elif "bg" in c or "background" in c: value = "#FFFFFF"
                 elif "text" in c: value = "#212121"
                 else: value = "#607D8B"
             to_add.append(f'    <color name="{c}">{value}</color>')
-
         if to_add:
-            # Sisipkan sebelum </resources>
-            new_content = existing.replace("</resources>",
-                "\n".join(to_add) + "\n</resources>")
-            write(colors_path, new_content)
-            fix(f"Tambah {len(to_add)} warna ke colors.xml")
+            write(colors_path, existing.replace("</resources>",
+                  "\n".join(to_add) + "\n</resources>"))
+            fix(f"Tambah {len(to_add)} warna")
 
-    # --- Fix 2: Tambah dimens yang hilang ---
+    # Fix 2: dimens.xml
     dimens_path = os.path.join(RES_DIR, "values", "dimens.xml")
     missing_dimens = set(n for _, n in unresolved.get("dimen", []))
     if missing_dimens:
         log(f"\n  🔧 Fix 2: Tambah {len(missing_dimens)} dimens")
-        if os.path.exists(dimens_path):
-            existing = read(dimens_path)
-        else:
-            existing = '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n</resources>'
-
+        existing = read(dimens_path) if os.path.exists(dimens_path) \
+                   else '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n</resources>'
         existing_names = set(re.findall(r'<dimen name="(\w+)"', existing))
-        to_add = []
-        for d in sorted(missing_dimens):
-            if d in existing_names: continue
-            to_add.append(f'    <dimen name="{d}">16dp</dimen>')
-
+        to_add = [f'    <dimen name="{d}">16dp</dimen>'
+                  for d in sorted(missing_dimens) if d not in existing_names]
         if to_add:
-            new_content = existing.replace("</resources>",
-                "\n".join(to_add) + "\n</resources>")
-            write(dimens_path, new_content)
+            write(dimens_path, existing.replace("</resources>",
+                  "\n".join(to_add) + "\n</resources>"))
             fix(f"Tambah {len(to_add)} dimens")
 
-    # --- Fix 3: Tambah strings yang hilang ---
+    # Fix 3: strings.xml
     strings_path = os.path.join(RES_DIR, "values", "strings.xml")
     missing_strings = set(n for _, n in unresolved.get("string", []))
     if missing_strings:
         log(f"\n  🔧 Fix 3: Tambah {len(missing_strings)} strings")
-        if os.path.exists(strings_path):
-            existing = read(strings_path)
-        else:
-            existing = '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n</resources>'
-
+        existing = read(strings_path) if os.path.exists(strings_path) \
+                   else '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n</resources>'
         existing_names = set(re.findall(r'<string name="(\w+)"', existing))
         to_add = []
         for s in sorted(missing_strings):
             if s in existing_names: continue
             to_add.append(f'    <string name="{s}">{s.replace("_", " ").title()}</string>')
-
         if to_add:
-            new_content = existing.replace("</resources>",
-                "\n".join(to_add) + "\n</resources>")
-            write(strings_path, new_content)
+            write(strings_path, existing.replace("</resources>",
+                  "\n".join(to_add) + "\n</resources>"))
             fix(f"Tambah {len(to_add)} strings")
 
-    # --- Fix 4: Buat style yang hilang ---
+    # Fix 4: styles
     missing_styles = set(n for _, n in unresolved.get("style", []))
     if missing_styles:
-        log(f"\n  🔧 Fix 4: Cek style yang hilang")
+        log(f"\n  🔧 Fix 4: Tambah {len(missing_styles)} styles")
+        themes_path = os.path.join(RES_DIR, "values", "themes.xml")
+        existing = read(themes_path) if os.path.exists(themes_path) else \
+                   ('<?xml version="1.0" encoding="utf-8"?>\n'
+                    '<resources xmlns:tools="http://schemas.android.com/tools">\n</resources>')
         for s in missing_styles:
-            if s.startswith("Theme."):
-                # Buat theme
-                themes_path = os.path.join(RES_DIR, "values", "themes.xml")
-                if os.path.exists(themes_path):
-                    existing = read(themes_path)
-                else:
-                    existing = ('<?xml version="1.0" encoding="utf-8"?>\n'
-                                '<resources xmlns:tools="http://schemas.android.com/tools">\n'
-                                '</resources>')
-                if f'name="{s}"' not in existing:
-                    style_xml = (f'\n    <style name="{s}" '
-                                 f'parent="Theme.MaterialComponents.DayNight.NoActionBar">\n'
-                                 f'        <item name="colorPrimary">#1A237E</item>\n'
-                                 f'        <item name="colorSecondary">#FF9800</item>\n'
-                                 f'    </style>')
-                    new_content = existing.replace("</resources>",
-                        style_xml + "\n</resources>")
-                    write(themes_path, new_content)
-                    fix(f"Buat style {s}")
+            if f'name="{s}"' in existing: continue
+            parent = "Theme.MaterialComponents.DayNight.NoActionBar" if s.startswith("Theme.") \
+                     else "android:Widget.Material.Button"
+            style_xml = (f'\n    <style name="{s}" parent="{parent}"/>\n')
+            existing = existing.replace("</resources>", style_xml + "</resources>")
+            fix(f"Tambah style {s}")
+        write(themes_path, existing)
 
-    # --- Fix 5: Buat drawable yang hilang (sebagai shape sederhana) ---
+    # Fix 5: drawables
     missing_drawables = set(n for _, n in unresolved.get("drawable", []))
     if missing_drawables:
         log(f"\n  🔧 Fix 5: Buat {len(missing_drawables)} drawable placeholder")
         drawable_dir = os.path.join(RES_DIR, "drawable")
         os.makedirs(drawable_dir, exist_ok=True)
-
         for d in missing_drawables:
             path = os.path.join(drawable_dir, f"{d}.xml")
             if os.path.exists(path): continue
-
             content = ('<?xml version="1.0" encoding="utf-8"?>\n'
                        '<shape xmlns:android="http://schemas.android.com/apk/res/android"\n'
                        '    android:shape="rectangle">\n'
@@ -592,64 +590,70 @@ else:
             fix(f"Buat drawable {d}.xml")
 
 # ============================================================
-# 10. FINAL CHECK
+# 10. ADDITIONAL CHECKS (yang kita alami)
 # ============================================================
 
-section("10. FINAL CHECK")
+section("10. ADDITIONAL CHECKS")
 
-# Re-scan setelah fix
-if AUTO_FIX and all_fixes:
-    log("  Re-scan setelah auto-fix...")
+# Cek gradle wrapper
+wrapper_path = os.path.join(android_dir, "gradle", "wrapper", "gradle-wrapper.properties")
+if os.path.exists(wrapper_path):
+    content = read(wrapper_path)
+    m = re.search(r'distributionUrl=.*gradle-([\d.]+)-', content)
+    if m:
+        log(f"  📦 Gradle version : {m.group(1)}")
+else:
+    issue("gradle-wrapper.properties tidak ada", category="gradle")
 
-    defined_colors2 = set()
-    colors_path = os.path.join(RES_DIR, "values", "colors.xml")
-    if os.path.exists(colors_path):
-        for m in re.finditer(r'<color name="(\w+)"', read(colors_path)):
-            defined_colors2.add(m.group(1))
+# Cek file kunci
+CRITICAL_FILES = {
+    "Manifest": manifest,
+    "App Gradle": app_gradle,
+    "Root Gradle": root_gradle,
+    "Settings Gradle": settings_gradle,
+    "Colors": os.path.join(RES_DIR, "values", "colors.xml"),
+    "Strings": os.path.join(RES_DIR, "values", "strings.xml"),
+    "Themes": os.path.join(RES_DIR, "values", "themes.xml"),
+}
 
-    defined_strings2 = set()
-    strings_path = os.path.join(RES_DIR, "values", "strings.xml")
-    if os.path.exists(strings_path):
-        for m in re.finditer(r'<string name="(\w+)"', read(strings_path)):
-            defined_strings2.add(m.group(1))
-
-    defined_dimens2 = set()
-    dimens_path = os.path.join(RES_DIR, "values", "dimens.xml")
-    if os.path.exists(dimens_path):
-        for m in re.finditer(r'<dimen name="(\w+)"', read(dimens_path)):
-            defined_dimens2.add(m.group(1))
-
-    # Re-scan
-    still_unresolved = []
-    for root, _, fs in os.walk(RES_DIR):
-        for fn in fs:
-            if not fn.endswith(".xml"): continue
-            full = os.path.join(root, fn)
-            content = read(full)
-            rel = os.path.relpath(full, WORKDIR)
-
-            for m in re.finditer(r'@color/(\w+)', content):
-                if m.group(1) not in defined_colors2:
-                    still_unresolved.append(f"{rel} → @color/{m.group(1)}")
-            for m in re.finditer(r'@string/(\w+)', content):
-                if m.group(1) not in defined_strings2:
-                    still_unresolved.append(f"{rel} → @string/{m.group(1)}")
-            for m in re.finditer(r'@dimen/(\w+)', content):
-                if m.group(1) not in defined_dimens2:
-                    still_unresolved.append(f"{rel} → @dimen/{m.group(1)}")
-
-    if still_unresolved:
-        log(f"  ⚠️  Masih ada {len(still_unresolved)} unresolved setelah fix:")
-        for u in still_unresolved[:20]:
-            log(f"     {u}")
+subsection("Critical files")
+for name, path in CRITICAL_FILES.items():
+    if path and os.path.exists(path):
+        log(f"  ✅ {name}")
     else:
-        log("  ✅ Semua resource reference resolved!")
+        issue(f"{name} tidak ada", category="resource")
+
+# Cek YadApp.kt (untuk SecureConfig.init)
+yadapp = None
+for kt in kt_files:
+    if "YadApp" in kt: yadapp = kt; break
+
+if yadapp:
+    src = read(yadapp)
+    if "SecureConfig.init" not in src:
+        issue("YadApp.kt: tidak panggil SecureConfig.init(this)",
+              file=os.path.relpath(yadapp, WORKDIR), category="kotlin")
+    else:
+        log("  ✅ YadApp.kt: SecureConfig.init OK")
+
+# Cek SecureConfig lateinit
+secure = None
+for kt in kt_files:
+    if "SecureConfig" in kt: secure = kt; break
+
+if secure:
+    src = read(secure)
+    if "lateinit" in src:
+        issue("SecureConfig.kt: pakai 'lateinit' — bisa crash kalau belum init",
+              sev="warning", file=os.path.relpath(secure, WORKDIR), category="kotlin")
+    else:
+        log("  ✅ SecureConfig.kt: pakai nullable (aman)")
 
 # ============================================================
-# SUMMARY
+# 11. RINGKASAN
 # ============================================================
 
-section("SUMMARY")
+section("11. RINGKASAN")
 
 errors = [i for i in all_issues if i["severity"] == "error"]
 warnings = [i for i in all_issues if i["severity"] == "warning"]
@@ -659,6 +663,13 @@ log(f"  🔴 Errors   : {len(errors)}")
 log(f"  🟡 Warnings : {len(warnings)}")
 log(f"  🔵 Info     : {len(infos)}")
 log(f"  🔧 Fixes    : {len(all_fixes)}")
+
+# By category
+log()
+log("  Per kategori:")
+categories = Counter(i.get("category", "general") for i in all_issues)
+for cat, cnt in categories.most_common():
+    log(f"    {cat}: {cnt}")
 
 log()
 log("=" * 78)
@@ -675,14 +686,10 @@ with open(REPORT_TXT, "w", encoding="utf-8") as f:
 
 with open(REPORT_JSON, "w", encoding="utf-8") as f:
     json.dump({
-        "issues": all_issues,
-        "fixes": all_fixes,
-        "summary": {
-            "errors": len(errors),
-            "warnings": len(warnings),
-            "infos": len(infos),
-            "fixes": len(all_fixes),
-        },
+        "issues": all_issues, "fixes": all_fixes,
+        "summary": {"errors": len(errors), "warnings": len(warnings),
+                    "infos": len(infos), "fixes": len(all_fixes)},
+        "categories": dict(categories),
         "timestamp": datetime.now().isoformat(),
     }, f, indent=2, ensure_ascii=False)
 
@@ -692,8 +699,7 @@ with open(ISSUES_TXT, "w", encoding="utf-8") as f:
         f.write(f"[{i['severity'].upper()}]{loc} {i['msg']}\n")
 
 with open(FIXES_TXT, "w", encoding="utf-8") as f:
-    for fx in all_fixes:
-        f.write(f"✅ {fx}\n")
+    for fx in all_fixes: f.write(f"✅ {fx}\n")
 
 print()
 print("=" * 60)
