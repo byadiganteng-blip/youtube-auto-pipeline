@@ -1,1 +1,5 @@
+[ERROR] [android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt] android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt: R.id.cardRun tidak ada di activity_actions.xml
+[ERROR] [android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt] android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt: R.id.tvIcon tidak ada di activity_actions.xml
+[ERROR] [android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt] android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt: R.id.tvName tidak ada di activity_actions.xml
+[ERROR] [android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt] android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt: R.id.tvTime tidak ada di activity_actions.xml
 [ERROR] [AndroidManifest.xml] Manifest [provider] 'androidx.core.content.FileProvider' tidak ada di Kotlin

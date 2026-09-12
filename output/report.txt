@@ -80,15 +80,15 @@
 ==============================================================================
   4. KOTLIN ANALYSIS
 ==============================================================================
-  Classes declared   : 20
+  Classes declared   : 23
   Files using layout : 13
   Intent targets     : 4
 
 ── Cek Intent reference ────────────────────────────────────────────────────
-  ✅ BroadcastActivity
-  ✅ TextEditorActivity
   ✅ LogsActivity
   ✅ FeatureAdderActivity
+  ✅ BroadcastActivity
+  ✅ TextEditorActivity
 
 ==============================================================================
   5. RESOURCE ANALYSIS
@@ -116,7 +116,15 @@
   ✅ android/app/src/main/java/com/universal/videoeditor/TextEditorActivity.kt → activity_text_editor.xml — semua ID ada
   ✅ android/app/src/main/java/com/universal/videoeditor/StatisticsActivity.kt → activity_statistics.xml — semua ID ada
   ✅ android/app/src/main/java/com/universal/videoeditor/MainActivity.kt → activity_main.xml — semua ID ada
-  ✅ android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt → activity_actions.xml — semua ID ada
+  ❌ android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt → activity_actions.xml — 4 ID hilang:
+       R.id.cardRun
+  🔴 android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt: R.id.cardRun tidak ada di activity_actions.xml [android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt:None]
+       R.id.tvIcon
+  🔴 android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt: R.id.tvIcon tidak ada di activity_actions.xml [android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt:None]
+       R.id.tvName
+  🔴 android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt: R.id.tvName tidak ada di activity_actions.xml [android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt:None]
+       R.id.tvTime
+  🔴 android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt: R.id.tvTime tidak ada di activity_actions.xml [android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt:None]
   ✅ android/app/src/main/java/com/universal/videoeditor/FeatureAdderActivity.kt → activity_feature_adder.xml — semua ID ada
   ✅ android/app/src/main/java/com/universal/videoeditor/SettingsActivity.kt → activity_settings.xml — semua ID ada
   ✅ android/app/src/main/java/com/universal/videoeditor/FilesActivity.kt → activity_files.xml — semua ID ada
@@ -148,7 +156,7 @@
 ==============================================================================
   SUMMARY
 ==============================================================================
-  🔴 Errors   : 1
+  🔴 Errors   : 5
   🟡 Warnings : 0
   🔵 Info     : 0
   🔧 Fixes    : 0
