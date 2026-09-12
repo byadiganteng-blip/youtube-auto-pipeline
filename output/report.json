@@ -1,24 +1,6 @@
 {
   "issues": [
     {
-      "msg": "@layout/simple_spinner_dropdown_item tidak ada (dari android/app/src/main/java/com/universal/videoeditor/FeatureAdderActivity.kt)",
-      "severity": "error",
-      "category": "resource",
-      "file": "android/app/src/main/java/com/universal/videoeditor/FeatureAdderActivity.kt"
-    },
-    {
-      "msg": "@layout/simple_spinner_item tidak ada (dari android/app/src/main/java/com/universal/videoeditor/SettingsActivity.kt)",
-      "severity": "error",
-      "category": "resource",
-      "file": "android/app/src/main/java/com/universal/videoeditor/SettingsActivity.kt"
-    },
-    {
-      "msg": "YadApp.kt: tidak panggil SecureConfig.init(this)",
-      "severity": "error",
-      "category": "kotlin",
-      "file": "android/app/src/main/java/com/universal/videoeditor/YadApp.kt"
-    },
-    {
       "msg": "SecureConfig.kt: pakai 'lateinit' — bisa crash kalau belum init",
       "severity": "warning",
       "category": "kotlin",
@@ -27,14 +9,13 @@
   ],
   "fixes": [],
   "summary": {
-    "errors": 3,
+    "errors": 0,
     "warnings": 1,
     "infos": 0,
     "fixes": 0
   },
   "categories": {
-    "resource": 2,
-    "kotlin": 2
+    "kotlin": 1
   },
-  "timestamp": "2026-09-12T05:13:14.554452"
+  "timestamp": "2026-09-12T05:15:41.978214"
 }

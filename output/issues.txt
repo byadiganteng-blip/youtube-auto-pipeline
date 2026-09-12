@@ -1,4 +1,1 @@
-[ERROR] [android/app/src/main/java/com/universal/videoeditor/FeatureAdderActivity.kt] @layout/simple_spinner_dropdown_item tidak ada (dari android/app/src/main/java/com/universal/videoeditor/FeatureAdderActivity.kt)
-[ERROR] [android/app/src/main/java/com/universal/videoeditor/SettingsActivity.kt] @layout/simple_spinner_item tidak ada (dari android/app/src/main/java/com/universal/videoeditor/SettingsActivity.kt)
-[ERROR] [android/app/src/main/java/com/universal/videoeditor/YadApp.kt] YadApp.kt: tidak panggil SecureConfig.init(this)
 [WARNING] [android/app/src/main/java/com/universal/videoeditor/SecureConfig.kt] SecureConfig.kt: pakai 'lateinit' — bisa crash kalau belum init

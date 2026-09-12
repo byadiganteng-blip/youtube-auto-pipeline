@@ -88,9 +88,9 @@
 
 ── Intent reference check ──────────────────────────────────────────────────
   ✅ BroadcastActivity
+  ✅ FeatureAdderActivity
   ✅ TextEditorActivity
   ✅ LogsActivity
-  ✅ FeatureAdderActivity
 
 ==============================================================================
   5. RESOURCES
@@ -107,12 +107,6 @@
 ==============================================================================
   6. CROSS-CHECK RESOURCES
 ==============================================================================
-
-  ❌ @layout unresolved (2):
-     android/app/src/main/java/com/universal/videoeditor/FeatureAdderActivity.kt → @layout/simple_spinner_dropdown_item
-  🔴 @layout/simple_spinner_dropdown_item tidak ada (dari android/app/src/main/java/com/universal/videoeditor/FeatureAdderActivity.kt) [android/app/src/main/java/com/universal/videoeditor/FeatureAdderActivity.kt:None]
-     android/app/src/main/java/com/universal/videoeditor/SettingsActivity.kt → @layout/simple_spinner_item
-  🔴 @layout/simple_spinner_item tidak ada (dari android/app/src/main/java/com/universal/videoeditor/SettingsActivity.kt) [android/app/src/main/java/com/universal/videoeditor/SettingsActivity.kt:None]
 
 ==============================================================================
   7. KOTLIN ↔ LAYOUT MATCHING (SMART)
@@ -162,20 +156,19 @@
   ✅ Colors
   ✅ Strings
   ✅ Themes
-  🔴 YadApp.kt: tidak panggil SecureConfig.init(this) [android/app/src/main/java/com/universal/videoeditor/YadApp.kt:None]
+  ✅ YadApp.kt: SecureConfig.init OK
   🟡 SecureConfig.kt: pakai 'lateinit' — bisa crash kalau belum init [android/app/src/main/java/com/universal/videoeditor/SecureConfig.kt:None]
 
 ==============================================================================
   11. RINGKASAN
 ==============================================================================
-  🔴 Errors   : 3
+  🔴 Errors   : 0
   🟡 Warnings : 1
   🔵 Info     : 0
   🔧 Fixes    : 0
 
   Per kategori:
-    resource: 2
-    kotlin: 2
+    kotlin: 1
 
 ==============================================================================
   ✅ Analisis selesai
