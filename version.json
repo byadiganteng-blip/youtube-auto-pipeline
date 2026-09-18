@@ -1,0 +1,11 @@
+{
+  "versionName": "4.3",
+  "versionCode": 15,
+  "buildNumber": 222,
+  "apkUrl": "https://github.com/byadiganteng-blip/youtube-auto-pipeline/releases/download/v4.3-222/CliperOn-release.apk",
+  "releaseUrl": "https://github.com/byadiganteng-blip/youtube-auto-pipeline/releases/tag/v4.3-222",
+  "releaseNotes": "Update Cliper On v4.3 - build 222",
+  "forceUpdate": false,
+  "minSdk": 24,
+  "publishedAt": "2026-09-18T06:39:46Z"
+}
