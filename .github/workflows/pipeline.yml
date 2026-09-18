@@ -104,18 +104,41 @@ jobs:
           ls -lah input/
           ffprobe -v error -show_entries format=duration,size -show_entries stream=codec_name,width,height -of default=noprint_wrappers=1 input/video.mp4 || true
 
+      - name: Check watermark_remover.py args
+        id: check_wm
+        run: |
+          if grep -q -- "--start-part" watermark_remover.py; then
+            echo "has_start_part=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_start_part=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Process Video (Watermark + Split per Part)
         run: |
-          python watermark_remover.py \
-            --input "input/video.mp4" \
-            --output-dir "raw_output" \
-            --method "${{ github.event.inputs.method }}" \
-            --part-duration "${{ github.event.inputs.part_duration }}" \
-            --samples "30" \
-            --process-mode "${{ github.event.inputs.process_mode }}" \
-            --video-size "${{ github.event.inputs.video_size }}" \
-            --video-quality "${{ github.event.inputs.video_quality }}" \
-            --start-part "${{ github.event.inputs.start_part }}"
+          if [ "${{ steps.check_wm.outputs.has_start_part }}" == "true" ]; then
+            echo ">>> With --start-part"
+            python watermark_remover.py \
+              --input "input/video.mp4" \
+              --output-dir "raw_output" \
+              --method "${{ github.event.inputs.method }}" \
+              --part-duration "${{ github.event.inputs.part_duration }}" \
+              --samples "30" \
+              --process-mode "${{ github.event.inputs.process_mode }}" \
+              --video-size "${{ github.event.inputs.video_size }}" \
+              --video-quality "${{ github.event.inputs.video_quality }}" \
+              --start-part "${{ github.event.inputs.start_part }}"
+          else
+            echo ">>> Without --start-part (fallback)"
+            python watermark_remover.py \
+              --input "input/video.mp4" \
+              --output-dir "raw_output" \
+              --method "${{ github.event.inputs.method }}" \
+              --part-duration "${{ github.event.inputs.part_duration }}" \
+              --samples "30" \
+              --process-mode "${{ github.event.inputs.process_mode }}" \
+              --video-size "${{ github.event.inputs.video_size }}" \
+              --video-quality "${{ github.event.inputs.video_quality }}"
+          fi
           ls -lah raw_output/
 
       - name: FIX VIDEO CODEC (H.264 yuv420p)

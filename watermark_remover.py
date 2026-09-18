@@ -148,6 +148,7 @@ def remove_and_split(inp, outd, wms, method='blur', pd=300, preset='original', q
 
 def main():
     p = argparse.ArgumentParser()
+    parser.add_argument("--start-part", type=int, default=1)
     p.add_argument('--input', required=True); p.add_argument('--output-dir', default='output')
     p.add_argument('--method', default='blur'); p.add_argument('--samples', type=int, default=30)
     p.add_argument('--part-duration', type=int, default=300)
