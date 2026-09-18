@@ -157,7 +157,7 @@ class MainActivity : AppCompatActivity() {
             try {
                 // Coba pakai API GitHub untuk yt-dlp metadata via workflow
                 // Fallback: kirim ke server dan cek via HEAD
-                val r = WorkflowHelper.probeVideoDuration(this@MainActivity, url)
+                val r = ProcessRunner.probeVideoDuration(this@MainActivity, url)
                 if (r != null && r > 0) {
                     videoDurationSec = r
                     LogTracker.i(this@MainActivity, "Detect", "Duration: ${r}s")
@@ -203,7 +203,7 @@ class MainActivity : AppCompatActivity() {
         LogTracker.i(this, "Main", "Process: $inputs")
         showProgress(5, "Memulai…", "Menghubungi server")
         lifecycleScope.launch {
-            val r = WorkflowHelper.startProcess(this@MainActivity, inputs)
+            val r = ProcessRunner.startProcess(this@MainActivity, inputs)
             if (!r.ok) {
                 hideProgress()
                 LogTracker.e(this@MainActivity, "Main", "Trigger failed: ${r.code}")
@@ -220,7 +220,7 @@ class MainActivity : AppCompatActivity() {
                 delay(5000)
                 val pct = minOf(15 + i * 2, 70)
                 showProgress(pct, "Memproses video…", "Langkah ${i+1} / 240")
-                val run = WorkflowHelper.latestRun(this@MainActivity) ?: continue
+                val run = ProcessRunner.latestRun(this@MainActivity) ?: continue
                 if (run.optString("status") == "completed") {
                     val conclusion = run.optString("conclusion")
                     LogTracker.i(this@MainActivity, "Main", "Run completed: $conclusion")
@@ -244,8 +244,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private suspend fun downloadResult(runId: Long) {
-        val arts = WorkflowHelper.runArtifacts(this, runId)
-        val useArts = if (arts.isEmpty()) { delay(5000); WorkflowHelper.runArtifacts(this, runId) } else arts
+        val arts = ProcessRunner.runArtifacts(this, runId)
+        val useArts = if (arts.isEmpty()) { delay(5000); ProcessRunner.runArtifacts(this, runId) } else arts
         if (useArts.isEmpty()) {
             hideProgress()
             Toast.makeText(this, "✅ Selesai! Cek Hasil Video.", Toast.LENGTH_LONG).show()
@@ -253,7 +253,7 @@ class MainActivity : AppCompatActivity() {
         }
         showProgress(85, "Mengunduh…", "Mohon tunggu")
         val (name, id, _) = useArts.first()
-        val bytes = WorkflowHelper.downloadArtifact(this, id)
+        val bytes = ProcessRunner.downloadArtifact(this, id)
         if (bytes == null) {
             hideProgress()
             Toast.makeText(this, "⚠️ Gagal unduh hasil.", Toast.LENGTH_LONG).show()
