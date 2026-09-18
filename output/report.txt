@@ -61,7 +61,7 @@
 ==============================================================================
   4. KOTLIN - DEEP ANALYSIS
 ==============================================================================
-  Total Kotlin LOC  : 609
+  Total Kotlin LOC  : 625
   Classes declared  : 10
   Files w/ findViewById: 3
   Files w/ setContentView: 4
@@ -69,9 +69,9 @@
   Intent targets: 3
 
 -- Intent reference check --------------------------------------------------
+  OK ResultsActivity
   OK CreditActivity
   OK InstructionsActivity
-  OK ResultsActivity
 
 ==============================================================================
   5. RESOURCES (DEEP)
