@@ -2,6 +2,8 @@ android/app/src/main/java/com/universal/videoeditor/CreditActivity.kt:
 
 android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt:
 
+android/app/src/main/java/com/universal/videoeditor/LogTracker.kt:
+
 android/app/src/main/java/com/universal/videoeditor/MainActivity.kt:
 
 android/app/src/main/java/com/universal/videoeditor/ResultsActivity.kt:

@@ -1,6 +1,6 @@
-[ERROR] [android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt] android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt: R.id.content tidak ada
 [ERROR] [android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt] android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt: R.id.tvNumber tidak ada
 [ERROR] [android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt] android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt: R.id.tvText tidak ada
+[ERROR] [android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt] android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt: R.id.tvTitle tidak ada
 [ERROR] [android/app/src/main/java/com/universal/videoeditor/ResultsActivity.kt] android/app/src/main/java/com/universal/videoeditor/ResultsActivity.kt: R.id.tvName tidak ada
 [ERROR] [android/app/src/main/java/com/universal/videoeditor/ResultsActivity.kt] android/app/src/main/java/com/universal/videoeditor/ResultsActivity.kt: R.id.tvSize tidak ada
 [WARNING] [AndroidManifest.xml] Manifest: allowBackup=true

@@ -15,8 +15,8 @@
 ==============================================================================
   1. INVENTARIS FILE
 ==============================================================================
-  Kotlin      : 7
-  XML (res/)  : 29
+  Kotlin      : 8
+  XML (res/)  : 31
   Gradle      : 3
   Manifest    : OK
 
@@ -61,8 +61,8 @@
 ==============================================================================
   4. KOTLIN - DEEP ANALYSIS
 ==============================================================================
-  Total Kotlin LOC  : 451
-  Classes declared  : 8
+  Total Kotlin LOC  : 609
+  Classes declared  : 10
   Files w/ findViewById: 3
   Files w/ setContentView: 4
   Item layouts: ['item_instruction', 'item_video']
@@ -76,11 +76,11 @@
 ==============================================================================
   5. RESOURCES (DEEP)
 ==============================================================================
-  Colors     : 12
-  Strings    : 18
+  Colors     : 17
+  Strings    : 6
   Dimens     : 0
   Styles     : 1
-  Drawables  : 45 (incl. built-in)
+  Drawables  : 47 (incl. built-in)
   Layouts    : 30 (incl. built-in)
 
 ==============================================================================
@@ -90,11 +90,11 @@
 ==============================================================================
   7. KOTLIN + LAYOUT MATCHING (SMART)
 ==============================================================================
-  Item layout IDs: ['tvName', 'tvNumber', 'tvSize', 'tvText']
-  [!] android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt -> activity_instructions.xml - ID hilang: ['content', 'tvNumber', 'tvText']
-  [X] android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt: R.id.content tidak ada [android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt:None]
+  Item layout IDs: ['tvName', 'tvNumber', 'tvSize', 'tvText', 'tvTitle']
+  [!] android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt -> activity_instructions.xml - ID hilang: ['tvNumber', 'tvText', 'tvTitle']
   [X] android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt: R.id.tvNumber tidak ada [android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt:None]
   [X] android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt: R.id.tvText tidak ada [android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt:None]
+  [X] android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt: R.id.tvTitle tidak ada [android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt:None]
   OK android/app/src/main/java/com/universal/videoeditor/MainActivity.kt -> activity_main.xml
   [!] android/app/src/main/java/com/universal/videoeditor/ResultsActivity.kt -> activity_results.xml - ID hilang: ['tvName', 'tvSize']
   [X] android/app/src/main/java/com/universal/videoeditor/ResultsActivity.kt: R.id.tvName tidak ada [android/app/src/main/java/com/universal/videoeditor/ResultsActivity.kt:None]
@@ -134,7 +134,7 @@
 ==============================================================================
   13. DEPENDENCY GRAPH
 ==============================================================================
-  Files dalam graph: 7
+  Files dalam graph: 8
 
 ==============================================================================
   14. BUILD PREDICTIONS

@@ -1,12 +1,6 @@
 {
   "issues": [
     {
-      "msg": "android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt: R.id.content tidak ada",
-      "severity": "error",
-      "category": "layout",
-      "file": "android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt"
-    },
-    {
       "msg": "android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt: R.id.tvNumber tidak ada",
       "severity": "error",
       "category": "layout",
@@ -14,6 +8,12 @@
     },
     {
       "msg": "android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt: R.id.tvText tidak ada",
+      "severity": "error",
+      "category": "layout",
+      "file": "android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt"
+    },
+    {
+      "msg": "android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt: R.id.tvTitle tidak ada",
       "severity": "error",
       "category": "layout",
       "file": "android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt"
@@ -56,5 +56,5 @@
     "security": 1,
     "performance": 1
   },
-  "timestamp": "2026-09-18T03:22:28.790489"
+  "timestamp": "2026-09-18T03:33:23.175716"
 }
