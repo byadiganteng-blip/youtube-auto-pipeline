@@ -11,17 +11,16 @@ android {
         applicationId "com.universal.videoeditor"
         minSdk 23
         targetSdk 34
-        versionCode 28
-        versionName "6.2"
+        versionCode 30
+        versionName "6.4"
 
         def ghToken = project.findProperty("GH_TOKEN") ?: System.getenv("GH_TOKEN") ?: ""
         def ghUser  = project.findProperty("GH_USER")  ?: System.getenv("GH_USER")  ?: ""
         buildConfigField "String", "GH_TOKEN", "\"${ghToken}\""
         buildConfigField "String", "GH_USER",  "\"${ghUser}\""
+        buildConfigField "String", "STARTIO_APP_ID", "\"208202061\""
 
-        vectorDrawables {
-            useSupportLibrary true
-        }
+        vectorDrawables { useSupportLibrary true }
     }
 
     signingConfigs {
@@ -40,15 +39,11 @@ android {
     }
 
     buildTypes {
-        debug {
-            debuggable true
-        }
+        debug { debuggable true }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            if (System.getenv("KEYSTORE_PATH")) {
-                signingConfig signingConfigs.release
-            }
+            if (System.getenv("KEYSTORE_PATH")) { signingConfig signingConfigs.release }
         }
     }
 
@@ -57,12 +52,14 @@ android {
         targetCompatibility JavaVersion.VERSION_17
         coreLibraryDesugaringEnabled true
     }
-    kotlinOptions {
-        jvmTarget = '17'
-    }
-    buildFeatures {
-        buildConfig true
-    }
+    kotlinOptions { jvmTarget = '17' }
+    buildFeatures { buildConfig true }
+}
+
+repositories {
+    maven { url 'https://android-sdk.is.com/' }
+    maven { url 'https://dl-maven-android.mintegral.com/repository/mbridge_android_sdk_oversea' }
+    maven { url 'https://maven.ironsrc.com/releases' }
 }
 
 dependencies {
@@ -75,4 +72,10 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
+
+    // Start.io / IronSource SDK
+    implementation 'com.ironsource.sdk:mediationsdk:8.4.0'
+    implementation 'com.ironsource.adapters:unityadsadapter:4.12.0'
+    implementation 'com.ironsource.adapters:admobadapter:4.3.44'
+    implementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'
 }

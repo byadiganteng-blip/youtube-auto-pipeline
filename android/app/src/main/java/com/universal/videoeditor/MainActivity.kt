@@ -108,7 +108,21 @@ class MainActivity : AppCompatActivity() {
         requestPermissionsIfNeeded()
         requestNotificationPermission()
 
-        // Menu handlers
+        
+            // ═══ WAJIB: Tampilkan interstitial saat buka app ═══
+            // Tampil setelah 500ms biar layout siap
+            this.window.decorView.postDelayed({
+                try {
+                    StartIoAds.requireInterstitialOnStart(this) {
+                        LogTracker.i(this, "Ads", "Start interstitial closed")
+                    }
+                } catch (e: Exception) {
+                    LogTracker.e(this, "Ads", "Start ad err: ${e.message}")
+                }
+            }, 500)
+
+
+            // Menu handlers
         findViewById<View>(R.id.menuInstructions).setOnClickListener {
             startActivity(Intent(this, InstructionsActivity::class.java))
         }
@@ -172,7 +186,8 @@ class MainActivity : AppCompatActivity() {
                 "part_duration" to sbDuration.progress.coerceAtLeast(10).toString(),
                 "upload_type" to spType.selectedItem.toString()
             )
-            processVideo(inputs)
+            // WAJIB rewarded sebelum proses
+            showRewardedRequiredDialog { processVideo(inputs) }
         }
     }
 
@@ -568,6 +583,17 @@ class MainActivity : AppCompatActivity() {
                 .setMessage("${e.message}")
                 .setPositiveButton("OK", null).show()
         }
+    }
+
+    
+    override fun onResume() {
+        super.onResume()
+        try { StartIoAds.onResume(this) } catch (_: Exception) {}
+    }
+
+    override fun onPause() {
+        super.onPause()
+        try { StartIoAds.onPause(this) } catch (_: Exception) {}
     }
 
     override fun onDestroy() {

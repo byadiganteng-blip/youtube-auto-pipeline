@@ -225,6 +225,14 @@
                 android:text="Cliper On v3.3  •  by YsDev"
                 android:textColor="@color/text_dim" android:textSize="11sp"
                 android:gravity="center" android:layout_marginTop="20dp"/>
+            <FrameLayout
+                android:id="@+id/adBannerContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"
+                android:minHeight="50dp"/>
+
         </LinearLayout>
     </ScrollView>
 
