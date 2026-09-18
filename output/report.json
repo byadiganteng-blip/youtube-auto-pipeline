@@ -41,26 +41,20 @@
       "severity": "warning",
       "category": "performance",
       "file": "android/app/src/main/java/com/universal/videoeditor/WorkflowHelper.kt"
-    },
-    {
-      "msg": "android/app/src/main/java/com/universal/videoeditor/AdminApi.kt: network call di main thread?",
-      "severity": "warning",
-      "category": "performance",
-      "file": "android/app/src/main/java/com/universal/videoeditor/AdminApi.kt"
     }
   ],
   "fixes": [],
   "predictions": [],
   "summary": {
     "errors": 5,
-    "warnings": 3,
+    "warnings": 2,
     "infos": 0,
     "fixes": 0
   },
   "categories": {
     "layout": 5,
     "security": 1,
-    "performance": 2
+    "performance": 1
   },
-  "timestamp": "2026-09-18T03:16:42.397917"
+  "timestamp": "2026-09-18T03:22:28.790489"
 }

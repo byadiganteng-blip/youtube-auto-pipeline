@@ -15,7 +15,7 @@
 ==============================================================================
   1. INVENTARIS FILE
 ==============================================================================
-  Kotlin      : 8
+  Kotlin      : 7
   XML (res/)  : 29
   Gradle      : 3
   Manifest    : OK
@@ -61,17 +61,17 @@
 ==============================================================================
   4. KOTLIN - DEEP ANALYSIS
 ==============================================================================
-  Total Kotlin LOC  : 495
-  Classes declared  : 9
+  Total Kotlin LOC  : 451
+  Classes declared  : 8
   Files w/ findViewById: 3
   Files w/ setContentView: 4
   Item layouts: ['item_instruction', 'item_video']
   Intent targets: 3
 
 -- Intent reference check --------------------------------------------------
+  OK CreditActivity
   OK InstructionsActivity
   OK ResultsActivity
-  OK CreditActivity
 
 ==============================================================================
   5. RESOURCES (DEEP)
@@ -118,8 +118,7 @@
 ==============================================================================
   10. DEAD CODE DETECTION
 ==============================================================================
-  [!] 1 kandidat dead code:
-     AdminApi (android/app/src/main/java/com/universal/videoeditor/AdminApi.kt)
+  OK Tidak ada dead code
 
 ==============================================================================
   11. SECURITY ANALYSIS
@@ -131,12 +130,11 @@
   12. PERFORMANCE ANALYSIS
 ==============================================================================
   [!] android/app/src/main/java/com/universal/videoeditor/WorkflowHelper.kt: network call di main thread? [android/app/src/main/java/com/universal/videoeditor/WorkflowHelper.kt:None]
-  [!] android/app/src/main/java/com/universal/videoeditor/AdminApi.kt: network call di main thread? [android/app/src/main/java/com/universal/videoeditor/AdminApi.kt:None]
 
 ==============================================================================
   13. DEPENDENCY GRAPH
 ==============================================================================
-  Files dalam graph: 8
+  Files dalam graph: 7
 
 ==============================================================================
   14. BUILD PREDICTIONS
@@ -152,15 +150,15 @@
   16. RINGKASAN
 ==============================================================================
   Errors   : 5
-  Warnings : 3
+  Warnings : 2
   Info     : 0
   Fixes    : 0
   Predictions: 0
 
   Per kategori:
     layout: 5
-    performance: 2
     security: 1
+    performance: 1
 
 ==============================================================================
   Analisis v3 selesai

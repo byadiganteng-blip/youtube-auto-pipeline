@@ -5,4 +5,3 @@
 [ERROR] [android/app/src/main/java/com/universal/videoeditor/ResultsActivity.kt] android/app/src/main/java/com/universal/videoeditor/ResultsActivity.kt: R.id.tvSize tidak ada
 [WARNING] [AndroidManifest.xml] Manifest: allowBackup=true
 [WARNING] [android/app/src/main/java/com/universal/videoeditor/WorkflowHelper.kt] android/app/src/main/java/com/universal/videoeditor/WorkflowHelper.kt: network call di main thread?
-[WARNING] [android/app/src/main/java/com/universal/videoeditor/AdminApi.kt] android/app/src/main/java/com/universal/videoeditor/AdminApi.kt: network call di main thread?

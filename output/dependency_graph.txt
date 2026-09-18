@@ -1,5 +1,3 @@
-android/app/src/main/java/com/universal/videoeditor/AdminApi.kt:
-
 android/app/src/main/java/com/universal/videoeditor/CreditActivity.kt:
 
 android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt:
