@@ -20,6 +20,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.zip.ZipInputStream
 
 class MainActivity : AppCompatActivity() {
@@ -87,35 +90,36 @@ class MainActivity : AppCompatActivity() {
 
         requestPermissionsIfNeeded()
 
+        // Menu handlers
         findViewById<View>(R.id.menuInstructions).setOnClickListener {
+            LogTracker.i(this, "Nav", "Buka Instruksi")
             startActivity(Intent(this, InstructionsActivity::class.java))
         }
         findViewById<View>(R.id.menuResults).setOnClickListener {
+            LogTracker.i(this, "Nav", "Buka Hasil")
             startActivity(Intent(this, ResultsActivity::class.java))
         }
         findViewById<View>(R.id.menuCredit).setOnClickListener {
+            LogTracker.i(this, "Nav", "Buka Credit")
             startActivity(Intent(this, CreditActivity::class.java))
         }
         findViewById<View>(R.id.menuDonate).setOnClickListener {
-            LogTracker.i(this, "Nav", "Buka Saweria — dukung developer")
+            LogTracker.i(this, "Nav", "Buka Saweria")
             try {
-                val url = getString(R.string.saweria_url)
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                startActivity(intent)
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.saweria_url))))
             } catch (e: Exception) {
-                LogTracker.e(this, "Nav", "Buka Saweria gagal: ${e.message}")
                 Toast.makeText(this, "Tidak bisa buka browser", Toast.LENGTH_SHORT).show()
             }
         }
+
         // ═══ NOTIFIKASI ═══
-        val btnNotif = findViewById<android.view.View>(R.id.btnNotif)
-        val notifDot = findViewById<android.view.View>(R.id.notifDot)
+        val btnNotif = findViewById<View>(R.id.btnNotif)
+        val notifDot = findViewById<View>(R.id.notifDot)
         lifecycleScope.launch {
             try {
                 val notifs = NotifFetcher.fetch(this@MainActivity)
                 if (notifs.isNotEmpty()) {
-                    notifDot.visibility = android.view.View.VISIBLE
+                    notifDot.visibility = View.VISIBLE
                     LogTracker.i(this@MainActivity, "Main", "Notif loaded: ${notifs.size}")
                 }
                 btnNotif.setOnClickListener {
@@ -123,15 +127,13 @@ class MainActivity : AppCompatActivity() {
                         Toast.makeText(this@MainActivity, "Tidak ada notifikasi baru", Toast.LENGTH_SHORT).show()
                     } else {
                         showNotifDialog(notifs)
-                        notifDot.visibility = android.view.View.GONE
+                        notifDot.visibility = View.GONE
                     }
                 }
             } catch (e: Exception) {
-                LogTracker.e(this@MainActivity, "Main", "Notif fetch error: ${e.message}")
+                LogTracker.e(this@MainActivity, "Main", "Notif error: ${e.message}")
             }
         }
-
-
 
         btnProcess.setOnClickListener {
             if (running) {
@@ -158,6 +160,32 @@ class MainActivity : AppCompatActivity() {
             )
             processVideo(inputs)
         }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // NOTIF DIALOG — method ini yang hilang sebelumnya
+    // ═══════════════════════════════════════════════════════════
+    private fun showNotifDialog(notifs: List<NotifFetcher.Notif>) {
+        val messages = notifs.joinToString("\n\n") {
+            "${it.icon}  ${it.title}\n${it.message}"
+        }
+        val firstLink = notifs.firstOrNull { it.link.isNotEmpty() }
+        val builder = AlertDialog.Builder(this)
+            .setTitle("🔔 Notifikasi")
+            .setMessage(messages)
+            .setPositiveButton("Tutup", null)
+
+        if (firstLink != null) {
+            builder.setNeutralButton(firstLink.linkLabel) { _, _ ->
+                try {
+                    LogTracker.i(this, "Main", "Notif link: ${firstLink.link}")
+                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(firstLink.link)))
+                } catch (e: Exception) {
+                    Toast.makeText(this, "Tidak bisa buka link", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        builder.show()
     }
 
     private fun canDrawOverlay(): Boolean =
@@ -244,12 +272,9 @@ class MainActivity : AppCompatActivity() {
                 }
                 updateProgress(10, "Video dikirim", "Menunggu proses di server…")
 
-                var lastPct = 10
-                var stallCount = 0
-                for (i in 0 until 360) {  // 30 menit max
+                for (i in 0 until 360) {
                     delay(5000)
                     val pct = minOf(10 + i / 2, 75)
-                    if (pct > lastPct) { lastPct = pct; stallCount = 0 } else stallCount++
                     val step = "Menit ${(i * 5 / 60) + 1}"
                     updateProgress(pct, "Memproses video…", "$step • langkah ${i+1}")
 
@@ -264,7 +289,7 @@ class MainActivity : AppCompatActivity() {
                             hideProgress()
                             AlertDialog.Builder(this@MainActivity)
                                 .setTitle("Proses Gagal")
-                                .setMessage("Video tidak dapat diproses.\n\nCek menu Instruksi → Log untuk detail.")
+                                .setMessage("Video tidak dapat diproses.\n\nCek menu Instruksi → Log.")
                                 .setPositiveButton("OK", null).show()
                         }
                         return@launch
@@ -278,18 +303,18 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // ═══════════════════════════════════════════════════════════
+    // DOWNLOAD RESULT — dengan UNIQUE FOLDER per run
+    // ═══════════════════════════════════════════════════════════
     private suspend fun downloadResult(runId: Long) {
         LogTracker.i(this, "Main", "downloadResult runId=$runId")
-        // Retry up to 6x @ 5s = 30 detik untuk tunggu artifact ready
+
+        // Retry artifact
         var arts: List<ProcessRunner.Artifact> = emptyList()
         for (attempt in 1..6) {
             arts = ProcessRunner.runArtifacts(this, runId)
             val valid = arts.filter { it.sizeBytes > 100_000 }
-            if (valid.isNotEmpty()) {
-                arts = valid
-                break
-            }
-            LogTracker.w(this, "Main", "Artifact belum ada (attempt $attempt)")
+            if (valid.isNotEmpty()) { arts = valid; break }
             updateProgress(80 + attempt, "Menunggu artifact…", "Percobaan $attempt/6")
             delay(5000)
         }
@@ -298,13 +323,13 @@ class MainActivity : AppCompatActivity() {
             hideProgress()
             AlertDialog.Builder(this)
                 .setTitle("⚠️ Hasil Tidak Ditemukan")
-                .setMessage("Workflow selesai tapi artifact tidak ada.\n\nKemungkinan:\n• Video terlalu besar\n• Workflow gagal di step akhir\n\nCek menu Hasil atau log.")
+                .setMessage("Workflow selesai tapi artifact tidak ada.\n\nCek menu Hasil atau log.")
                 .setPositiveButton("OK", null).show()
             return
         }
 
         val target = arts.first()
-        LogTracker.i(this, "Main", "Downloading artifact: ${target.name} (${target.sizeBytes/1024} KB)")
+        LogTracker.i(this, "Main", "Downloading: ${target.name} (${target.sizeBytes/1024} KB)")
         updateProgress(85, "Mengunduh…", "${target.name} (${target.sizeBytes/1024/1024} MB)")
 
         val bytes = ProcessRunner.downloadArtifact(this, target.id)
@@ -312,17 +337,26 @@ class MainActivity : AppCompatActivity() {
             hideProgress()
             AlertDialog.Builder(this)
                 .setTitle("⚠️ Gagal Unduh")
-                .setMessage("Artifact tidak dapat diunduh. Coba cek menu Hasil Video.")
+                .setMessage("Artifact tidak dapat diunduh.")
                 .setPositiveButton("OK", null).show()
             return
         }
 
-        LogTracker.i(this, "Main", "Downloaded ${bytes.size} bytes")
+        // ═══ UNIQUE FOLDER: YYYYMMDD_HHmmss ═══
+        val ts = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+        val uniqueFolder = "clip_$ts"
 
-        updateProgress(92, "Menyimpan…", "Downloads/${YadApp.DOWNLOAD_DIR}")
+        updateProgress(92, "Menyimpan…", "Downloads/${YadApp.DOWNLOAD_DIR}/$uniqueFolder")
         try {
-            val dir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), YadApp.DOWNLOAD_DIR)
-            if (!dir.exists()) dir.mkdirs()
+            val baseDir = File(
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+                YadApp.DOWNLOAD_DIR
+            )
+            if (!baseDir.exists()) baseDir.mkdirs()
+
+            // Folder unik per run
+            val sessionDir = File(baseDir, uniqueFolder)
+            if (!sessionDir.exists()) sessionDir.mkdirs()
 
             var extracted = 0
             var extractedMb = 0L
@@ -330,12 +364,17 @@ class MainActivity : AppCompatActivity() {
                 var entry = zis.nextEntry
                 while (entry != null) {
                     if (!entry.isDirectory) {
-                        val outFile = File(dir, entry.name)
-                        outFile.parentFile?.mkdirs()
+                        // Sanitasi nama + tambah prefix timestamp kalau kosong
+                        val rawName = entry.name.substringAfterLast("/")
+                        val safeName = if (rawName.isBlank()) {
+                            "video_${System.currentTimeMillis()}.mp4"
+                        } else rawName
+
+                        val outFile = File(sessionDir, safeName)
                         FileOutputStream(outFile).use { fos -> zis.copyTo(fos) }
                         extracted++
                         extractedMb += outFile.length()
-                        LogTracker.i(this, "Main", "Saved: ${outFile.name} (${outFile.length()/1024/1024} MB)")
+                        LogTracker.i(this, "Main", "Saved: $uniqueFolder/$safeName (${outFile.length()/1024/1024} MB)")
                     }
                     zis.closeEntry()
                     entry = zis.nextEntry
@@ -346,12 +385,12 @@ class MainActivity : AppCompatActivity() {
                 hideProgress()
                 AlertDialog.Builder(this)
                     .setTitle("⚠️ Tidak Ada Video")
-                    .setMessage("Zip tidak berisi file video. Cek menu Hasil Video.")
+                    .setMessage("Zip tidak berisi file video.")
                     .setPositiveButton("OK", null).show()
                 return
             }
 
-            LogTracker.i(this, "Main", "Extracted $extracted files (${extractedMb/1024/1024} MB)")
+            LogTracker.i(this, "Main", "Extracted $extracted files → $uniqueFolder")
             updateProgress(100, "Selesai! 🎉", "$extracted file • ${extractedMb/1024/1024} MB")
             delay(2500)
             hideProgress()
@@ -359,7 +398,7 @@ class MainActivity : AppCompatActivity() {
 
             AlertDialog.Builder(this)
                 .setTitle("✅ Berhasil!")
-                .setMessage("$extracted video tersimpan di:\nDownloads/${YadApp.DOWNLOAD_DIR}/")
+                .setMessage("$extracted video tersimpan di:\nDownloads/${YadApp.DOWNLOAD_DIR}/$uniqueFolder/\n\nFolder unik — video lama tidak terhapus.")
                 .setPositiveButton("Lihat Hasil") { _, _ ->
                     startActivity(Intent(this, ResultsActivity::class.java))
                 }

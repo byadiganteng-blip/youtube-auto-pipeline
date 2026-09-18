@@ -1,4 +1,5 @@
 package com.universal.videoeditor
+
 import android.content.Intent
 import android.os.Bundle
 import android.os.Environment
@@ -10,6 +11,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
 import androidx.core.content.FileProvider
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class ResultsActivity : AppCompatActivity() {
     override fun onCreate(s: Bundle?) {
@@ -27,21 +31,44 @@ class ResultsActivity : AppCompatActivity() {
     private fun loadFiles(container: LinearLayout, tvEmpty: TextView) {
         container.removeAllViews()
         container.addView(tvEmpty)
-        val dir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), YadApp.DOWNLOAD_DIR)
-        val files = dir.listFiles { f -> f.isFile && (f.name.endsWith(".mp4") || f.name.endsWith(".mkv") || f.name.endsWith(".webm") || f.name.endsWith(".mov")) } ?: emptyArray()
-        if (files.isEmpty()) {
+
+        val baseDir = File(
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+            YadApp.DOWNLOAD_DIR
+        )
+        if (!baseDir.exists()) {
             tvEmpty.visibility = View.VISIBLE
-            LogTracker.d(this, "Results", "No videos in ${dir.absolutePath}")
+            return
+        }
+
+        // Kumpulkan semua video dari subfolder + root
+        val videos = mutableListOf<File>()
+        baseDir.listFiles()?.forEach { f ->
+            if (f.isDirectory) {
+                f.listFiles { file -> file.isFile && isVideo(file) }?.let { videos.addAll(it) }
+            } else if (isVideo(f)) {
+                videos.add(f)
+            }
+        }
+
+        if (videos.isEmpty()) {
+            tvEmpty.visibility = View.VISIBLE
+            LogTracker.d(this, "Results", "No videos found")
             return
         }
         tvEmpty.visibility = View.GONE
-        LogTracker.i(this, "Results", "Found ${files.size} videos")
-        files.sortedByDescending { it.lastModified() }.forEach { f ->
+        LogTracker.i(this, "Results", "Found ${videos.size} videos")
+
+        videos.sortedByDescending { it.lastModified() }.forEach { f ->
             val card = layoutInflater.inflate(R.layout.item_video, container, false)
             card.findViewById<TextView>(R.id.tvName).text = f.name
-            card.findViewById<TextView>(R.id.tvSize).text = "%.1f MB  •  %s".format(
-                f.length() / 1024.0 / 1024.0,
-                android.text.format.DateFormat.format("dd MMM yyyy, HH:mm", f.lastModified()))
+
+            val dateStr = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.US).format(Date(f.lastModified()))
+            val folder = f.parentFile?.name ?: ""
+            val sizeMb = f.length() / 1024.0 / 1024.0
+            card.findViewById<TextView>(R.id.tvSize).text =
+                "%.1f MB  •  %s  •  %s".format(sizeMb, dateStr, folder)
+
             card.setOnClickListener {
                 try {
                     val uri = FileProvider.getUriForFile(this, "$packageName.fileprovider", f)
@@ -58,5 +85,10 @@ class ResultsActivity : AppCompatActivity() {
             }
             container.addView(card)
         }
+    }
+
+    private fun isVideo(f: File): Boolean {
+        val n = f.name.lowercase()
+        return n.endsWith(".mp4") || n.endsWith(".mkv") || n.endsWith(".webm") || n.endsWith(".mov")
     }
 }
