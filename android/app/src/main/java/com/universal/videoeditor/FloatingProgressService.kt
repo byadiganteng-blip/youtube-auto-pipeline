@@ -1,5 +1,9 @@
 package com.universal.videoeditor
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -15,6 +19,7 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.core.app.NotificationCompat
 import kotlin.math.abs
 
 class FloatingProgressService : Service() {
@@ -27,7 +32,11 @@ class FloatingProgressService : Service() {
         const val ACTION_UPDATE = "update"
         const val ACTION_HIDE = "hide"
 
+        private const val CHANNEL_ID = "float_service"
+        private const val NOTIF_ID = 9999
+
         @Volatile private var instance: FloatingProgressService? = null
+        @Volatile private var foregroundStarted = false
 
         fun show(c: Context, pct: Int, label: String, detail: String) {
             try {
@@ -75,33 +84,85 @@ class FloatingProgressService : Service() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        createChannel()
+        // WAJIB: panggil startForeground() segera setelah onCreate
+        // untuk memenuhi syarat Android 8+
         try {
-            val nm = getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
-            if (Build.VERSION.SDK_INT >= 26 && nm.getNotificationChannel("float_service") == null) {
-                nm.createNotificationChannel(
-                    android.app.NotificationChannel(
-                        "float_service", "Cliper On Floating",
-                        android.app.NotificationManager.IMPORTANCE_LOW
-                    ).apply { setShowBadge(false) })
+            val notif = buildNotification(0, "Memulai…")
+            startForeground(NOTIF_ID, notif)
+            foregroundStarted = true
+            LogTracker.i(this, "Float", "startForeground OK")
+        } catch (e: Exception) {
+            LogTracker.e(this, "Float", "startForeground err: ${e.message}")
+        }
+    }
+
+    private fun createChannel() {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                if (nm.getNotificationChannel(CHANNEL_ID) == null) {
+                    val ch = NotificationChannel(
+                        CHANNEL_ID, "Cliper On Progress",
+                        NotificationManager.IMPORTANCE_LOW
+                    ).apply {
+                        description = "Progress proses video"
+                        setShowBadge(false)
+                    }
+                    nm.createNotificationChannel(ch)
+                }
             }
+        } catch (e: Exception) {
+            LogTracker.e(this, "Float", "channel err: ${e.message}")
+        }
+    }
+
+    private fun buildNotification(pct: Int, label: String): Notification {
+        val intent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+        val pi = PendingIntent.getActivity(this, 0, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or
+                (if (Build.VERSION.SDK_INT >= 23) PendingIntent.FLAG_IMMUTABLE else 0))
+
+        return NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.stat_sys_download)
+            .setContentTitle("Cliper On • $pct%")
+            .setContentText(label)
+            .setProgress(100, pct, false)
+            .setOngoing(true)
+            .setContentIntent(pi)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setCategory(NotificationCompat.CATEGORY_PROGRESS)
+            .build()
+    }
+
+    private fun updateForegroundNotif(pct: Int, label: String) {
+        if (!foregroundStarted) return
+        try {
+            val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            nm.notify(NOTIF_ID, buildNotification(pct, label))
         } catch (_: Exception) {}
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        // Semua aksi di main thread
         mainHandler.post {
             try {
                 when (intent?.action) {
-                    ACTION_SHOW -> showFloating(
-                        intent.getIntExtra(EXTRA_PCT, 0),
-                        intent.getStringExtra(EXTRA_LABEL) ?: "",
-                        intent.getStringExtra(EXTRA_DETAIL) ?: ""
-                    )
-                    ACTION_UPDATE -> updateFloating(
-                        intent.getIntExtra(EXTRA_PCT, 0),
-                        intent.getStringExtra(EXTRA_LABEL) ?: "",
-                        intent.getStringExtra(EXTRA_DETAIL) ?: ""
-                    )
+                    ACTION_SHOW -> {
+                        val pct = intent.getIntExtra(EXTRA_PCT, 0)
+                        val lbl = intent.getStringExtra(EXTRA_LABEL) ?: ""
+                        val det = intent.getStringExtra(EXTRA_DETAIL) ?: ""
+                        showFloating(pct, lbl, det)
+                        updateForegroundNotif(pct, lbl)
+                    }
+                    ACTION_UPDATE -> {
+                        val pct = intent.getIntExtra(EXTRA_PCT, 0)
+                        val lbl = intent.getStringExtra(EXTRA_LABEL) ?: ""
+                        val det = intent.getStringExtra(EXTRA_DETAIL) ?: ""
+                        updateFloating(pct, lbl, det)
+                        updateForegroundNotif(pct, lbl)
+                    }
                     ACTION_HIDE -> hideFloating()
                 }
             } catch (e: Exception) {
@@ -185,9 +246,7 @@ class FloatingProgressService : Service() {
             v.findViewById<TextView>(R.id.fpPercent)?.text = "$pct%"
             v.findViewById<TextView>(R.id.fpLabel)?.text = label
             v.findViewById<TextView>(R.id.fpDetail)?.text = detail
-        } catch (e: Exception) {
-            LogTracker.e(this, "Float", "update err: ${e.message}")
-        }
+        } catch (_: Exception) {}
     }
 
     private fun hideFloating() {
@@ -197,6 +256,12 @@ class FloatingProgressService : Service() {
             }
         } catch (_: Exception) {}
         floatView = null
+        try {
+            if (foregroundStarted) {
+                stopForeground(true)
+                foregroundStarted = false
+            }
+        } catch (_: Exception) {}
         stopSelf()
     }
 
