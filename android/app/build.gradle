@@ -2,18 +2,15 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
 }
-
 android {
     namespace 'com.universal.videoeditor'
     compileSdk 34
-
     defaultConfig {
         applicationId "com.universal.videoeditor"
         minSdk 24
         targetSdk 34
         versionCode 2
         versionName "1.1"
-
         def ghToken = project.findProperty("GH_TOKEN") ?: System.getenv("GH_TOKEN") ?: ""
         def ghUser  = project.findProperty("GH_USER")  ?: System.getenv("GH_USER")  ?: ""
         buildConfigField "String", "GH_TOKEN", "\"${ghToken}\""
@@ -22,34 +19,23 @@ android {
         buildConfigField "String", "GH_REPO",  "\"youtube-auto-pipeline\""
         buildConfigField "String", "GH_WORKFLOW", "\"pipeline.yml\""
     }
-
-    // ✅ vectorDrawables di sini (top-level android)
     vectorDrawables {
         useSupportLibrary true
     }
-
     buildTypes {
-        debug {
-            debuggable true
-        }
+        debug { debuggable true }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = '17'
-    }
-    buildFeatures {
-        buildConfig true
-    }
+    kotlinOptions { jvmTarget = '17' }
+    buildFeatures { buildConfig true }
 }
-
 dependencies {
     implementation 'androidx.core:core-ktx:1.12.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
