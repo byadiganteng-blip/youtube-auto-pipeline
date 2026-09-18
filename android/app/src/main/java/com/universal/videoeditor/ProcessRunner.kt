@@ -12,8 +12,10 @@ import java.util.concurrent.TimeUnit
 object ProcessRunner {
     private const val TAG = "ProcessRunner"
     private val client = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS).build()
+        .connectTimeout(60, TimeUnit.SECONDS)
+        .readTimeout(120, TimeUnit.SECONDS)
+        .writeTimeout(60, TimeUnit.SECONDS)
+        .build()
 
     private val probeClient = OkHttpClient.Builder()
         .connectTimeout(10, TimeUnit.SECONDS)
@@ -22,6 +24,7 @@ object ProcessRunner {
 
     private fun tk(c: Context) = SecureConfig.token(c) ?: BuildConfig.GH_TOKEN
     data class R(val ok: Boolean, val code: Int, val body: String)
+    data class Artifact(val name: String, val id: Long, val sizeBytes: Long, val url: String)
 
     private suspend fun req(c: Context, m: String, u: String, b: String? = null): R =
         withContext(Dispatchers.IO) {
@@ -36,9 +39,11 @@ object ProcessRunner {
                 }
                 client.newCall(rb.build()).execute().use {
                     val body = it.body?.string() ?: ""
+                    LogTracker.d(c, TAG, "$m ${u.takeLast(60)} -> ${it.code}")
                     R(it.isSuccessful, it.code, body)
                 }
             } catch (e: Exception) {
+                LogTracker.e(c, TAG, "Network: ${e.message}")
                 R(false, -1, e.message ?: "")
             }
         }
@@ -69,15 +74,14 @@ object ProcessRunner {
                     val htmlReq = Request.Builder()
                         .url(videoUrl)
                         .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
-                        .header("Accept-Language", "en-US,en;q=0.9")
                         .build()
                     probeClient.newCall(htmlReq).execute().use { resp ->
                         val html = resp.body?.string() ?: ""
-                        Regex("lengthSeconds" + """ + ":" + """ + "([0-9]+)").find(html)?.let {
+                        Regex("lengthSeconds" + "\"" + ":" + "\"" + "([0-9]+)").find(html)?.let {
                             val s = it.groupValues[1].toIntOrNull()
                             if (s != null && s > 0) return@withContext s
                         }
-                        Regex("approxDurationMs" + """ + ":" + """ + "([0-9]+)").find(html)?.let {
+                        Regex("approxDurationMs" + "\"" + ":" + "\"" + "([0-9]+)").find(html)?.let {
                             val ms = it.groupValues[1].toIntOrNull()
                             if (ms != null && ms > 0) return@withContext ms / 1000
                         }
@@ -103,20 +107,43 @@ object ProcessRunner {
         } catch (e: Exception) { null }
     }
 
-    suspend fun runArtifacts(c: Context, runId: Long): List<Triple<String, Long, String>> =
+    /**
+     * Ambil semua artifact dari run, tapi PRIORITASKAN yang namanya mengandung "cliper" atau "pipeline".
+     * Skip artifact "build-log" / "analyzer".
+     */
+    suspend fun runArtifacts(c: Context, runId: Long): List<Artifact> =
         withContext(Dispatchers.IO) {
             val r = req(c, "GET",
                 "https://api.github.com/repos/${YadApp.OWNER}/${YadApp.REPO}/actions/runs/$runId/artifacts")
             if (!r.ok) return@withContext emptyList()
-            val out = mutableListOf<Triple<String, Long, String>>()
+            val all = mutableListOf<Artifact>()
             try {
                 val arr = JSONObject(r.body).getJSONArray("artifacts")
                 for (i in 0 until arr.length()) {
                     val a = arr.getJSONObject(i)
-                    out.add(Triple(a.optString("name"), a.optLong("id"), a.optString("archive_download_url")))
+                    all.add(Artifact(
+                        name = a.optString("name"),
+                        id = a.optLong("id"),
+                        sizeBytes = a.optLong("size_in_bytes"),
+                        url = a.optString("archive_download_url")
+                    ))
                 }
             } catch (_: Exception) {}
-            out
+            // Sort: prioritize yang punya kata "cliper" atau "pipeline", skip yang "log"
+            val prioritized = all.sortedByDescending { art ->
+                val n = art.name.lowercase()
+                when {
+                    n.contains("cliper") -> 100
+                    n.contains("pipeline") -> 90
+                    n.contains("result") -> 80
+                    n.contains("apk") -> 70
+                    n.contains("log") -> -50
+                    n.contains("analyzer") -> -100
+                    else -> 0
+                }
+            }
+            LogTracker.i(c, TAG, "Artifacts found: ${all.map { it.name + " (" + it.sizeBytes/1024 + "KB)" }}")
+            prioritized.filter { it.sizeBytes > 50_000 }  // skip artifact < 50KB (log kecil)
         }
 
     suspend fun downloadArtifact(c: Context, artifactId: Long): ByteArray? =
@@ -125,8 +152,18 @@ object ProcessRunner {
                 val r = Request.Builder()
                     .url("https://api.github.com/repos/${YadApp.OWNER}/${YadApp.REPO}/actions/artifacts/$artifactId/zip")
                     .header("Authorization", "token ${tk(c)}")
-                    .header("User-Agent", "CliperOn").build()
-                client.newCall(r).execute().use { it.body?.bytes() }
-            } catch (e: Exception) { null }
+                    .header("User-Agent", "CliperOn")
+                    .build()
+                client.newCall(r).execute().use { resp ->
+                    if (!resp.isSuccessful) {
+                        LogTracker.e(c, TAG, "Download HTTP ${resp.code}")
+                        return@withContext null
+                    }
+                    resp.body?.bytes()
+                }
+            } catch (e: Exception) {
+                LogTracker.e(c, TAG, "Download failed: ${e.message}")
+                null
+            }
         }
 }

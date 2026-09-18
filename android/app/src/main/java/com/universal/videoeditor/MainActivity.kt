@@ -29,6 +29,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvDurationHint: TextView
     private lateinit var sbDuration: SeekBar
     private var videoDurationSec: Int = 0
+    private var running = false
 
     override fun onCreate(s: Bundle?) {
         super.onCreate(s)
@@ -97,12 +98,15 @@ class MainActivity : AppCompatActivity() {
         }
 
         btnProcess.setOnClickListener {
+            if (running) {
+                Toast.makeText(this, "⏳ Proses masih berjalan", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             val url = etUrl.text.toString().trim()
             if (url.isEmpty()) {
                 Toast.makeText(this, "Tempel link video dulu ya 🙏", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            // Cek izin overlay
             if (!canDrawOverlay()) {
                 askOverlayPermission()
                 return@setOnClickListener
@@ -121,18 +125,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun canDrawOverlay(): Boolean =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-            Settings.canDrawOverlays(this)
-        else true
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) Settings.canDrawOverlays(this) else true
 
     private fun askOverlayPermission() {
         AlertDialog.Builder(this)
             .setTitle("Izin Floating Window")
-            .setMessage("Aktifkan izin 'Tampil di atas aplikasi lain' supaya progres bisa dilihat saat Anda buka app lain.")
+            .setMessage("Aktifkan izin 'Tampil di atas aplikasi lain' supaya progres bisa dilihat.")
             .setPositiveButton("Buka Pengaturan") { _, _ ->
-                val i = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                    Uri.parse("package:$packageName"))
-                startActivity(i)
+                startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:$packageName")))
             }
             .setNegativeButton("Batal", null).show()
     }
@@ -175,109 +176,170 @@ class MainActivity : AppCompatActivity() {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
                 perms.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
         }
-        if (perms.isNotEmpty()) {
-            ActivityCompat.requestPermissions(this, perms.toTypedArray(), 1001)
-        }
+        if (perms.isNotEmpty()) ActivityCompat.requestPermissions(this, perms.toTypedArray(), 1001)
     }
 
     private fun showProgress(pct: Int, label: String, detail: String = "") {
         FloatingProgressService.show(this, pct, label, detail)
         tvStatus.text = "$pct% • $label"
     }
-
     private fun updateProgress(pct: Int, label: String, detail: String = "") {
         FloatingProgressService.update(this, pct, label, detail)
         tvStatus.text = "$pct% • $label"
     }
-
     private fun hideProgress() {
         FloatingProgressService.hide(this)
     }
 
     private fun processVideo(inputs: Map<String, String>) {
+        running = true
         LogTracker.i(this, "Main", "Process: $inputs")
         showProgress(5, "Memulai…", "Menghubungi server")
         lifecycleScope.launch {
-            val r = ProcessRunner.startProcess(this@MainActivity, inputs)
-            if (!r.ok) {
-                hideProgress()
-                AlertDialog.Builder(this@MainActivity)
-                    .setTitle("❌ Gagal Memulai")
-                    .setMessage("Kode: ${r.code}\n\n${r.body.take(300)}")
-                    .setPositiveButton("OK", null).show()
-                return@launch
-            }
-            updateProgress(15, "Video dikirim", "Menunggu proses")
-
-            for (i in 0 until 240) {
-                delay(5000)
-                val pct = minOf(15 + i * 2, 70)
-                updateProgress(pct, "Memproses video…", "Langkah ${i+1} / 240")
-                val run = ProcessRunner.latestRun(this@MainActivity) ?: continue
-                if (run.optString("status") == "completed") {
-                    val conclusion = run.optString("conclusion")
-                    if (conclusion == "success") {
-                        updateProgress(80, "Mengambil hasil…", "Menunggu artifact")
-                        downloadResult(run.optLong("id", -1L))
-                    } else {
-                        hideProgress()
-                        AlertDialog.Builder(this@MainActivity)
-                            .setTitle("Proses Gagal")
-                            .setMessage("Cek log di menu Instruksi.")
-                            .setPositiveButton("OK", null).show()
-                    }
+            try {
+                val r = ProcessRunner.startProcess(this@MainActivity, inputs)
+                if (!r.ok) {
+                    hideProgress()
+                    AlertDialog.Builder(this@MainActivity)
+                        .setTitle("❌ Gagal Memulai")
+                        .setMessage("Kode: ${r.code}\n\n${r.body.take(300)}")
+                        .setPositiveButton("OK", null).show()
                     return@launch
                 }
+                updateProgress(10, "Video dikirim", "Menunggu proses di server…")
+
+                var lastPct = 10
+                var stallCount = 0
+                for (i in 0 until 360) {  // 30 menit max
+                    delay(5000)
+                    val pct = minOf(10 + i / 2, 75)
+                    if (pct > lastPct) { lastPct = pct; stallCount = 0 } else stallCount++
+                    val step = "Menit ${(i * 5 / 60) + 1}"
+                    updateProgress(pct, "Memproses video…", "$step • langkah ${i+1}")
+
+                    val run = ProcessRunner.latestRun(this@MainActivity) ?: continue
+                    if (run.optString("status") == "completed") {
+                        val conclusion = run.optString("conclusion")
+                        LogTracker.i(this@MainActivity, "Main", "Run completed: $conclusion")
+                        if (conclusion == "success") {
+                            updateProgress(80, "Mengambil hasil…", "Menunggu artifact")
+                            downloadResult(run.optLong("id", -1L))
+                        } else {
+                            hideProgress()
+                            AlertDialog.Builder(this@MainActivity)
+                                .setTitle("Proses Gagal")
+                                .setMessage("Video tidak dapat diproses.\n\nCek menu Instruksi → Log untuk detail.")
+                                .setPositiveButton("OK", null).show()
+                        }
+                        return@launch
+                    }
+                }
+                hideProgress()
+                Toast.makeText(this@MainActivity, "⏱️ Timeout. Cek Hasil Video nanti.", Toast.LENGTH_LONG).show()
+            } finally {
+                running = false
             }
-            hideProgress()
-            Toast.makeText(this@MainActivity, "⏱️ Proses terlalu lama.", Toast.LENGTH_LONG).show()
         }
     }
 
     private suspend fun downloadResult(runId: Long) {
-        val arts = ProcessRunner.runArtifacts(this, runId)
-        val useArts = if (arts.isEmpty()) { delay(5000); ProcessRunner.runArtifacts(this, runId) } else arts
-        if (useArts.isEmpty()) {
+        LogTracker.i(this, "Main", "downloadResult runId=$runId")
+        // Retry up to 6x @ 5s = 30 detik untuk tunggu artifact ready
+        var arts: List<ProcessRunner.Artifact> = emptyList()
+        for (attempt in 1..6) {
+            arts = ProcessRunner.runArtifacts(this, runId)
+            val valid = arts.filter { it.sizeBytes > 100_000 }
+            if (valid.isNotEmpty()) {
+                arts = valid
+                break
+            }
+            LogTracker.w(this, "Main", "Artifact belum ada (attempt $attempt)")
+            updateProgress(80 + attempt, "Menunggu artifact…", "Percobaan $attempt/6")
+            delay(5000)
+        }
+
+        if (arts.isEmpty()) {
             hideProgress()
-            Toast.makeText(this, "✅ Selesai! Cek Hasil Video.", Toast.LENGTH_LONG).show()
+            AlertDialog.Builder(this)
+                .setTitle("⚠️ Hasil Tidak Ditemukan")
+                .setMessage("Workflow selesai tapi artifact tidak ada.\n\nKemungkinan:\n• Video terlalu besar\n• Workflow gagal di step akhir\n\nCek menu Hasil atau log.")
+                .setPositiveButton("OK", null).show()
             return
         }
-        updateProgress(85, "Mengunduh…", "Mohon tunggu")
-        val (name, id, _) = useArts.first()
-        val bytes = ProcessRunner.downloadArtifact(this, id)
-        if (bytes == null) {
+
+        val target = arts.first()
+        LogTracker.i(this, "Main", "Downloading artifact: ${target.name} (${target.sizeBytes/1024} KB)")
+        updateProgress(85, "Mengunduh…", "${target.name} (${target.sizeBytes/1024/1024} MB)")
+
+        val bytes = ProcessRunner.downloadArtifact(this, target.id)
+        if (bytes == null || bytes.isEmpty()) {
             hideProgress()
-            Toast.makeText(this, "⚠️ Gagal unduh.", Toast.LENGTH_LONG).show()
+            AlertDialog.Builder(this)
+                .setTitle("⚠️ Gagal Unduh")
+                .setMessage("Artifact tidak dapat diunduh. Coba cek menu Hasil Video.")
+                .setPositiveButton("OK", null).show()
             return
         }
-        updateProgress(95, "Menyimpan…", "Downloads/${YadApp.DOWNLOAD_DIR}")
+
+        LogTracker.i(this, "Main", "Downloaded ${bytes.size} bytes")
+
+        updateProgress(92, "Menyimpan…", "Downloads/${YadApp.DOWNLOAD_DIR}")
         try {
             val dir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), YadApp.DOWNLOAD_DIR)
             if (!dir.exists()) dir.mkdirs()
+
+            var extracted = 0
+            var extractedMb = 0L
             ZipInputStream(bytes.inputStream()).use { zis ->
                 var entry = zis.nextEntry
                 while (entry != null) {
-                    val outFile = File(dir, entry.name)
-                    outFile.parentFile?.mkdirs()
-                    if (!entry.isDirectory) FileOutputStream(outFile).use { zis.copyTo(it) }
+                    if (!entry.isDirectory) {
+                        val outFile = File(dir, entry.name)
+                        outFile.parentFile?.mkdirs()
+                        FileOutputStream(outFile).use { fos -> zis.copyTo(fos) }
+                        extracted++
+                        extractedMb += outFile.length()
+                        LogTracker.i(this, "Main", "Saved: ${outFile.name} (${outFile.length()/1024/1024} MB)")
+                    }
                     zis.closeEntry()
                     entry = zis.nextEntry
                 }
             }
-            updateProgress(100, "Selesai! 🎉", "Downloads/${YadApp.DOWNLOAD_DIR}")
+
+            if (extracted == 0) {
+                hideProgress()
+                AlertDialog.Builder(this)
+                    .setTitle("⚠️ Tidak Ada Video")
+                    .setMessage("Zip tidak berisi file video. Cek menu Hasil Video.")
+                    .setPositiveButton("OK", null).show()
+                return
+            }
+
+            LogTracker.i(this, "Main", "Extracted $extracted files (${extractedMb/1024/1024} MB)")
+            updateProgress(100, "Selesai! 🎉", "$extracted file • ${extractedMb/1024/1024} MB")
             delay(2500)
             hideProgress()
-            tvStatus.text = "Terakhir: ${name.take(20)}…"
+            tvStatus.text = "Selesai: $extracted video"
+
             AlertDialog.Builder(this)
                 .setTitle("✅ Berhasil!")
-                .setMessage("Video tersimpan di:\nDownloads/${YadApp.DOWNLOAD_DIR}/")
+                .setMessage("$extracted video tersimpan di:\nDownloads/${YadApp.DOWNLOAD_DIR}/")
                 .setPositiveButton("Lihat Hasil") { _, _ ->
                     startActivity(Intent(this, ResultsActivity::class.java))
                 }
                 .setNegativeButton("Tutup", null).show()
         } catch (e: Exception) {
             hideProgress()
-            Toast.makeText(this, "⚠️ ${e.message}", Toast.LENGTH_LONG).show()
+            LogTracker.e(this, "Main", "Extract failed: ${e.message}")
+            AlertDialog.Builder(this)
+                .setTitle("⚠️ Gagal Menyimpan")
+                .setMessage("${e.message}")
+                .setPositiveButton("OK", null).show()
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        LogTracker.i(this, "Main", "onDestroy")
     }
 }

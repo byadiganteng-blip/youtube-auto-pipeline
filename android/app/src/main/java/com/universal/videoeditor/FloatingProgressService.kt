@@ -15,10 +15,6 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import kotlin.math.abs
 
-/**
- * FloatingProgressService — floating window bisa digeser,
- * tampil di atas aplikasi lain (seperti chat head).
- */
 class FloatingProgressService : Service() {
 
     companion object {
@@ -29,29 +25,24 @@ class FloatingProgressService : Service() {
         const val ACTION_UPDATE = "update"
         const val ACTION_HIDE = "hide"
 
+        @Volatile private var instance: FloatingProgressService? = null
+
         fun show(c: Context, pct: Int, label: String, detail: String) {
             val i = Intent(c, FloatingProgressService::class.java).apply {
                 action = ACTION_SHOW
-                putExtra(EXTRA_PCT, pct)
-                putExtra(EXTRA_LABEL, label)
-                putExtra(EXTRA_DETAIL, detail)
+                putExtra(EXTRA_PCT, pct); putExtra(EXTRA_LABEL, label); putExtra(EXTRA_DETAIL, detail)
             }
             if (Build.VERSION.SDK_INT >= 26) c.startForegroundService(i) else c.startService(i)
         }
-
         fun update(c: Context, pct: Int, label: String, detail: String) {
             val i = Intent(c, FloatingProgressService::class.java).apply {
                 action = ACTION_UPDATE
-                putExtra(EXTRA_PCT, pct)
-                putExtra(EXTRA_LABEL, label)
-                putExtra(EXTRA_DETAIL, detail)
+                putExtra(EXTRA_PCT, pct); putExtra(EXTRA_LABEL, label); putExtra(EXTRA_DETAIL, detail)
             }
             c.startService(i)
         }
-
         fun hide(c: Context) {
-            val i = Intent(c, FloatingProgressService::class.java).apply { action = ACTION_HIDE }
-            c.startService(i)
+            c.startService(Intent(c, FloatingProgressService::class.java).apply { action = ACTION_HIDE })
         }
     }
 
@@ -61,36 +52,37 @@ class FloatingProgressService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
+    override fun onCreate() {
+        super.onCreate()
+        instance = this
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
-            ACTION_SHOW -> {
-                val pct = intent.getIntExtra(EXTRA_PCT, 0)
-                val lbl = intent.getStringExtra(EXTRA_LABEL) ?: ""
-                val det = intent.getStringExtra(EXTRA_DETAIL) ?: ""
-                showFloating(pct, lbl, det)
-            }
-            ACTION_UPDATE -> {
-                val pct = intent.getIntExtra(EXTRA_PCT, 0)
-                val lbl = intent.getStringExtra(EXTRA_LABEL) ?: ""
-                val det = intent.getStringExtra(EXTRA_DETAIL) ?: ""
-                updateFloating(pct, lbl, det)
-            }
+            ACTION_SHOW -> showFloating(
+                intent.getIntExtra(EXTRA_PCT, 0),
+                intent.getStringExtra(EXTRA_LABEL) ?: "",
+                intent.getStringExtra(EXTRA_DETAIL) ?: ""
+            )
+            ACTION_UPDATE -> updateFloating(
+                intent.getIntExtra(EXTRA_PCT, 0),
+                intent.getStringExtra(EXTRA_LABEL) ?: "",
+                intent.getStringExtra(EXTRA_DETAIL) ?: ""
+            )
             ACTION_HIDE -> hideFloating()
         }
-        return START_NOT_STICKY
+        return START_STICKY  // ← restart kalau killed
     }
 
     private fun showFloating(pct: Int, label: String, detail: String) {
-        if (floatView != null) {
-            updateFloating(pct, label, detail)
-            return
-        }
+        if (floatView != null) { updateFloating(pct, label, detail); return }
         windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
         floatView = LayoutInflater.from(this).inflate(R.layout.floating_progress, null)
 
         val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
         else
+            @Suppress("DEPRECATION")
             WindowManager.LayoutParams.TYPE_PHONE
 
         layoutParams = WindowManager.LayoutParams(
@@ -98,7 +90,8 @@ class FloatingProgressService : Service() {
             WindowManager.LayoutParams.WRAP_CONTENT,
             type,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
+                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
@@ -106,7 +99,6 @@ class FloatingProgressService : Service() {
             y = 200
         }
 
-        // Drag behavior
         var initX = 0
         var initY = 0
         var touchX = 0f
@@ -115,31 +107,30 @@ class FloatingProgressService : Service() {
         floatView?.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
-                    initX = layoutParams!!.x
-                    initY = layoutParams!!.y
-                    touchX = event.rawX
-                    touchY = event.rawY
+                    initX = layoutParams!!.x; initY = layoutParams!!.y
+                    touchX = event.rawX; touchY = event.rawY
                     true
                 }
                 MotionEvent.ACTION_MOVE -> {
-                    val dx = (event.rawX - touchX).toInt()
-                    val dy = (event.rawY - touchY).toInt()
-                    layoutParams!!.x = initX + dx
-                    layoutParams!!.y = initY + dy
-                    windowManager?.updateViewLayout(floatView, layoutParams)
+                    layoutParams!!.x = initX + (event.rawX - touchX).toInt()
+                    layoutParams!!.y = initY + (event.rawY - touchY).toInt()
+                    try { windowManager?.updateViewLayout(floatView, layoutParams) } catch (_: Exception) {}
                     true
                 }
-                else -> abs(event.rawX - touchX) < 10 && abs(event.rawY - touchY) < 10
+                MotionEvent.ACTION_UP -> {
+                    abs(event.rawX - touchX) < 10 && abs(event.rawY - touchY) < 10
+                }
+                else -> false
             }
         }
 
         try {
             windowManager?.addView(floatView, layoutParams)
+            LogTracker.i(this, "Float", "addView OK — view attached")
         } catch (e: Exception) {
             LogTracker.e(this, "Float", "addView failed: ${e.message}")
         }
         updateFloating(pct, label, detail)
-        LogTracker.i(this, "Float", "Floating shown")
     }
 
     private fun updateFloating(pct: Int, label: String, detail: String) {
@@ -161,6 +152,7 @@ class FloatingProgressService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        instance = null
         hideFloating()
     }
 }
