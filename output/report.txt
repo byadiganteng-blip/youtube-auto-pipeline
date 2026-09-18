@@ -61,7 +61,7 @@
 ==============================================================================
   4. KOTLIN - DEEP ANALYSIS
 ==============================================================================
-  Total Kotlin LOC  : 741
+  Total Kotlin LOC  : 745
   Classes declared  : 10
   Files w/ findViewById: 3
   Files w/ setContentView: 4
