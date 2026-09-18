@@ -69,14 +69,14 @@
   Intent targets: 8
 
 -- Intent reference check --------------------------------------------------
-  OK StatisticsActivity
-  OK FilesActivity
   OK ActionsActivity
   OK AdminActivity
-  OK CreditActivity
-  OK SettingsActivity
-  OK VideoEditorActivity
   OK InstructionsActivity
+  OK VideoEditorActivity
+  OK CreditActivity
+  OK FilesActivity
+  OK SettingsActivity
+  OK StatisticsActivity
 
 ==============================================================================
   5. RESOURCES (DEEP)
