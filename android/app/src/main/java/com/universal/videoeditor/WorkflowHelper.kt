@@ -31,22 +31,31 @@ object WorkflowHelper {
                 }
                 client.newCall(rb.build()).execute().use {
                     val body = it.body?.string() ?: ""
-                    LogTracker.d(c, TAG, "$m $u → ${it.code}")
+                    LogTracker.d(c, TAG, "$m → ${it.code}")
+                    if (!it.isSuccessful) LogTracker.e(c, TAG, "Body: ${body.take(500)}")
                     R(it.isSuccessful, it.code, body)
                 }
             } catch (e: Exception) {
-                LogTracker.e(c, TAG, "Network error: ${e.message}")
+                LogTracker.e(c, TAG, "Network: ${e.message}")
                 R(false, -1, e.message ?: "")
             }
         }
 
     suspend fun startProcess(c: Context, inputs: Map<String, String>): R {
         val url = "https://api.github.com/repos/${YadApp.OWNER}/${YadApp.REPO}/actions/workflows/${YadApp.WORKFLOW}/dispatches"
+        // Map input app → input workflow
+        val mapped = mapOf(
+                    "video_url" to (inputs["video_url"] ?: ""),
+                    "part_duration" to (inputs["part_duration"] ?: ""),
+                    "quality" to (inputs["quality"] ?: ""),
+                    "watermark_mode" to (inputs["watermark_mode"] ?: ""),
+                    "type" to (inputs["upload_type"] ?: "")
+        )
         val body = JSONObject().apply {
             put("ref", "main")
-            put("inputs", JSONObject(inputs as Map<*, *>))
+            put("inputs", JSONObject(mapped as Map<*, *>))
         }.toString()
-        LogTracker.i(c, TAG, "Start workflow with inputs: $inputs")
+        LogTracker.i(c, TAG, "Dispatch with: $mapped")
         return req(c, "POST", url, body)
     }
 
@@ -57,10 +66,7 @@ object WorkflowHelper {
         try {
             val arr = JSONObject(r.body).getJSONArray("workflow_runs")
             if (arr.length() == 0) null else arr.getJSONObject(0)
-        } catch (e: Exception) {
-            LogTracker.e(c, TAG, "Parse run failed: ${e.message}")
-            null
-        }
+        } catch (e: Exception) { null }
     }
 
     suspend fun runArtifacts(c: Context, runId: Long): List<Triple<String, Long, String>> =
@@ -75,24 +81,18 @@ object WorkflowHelper {
                     val a = arr.getJSONObject(i)
                     out.add(Triple(a.optString("name"), a.optLong("id"), a.optString("archive_download_url")))
                 }
-            } catch (e: Exception) {
-                LogTracker.e(c, TAG, "Parse artifacts failed: ${e.message}")
-            }
+            } catch (_: Exception) {}
             out
         }
 
     suspend fun downloadArtifact(c: Context, artifactId: Long): ByteArray? =
         withContext(Dispatchers.IO) {
             try {
-                LogTracker.i(c, TAG, "Download artifact $artifactId")
                 val r = Request.Builder()
                     .url("https://api.github.com/repos/${YadApp.OWNER}/${YadApp.REPO}/actions/artifacts/$artifactId/zip")
                     .header("Authorization", "token ${tk(c)}")
                     .header("User-Agent", "CliperOn").build()
                 client.newCall(r).execute().use { it.body?.bytes() }
-            } catch (e: Exception) {
-                LogTracker.e(c, TAG, "Download failed: ${e.message}")
-                null
-            }
+            } catch (e: Exception) { null }
         }
 }
