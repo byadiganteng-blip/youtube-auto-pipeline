@@ -66,55 +66,59 @@ object WorkflowHelper {
 
     /**
      * Probe durasi video dari URL publik.
-     * Cara paling reliable: HEAD request → cek Content-Length + Content-Type.
-     * Untuk YouTube/TikTok/FB: pakai oEmbed endpoint (youtube: /oembed, tiktok: /oembed).
+     * Pakai Raw String Kotlin ("""...""") — WAJIB supaya backslash tidak di-escape.
      */
     suspend fun probeVideoDuration(c: Context, videoUrl: String): Int? =
         withContext(Dispatchers.IO) {
             try {
-                // 1) YouTube
                 if (videoUrl.contains("youtube.com") || videoUrl.contains("youtu.be")) {
-                    val oembed = "https://www.youtube.com/oembed?url=${java.net.URLEncoder.encode(videoUrl, "UTF-8")}&format=json"
-                    val r = Request.Builder().url(oembed).header("User-Agent", "CliperOn").build()
-                    probeClient.newCall(r).execute().use {
-                        if (it.isSuccessful) {
-                            val json = JSONObject(it.body?.string() ?: "{}")
-                            // oembed tidak punya duration, tapi bisa parse dari HTML
-                            // Return null → tidak akurat dari oembed
-                        }
-                    }
-                    // Fallback: HTML scraping
-                    val htmlReq = Request.Builder().url(videoUrl).header("User-Agent", "Mozilla/5.0").build()
-                    probeClient.newCall(htmlReq).execute().use {
-                        val html = it.body?.string() ?: ""
-                        val m = Regex("\"lengthSeconds\":\"(\d+)\"|approxDurationMs\":\"(\d+)\"|PT(\d+)M(\d+)S").find(html)
-                        if (m != null) {
-                            // Coba berbagai format
-                            val sec1 = m.groupValues[1].toIntOrNull()
-                            val ms = m.groupValues[2].toIntOrNull()
-                            if (sec1 != null) return@withContext sec1
-                            if (ms != null) return@withContext ms / 1000
-                            val min = m.groupValues[3].toIntOrNull() ?: 0
-                            val sec = m.groupValues[4].toIntOrNull() ?: 0
-                            return@withContext min * 60 + sec
+                    val htmlReq = Request.Builder()
+                        .url(videoUrl)
+                        .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+                        .header("Accept-Language", "en-US,en;q=0.9")
+                        .build()
+                    probeClient.newCall(htmlReq).execute().use { resp ->
+                        val html = resp.body?.string() ?: ""
+                        // ⚠️ WAJIB pakai raw string untuk regex dengan \d, " dll
+                        val patterns = listOf(
+                            Regex(""""lengthSeconds":"(\d+)""""),
+                            Regex("""approxDurationMs":"(\d+)""""),
+                            Regex("""itemprop="duration" content="PT(\d+)M(\d+)S""""),
+                            Regex("""PT(\d+)M(\d+)S""")
+                        )
+                        for (pat in patterns) {
+                            val m = pat.find(html) ?: continue
+                            when {
+                                pat.pattern.contains("lengthSeconds") -> {
+                                    val s = m.groupValues.getOrNull(1)?.toIntOrNull()
+                                    if (s != null && s > 0) return@withContext s
+                                }
+                                pat.pattern.contains("approxDurationMs") -> {
+                                    val ms = m.groupValues.getOrNull(1)?.toIntOrNull()
+                                    if (ms != null && ms > 0) return@withContext ms / 1000
+                                }
+                                pat.pattern.contains("itemprop") || pat.pattern == "PT(\d+)M(\d+)S" -> {
+                                    val min = m.groupValues.getOrNull(1)?.toIntOrNull() ?: 0
+                                    val sec = m.groupValues.getOrNull(2)?.toIntOrNull() ?: 0
+                                    val total = min * 60 + sec
+                                    if (total > 0) return@withContext total
+                                }
+                            }
                         }
                     }
                 }
 
-                // 2) TikTok oEmbed
                 if (videoUrl.contains("tiktok.com")) {
-                    val oembed = "https://www.tiktok.com/oembed?url=${java.net.URLEncoder.encode(videoUrl, "UTF-8")}"
+                    val oembed = "https://www.tiktok.com/oembed?url=" + java.net.URLEncoder.encode(videoUrl, "UTF-8")
                     val r = Request.Builder().url(oembed).header("User-Agent", "CliperOn").build()
-                    probeClient.newCall(r).execute().use {
-                        if (it.isSuccessful) {
-                            val json = JSONObject(it.body?.string() ?: "{}")
-                            // tidak ada durasi
+                    probeClient.newCall(r).execute().use { resp ->
+                        if (resp.isSuccessful) {
+                            val json = JSONObject(resp.body?.string() ?: "{}")
+                            // TikTok oembed tidak punya duration — skip
                         }
                     }
                 }
 
-                // 3) Generic: coba HEAD untuk content-length
-                // Ini tidak akurat, hanya fallback
                 null
             } catch (e: Exception) {
                 LogTracker.e(c, TAG, "Probe failed: ${e.message}")
