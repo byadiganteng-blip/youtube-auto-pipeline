@@ -11,8 +11,8 @@ android {
         applicationId "com.universal.videoeditor"
         minSdk 23
         targetSdk 34
-        versionCode 31
-        versionName "6.5"
+        versionCode 33
+        versionName "6.7"
 
         def ghToken = project.findProperty("GH_TOKEN") ?: System.getenv("GH_TOKEN") ?: ""
         def ghUser  = project.findProperty("GH_USER")  ?: System.getenv("GH_USER")  ?: ""
@@ -58,7 +58,6 @@ android {
 
 repositories {
     maven { url 'https://android-sdk.is.com/' }
-    maven { url 'https://dl-maven-android.mintegral.com/repository/mbridge_android_sdk_oversea' }
     maven { url 'https://maven.ironsrc.com/releases' }
 }
 
@@ -73,9 +72,6 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
 
-    // Start.io / IronSource SDK
-    implementation 'com.ironsource.sdk:mediationsdk:8.4.0'
-    implementation 'com.ironsource.adapters:unityadsadapter:4.12.0'
-    implementation 'com.ironsource.adapters:admobadapter:4.3.44'
-    implementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'
+    // Start.io SDK only (no AdMob adapter, no Unity adapter)
+    implementation 'com.ironsource.sdk:mediationsdk:8.11.1'
 }
