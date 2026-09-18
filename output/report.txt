@@ -16,7 +16,7 @@
   1. INVENTARIS FILE
 ==============================================================================
   Kotlin      : 12
-  XML (res/)  : 23
+  XML (res/)  : 26
   Gradle      : 3
   Manifest    : OK
 
@@ -61,7 +61,7 @@
 ==============================================================================
   4. KOTLIN - DEEP ANALYSIS
 ==============================================================================
-  Total Kotlin LOC  : 244
+  Total Kotlin LOC  : 287
   Classes declared  : 13
   Files w/ findViewById: 4
   Files w/ setContentView: 9
@@ -69,39 +69,35 @@
   Intent targets: 8
 
 -- Intent reference check --------------------------------------------------
-  OK VideoEditorActivity
-  OK SettingsActivity
   OK StatisticsActivity
-  OK CreditActivity
-  OK AdminActivity
-  OK InstructionsActivity
-  OK ActionsActivity
   OK FilesActivity
+  OK ActionsActivity
+  OK AdminActivity
+  OK CreditActivity
+  OK SettingsActivity
+  OK VideoEditorActivity
+  OK InstructionsActivity
 
 ==============================================================================
   5. RESOURCES (DEEP)
 ==============================================================================
-  Colors     : 5
-  Strings    : 1
+  Colors     : 11
+  Strings    : 2
   Dimens     : 0
-  Styles     : 1
-  Drawables  : 38 (incl. built-in)
-  Layouts    : 31 (incl. built-in)
+  Styles     : 2
+  Drawables  : 39 (incl. built-in)
+  Layouts    : 33 (incl. built-in)
 
 ==============================================================================
   6. CROSS-CHECK RESOURCES
 ==============================================================================
-
-  [!] @layout unresolved (1):
-     android/app/src/main/java/com/universal/videoeditor/VideoEditorActivity.kt -> @layout/activity_videoeditor
-  [X] @layout/activity_videoeditor tidak ada (dari android/app/src/main/java/com/universal/videoeditor/VideoEditorActivity.kt) [android/app/src/main/java/com/universal/videoeditor/VideoEditorActivity.kt:None]
 
 ==============================================================================
   7. KOTLIN + LAYOUT MATCHING (SMART)
 ==============================================================================
   Item layout IDs: []
   OK android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt -> activity_instructions.xml
-  [X] android/app/src/main/java/com/universal/videoeditor/VideoEditorActivity.kt: R.layout.activity_videoeditor tidak ada [android/app/src/main/java/com/universal/videoeditor/VideoEditorActivity.kt:None]
+  OK android/app/src/main/java/com/universal/videoeditor/VideoEditorActivity.kt -> activity_video_editor.xml
   OK android/app/src/main/java/com/universal/videoeditor/StatisticsActivity.kt -> activity_statistics.xml
   OK android/app/src/main/java/com/universal/videoeditor/MainActivity.kt -> activity_main.xml
   OK android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt -> activity_actions.xml
@@ -162,15 +158,13 @@
 ==============================================================================
   16. RINGKASAN
 ==============================================================================
-  Errors   : 2
+  Errors   : 0
   Warnings : 2
   Info     : 0
   Fixes    : 0
   Predictions: 0
 
   Per kategori:
-    resource: 1
-    layout: 1
     security: 1
     performance: 1
 

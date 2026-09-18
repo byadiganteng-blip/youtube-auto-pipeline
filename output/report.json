@@ -1,18 +1,6 @@
 {
   "issues": [
     {
-      "msg": "@layout/activity_videoeditor tidak ada (dari android/app/src/main/java/com/universal/videoeditor/VideoEditorActivity.kt)",
-      "severity": "error",
-      "category": "resource",
-      "file": "android/app/src/main/java/com/universal/videoeditor/VideoEditorActivity.kt"
-    },
-    {
-      "msg": "android/app/src/main/java/com/universal/videoeditor/VideoEditorActivity.kt: R.layout.activity_videoeditor tidak ada",
-      "severity": "error",
-      "category": "layout",
-      "file": "android/app/src/main/java/com/universal/videoeditor/VideoEditorActivity.kt"
-    },
-    {
       "msg": "Manifest: allowBackup=true",
       "severity": "warning",
       "category": "security",
@@ -28,16 +16,14 @@
   "fixes": [],
   "predictions": [],
   "summary": {
-    "errors": 2,
+    "errors": 0,
     "warnings": 2,
     "infos": 0,
     "fixes": 0
   },
   "categories": {
-    "resource": 1,
-    "layout": 1,
     "security": 1,
     "performance": 1
   },
-  "timestamp": "2026-09-18T02:18:10.261244"
+  "timestamp": "2026-09-18T02:52:28.402194"
 }
