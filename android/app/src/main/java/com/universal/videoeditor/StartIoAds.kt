@@ -7,12 +7,13 @@ import android.os.Looper
 import android.widget.FrameLayout
 import com.ironsource.mediationsdk.IronSource
 import com.ironsource.mediationsdk.logger.IronSourceError
-import com.ironsource.mediationsdk.sdk.InterstitialListener
-import com.ironsource.mediationsdk.sdk.RewardedVideoListener
+import com.ironsource.mediationsdk.sdk.LevelPlayInterstitialListener
+import com.ironsource.mediationsdk.sdk.LevelPlayRewardedVideoListener
+import com.ironsource.mediationsdk.adunit.adapter.utility.AdInfo
 
 /**
- * StartIoAds — Start.io 8.11.1 wrapper
- * Fitur: Interstitial + Rewarded (Banner di-skip karena API berubah).
+ * StartIoAds — Start.io SDK 8.11.1 (LevelPlay API).
+ * Hanya Interstitial + Rewarded. Banner di-skip.
  */
 object StartIoAds {
     private const val TAG = "StartIoAds"
@@ -35,6 +36,8 @@ object StartIoAds {
     var onRewardedEarned: (() -> Unit)? = null
     var onRewardedClosed: (() -> Unit)? = null
     var onRewardedFailed: ((String) -> Unit)? = null
+
+    // ─── State ───
 
     private fun isSkipped(c: Context): Boolean = try {
         val skipUntil = c.getSharedPreferences(PREF, Context.MODE_PRIVATE)
@@ -68,57 +71,62 @@ object StartIoAds {
         } catch (_: Exception) {}
     }
 
+    // ─── Init ───
+
     fun init(activity: Activity) {
         if (initialized) return
         try {
-            IronSource.setInterstitialListener(object : InterstitialListener {
-                override fun onInterstitialAdReady() {
+            IronSource.setLevelPlayInterstitialListener(object : LevelPlayInterstitialListener {
+                override fun onAdReady(adInfo: AdInfo?) {
                     interstitialReady = true
                     LogTracker.i(activity, TAG, "Interstitial ready")
                 }
-                override fun onInterstitialAdLoadFailed(error: IronSourceError?) {
+                override fun onAdLoadFailed(error: IronSourceError?) {
                     interstitialReady = false
                     LogTracker.w(activity, TAG, "Interstitial load failed: ${error?.errorMessage}")
                 }
-                override fun onInterstitialAdOpened() {}
-                override fun onInterstitialAdClosed() {
+                override fun onAdOpened(adInfo: AdInfo?) {}
+                override fun onAdClosed(adInfo: AdInfo?) {
                     interstitialReady = false
                     try { IronSource.loadInterstitial() } catch (_: Exception) {}
                     onInterstitialClosed?.invoke()
                 }
-                override fun onInterstitialAdShowSucceeded() {
+                override fun onAdShowSucceeded(adInfo: AdInfo?) {
                     recordSuccess(activity)
                 }
-                override fun onInterstitialAdShowFailed(error: IronSourceError?) {
+                override fun onAdShowFailed(error: IronSourceError?, adInfo: AdInfo?) {
                     LogTracker.w(activity, TAG, "Interstitial show failed: ${error?.errorMessage}")
                     recordFailure(activity, "interstitial show: ${error?.errorMessage}")
                     onInterstitialClosed?.invoke()
                 }
-                override fun onInterstitialAdClicked() {}
+                override fun onAdClicked(adInfo: AdInfo?) {}
+                override fun onAdClosed(adInfo: AdInfo?, isCompleted: Boolean) {}
             })
 
-            IronSource.setRewardedVideoListener(object : RewardedVideoListener {
-                override fun onRewardedVideoAdOpened() {}
-                override fun onRewardedVideoAdClosed() {
+            IronSource.setLevelPlayRewardedVideoListener(object : LevelPlayRewardedVideoListener {
+                override fun onAdAvailable(adInfo: AdInfo?) {
+                    rewardedReady = true
+                    LogTracker.i(activity, TAG, "Rewarded available")
+                }
+                override fun onAdUnavailable() {
+                    rewardedReady = false
+                    LogTracker.w(activity, TAG, "Rewarded unavailable")
+                }
+                override fun onAdOpened(adInfo: AdInfo?) {}
+                override fun onAdClosed(adInfo: AdInfo?) {
                     onRewardedClosed?.invoke()
                 }
-                override fun onRewardedVideoAvailabilityChanged(available: Boolean) {
-                    rewardedReady = available
-                    LogTracker.i(activity, TAG, "Rewarded available: $available")
-                }
-                override fun onRewardedVideoAdStarted() {}
-                override fun onRewardedVideoAdEnded() {}
-                override fun onRewardedVideoAdRewarded(placement: com.ironsource.mediationsdk.model.Placement?) {
+                override fun onAdRewarded(placement: com.ironsource.mediationsdk.model.Placement?, adInfo: AdInfo?) {
                     LogTracker.i(activity, TAG, "Rewarded EARNED")
                     recordSuccess(activity)
                     onRewardedEarned?.invoke()
                 }
-                override fun onRewardedVideoAdShowFailed(error: IronSourceError?) {
+                override fun onAdShowFailed(error: IronSourceError?, adInfo: AdInfo?) {
                     LogTracker.w(activity, TAG, "Rewarded show failed: ${error?.errorMessage}")
                     recordFailure(activity, "rewarded show: ${error?.errorMessage}")
                     onRewardedFailed?.invoke(error?.errorMessage ?: "unknown")
                 }
-                override fun onRewardedVideoAdClicked(placement: com.ironsource.mediationsdk.model.Placement?) {}
+                override fun onAdClicked(placement: com.ironsource.mediationsdk.model.Placement?, adInfo: AdInfo?) {}
             })
 
             IronSource.init(activity, BuildConfig.STARTIO_APP_ID)
@@ -130,6 +138,8 @@ object StartIoAds {
         }
     }
 
+    // ─── Interstitial ───
+
     fun requireInterstitialOnStart(activity: Activity, onDone: () -> Unit) {
         if (isSkipped(activity)) { onDone(); return }
         if (!initialized) { onDone(); return }
@@ -138,7 +148,7 @@ object StartIoAds {
         val safeDone = { if (!doneCalled) { doneCalled = true; onDone() } }
 
         val timeout = Runnable {
-            LogTracker.w(activity, TAG, "Start interstitial TIMEOUT — auto skip")
+            LogTracker.w(activity, TAG, "Interstitial TIMEOUT — auto skip")
             recordFailure(activity, "start timeout")
             safeDone()
         }
@@ -187,6 +197,8 @@ object StartIoAds {
             safeDone()
         }
     }
+
+    // ─── Rewarded ───
 
     fun requireRewarded(activity: Activity,
                         onEarned: () -> Unit,
@@ -240,9 +252,8 @@ object StartIoAds {
         }
     }
 
-    // Banner di-skip — tidak dipakai di versi 8.11.1
     fun loadBanner(activity: Activity, container: FrameLayout) {
-        LogTracker.i(activity, TAG, "Banner SKIPPED (not in this version)")
+        LogTracker.i(activity, TAG, "Banner SKIPPED (not supported)")
     }
 
     fun onResume(activity: Activity) {
