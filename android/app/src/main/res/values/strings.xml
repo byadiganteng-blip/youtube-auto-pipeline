@@ -1,8 +1,5 @@
 <resources>
     <string name="app_name">Cliper On</string>
     <string name="app_tagline">by YsDev</string>
-    <string name="btn_process">🎬  PROSES VIDEO</string>
-    <string name="btn_instructions">📖  Instruksi</string>
-    <string name="btn_results">🎞️  Hasil Video</string>
-    <string name="btn_credit">©️  Credit</string>
+    <string name="saweria_url" translatable="false">https://saweria.co/ysdev</string>
 </resources>

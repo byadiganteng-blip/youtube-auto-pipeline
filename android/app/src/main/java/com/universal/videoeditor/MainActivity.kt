@@ -96,6 +96,19 @@ class MainActivity : AppCompatActivity() {
         findViewById<View>(R.id.menuCredit).setOnClickListener {
             startActivity(Intent(this, CreditActivity::class.java))
         }
+        findViewById<View>(R.id.menuDonate).setOnClickListener {
+            LogTracker.i(this, "Nav", "Buka Saweria — dukung developer")
+            try {
+                val url = getString(R.string.saweria_url)
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                startActivity(intent)
+            } catch (e: Exception) {
+                LogTracker.e(this, "Nav", "Buka Saweria gagal: ${e.message}")
+                Toast.makeText(this, "Tidak bisa buka browser", Toast.LENGTH_SHORT).show()
+            }
+        }
+
 
         btnProcess.setOnClickListener {
             if (running) {
