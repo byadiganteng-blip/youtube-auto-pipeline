@@ -11,16 +11,16 @@ import com.ironsource.mediationsdk.sdk.LevelPlayInterstitialListener
 import com.ironsource.mediationsdk.sdk.LevelPlayRewardedVideoListener
 import com.ironsource.mediationsdk.adunit.adapter.utility.AdInfo
 
+/**
+ * StartIoAds — INSTANT SKIP version.
+ * Kalau iklan tidak ready dalam 1 detik, langsung skip (tidak tunggu).
+ */
 object StartIoAds {
     private const val TAG = "StartIoAds"
     private const val PREF = "ads_state"
-    private const val KEY_FAIL_COUNT = "fail_count"
-    private const val KEY_SKIP_UNTIL = "skip_until"
 
-    private const val START_INTERSTITIAL_TIMEOUT = 5000L
-    private const val REWARDED_TIMEOUT = 8000L
-    private const val FAIL_THRESHOLD = 3
-    private const val SKIP_DURATION = 60 * 60 * 1000L
+    // INSTANT: 1 detik timeout (bukan 5-8 detik)
+    private const val TIMEOUT_MS = 1000L
 
     @Volatile private var initialized = false
     @Volatile var interstitialReady = false
@@ -33,37 +33,6 @@ object StartIoAds {
     var onRewardedClosed: (() -> Unit)? = null
     var onRewardedFailed: ((String) -> Unit)? = null
 
-    private fun isSkipped(c: Context): Boolean = try {
-        val skipUntil = c.getSharedPreferences(PREF, Context.MODE_PRIVATE)
-            .getLong(KEY_SKIP_UNTIL, 0L)
-        if (System.currentTimeMillis() < skipUntil) {
-            LogTracker.w(c, TAG, "Ads SKIPPED")
-            true
-        } else false
-    } catch (_: Exception) { false }
-
-    private fun recordFailure(c: Context, reason: String) {
-        try {
-            val prefs = c.getSharedPreferences(PREF, Context.MODE_PRIVATE)
-            val count = prefs.getInt(KEY_FAIL_COUNT, 0) + 1
-            prefs.edit().putInt(KEY_FAIL_COUNT, count).apply()
-            LogTracker.w(c, TAG, "Failure #$count — $reason")
-            if (count >= FAIL_THRESHOLD) {
-                prefs.edit()
-                    .putLong(KEY_SKIP_UNTIL, System.currentTimeMillis() + SKIP_DURATION)
-                    .putInt(KEY_FAIL_COUNT, 0)
-                    .apply()
-            }
-        } catch (_: Exception) {}
-    }
-
-    private fun recordSuccess(c: Context) {
-        try {
-            c.getSharedPreferences(PREF, Context.MODE_PRIVATE).edit()
-                .putInt(KEY_FAIL_COUNT, 0).putLong(KEY_SKIP_UNTIL, 0L).apply()
-        } catch (_: Exception) {}
-    }
-
     fun init(activity: Activity) {
         if (initialized) return
         try {
@@ -74,7 +43,6 @@ object StartIoAds {
                 }
                 override fun onAdLoadFailed(error: IronSourceError?) {
                     interstitialReady = false
-                    LogTracker.w(activity, TAG, "Interstitial load failed: ${error?.errorMessage}")
                 }
                 override fun onAdOpened(adInfo: AdInfo?) {}
                 override fun onAdClosed(adInfo: AdInfo?) {
@@ -82,12 +50,8 @@ object StartIoAds {
                     try { IronSource.loadInterstitial() } catch (_: Exception) {}
                     onInterstitialClosed?.invoke()
                 }
-                override fun onAdShowSucceeded(adInfo: AdInfo?) {
-                    recordSuccess(activity)
-                }
+                override fun onAdShowSucceeded(adInfo: AdInfo?) {}
                 override fun onAdShowFailed(error: IronSourceError?, adInfo: AdInfo?) {
-                    LogTracker.w(activity, TAG, "Interstitial show failed: ${error?.errorMessage}")
-                    recordFailure(activity, "interstitial show: ${error?.errorMessage}")
                     onInterstitialClosed?.invoke()
                 }
                 override fun onAdClicked(adInfo: AdInfo?) {}
@@ -100,20 +64,15 @@ object StartIoAds {
                 }
                 override fun onAdUnavailable() {
                     rewardedReady = false
-                    LogTracker.w(activity, TAG, "Rewarded unavailable")
                 }
                 override fun onAdOpened(adInfo: AdInfo?) {}
                 override fun onAdClosed(adInfo: AdInfo?) {
                     onRewardedClosed?.invoke()
                 }
                 override fun onAdRewarded(placement: com.ironsource.mediationsdk.model.Placement?, adInfo: AdInfo?) {
-                    LogTracker.i(activity, TAG, "Rewarded EARNED")
-                    recordSuccess(activity)
                     onRewardedEarned?.invoke()
                 }
                 override fun onAdShowFailed(error: IronSourceError?, adInfo: AdInfo?) {
-                    LogTracker.w(activity, TAG, "Rewarded show failed: ${error?.errorMessage}")
-                    recordFailure(activity, "rewarded: ${error?.errorMessage}")
                     onRewardedFailed?.invoke(error?.errorMessage ?: "unknown")
                 }
                 override fun onAdClicked(placement: com.ironsource.mediationsdk.model.Placement?, adInfo: AdInfo?) {}
@@ -122,60 +81,36 @@ object StartIoAds {
             IronSource.init(activity, BuildConfig.STARTIO_APP_ID)
             try { IronSource.loadInterstitial() } catch (_: Exception) {}
             initialized = true
-            LogTracker.i(activity, TAG, "SDK init OK — App ID: ${BuildConfig.STARTIO_APP_ID}")
+            LogTracker.i(activity, TAG, "SDK init OK")
         } catch (e: Exception) {
             LogTracker.e(activity, TAG, "Init failed: ${e.message}")
         }
     }
 
+    /**
+     * INSTANT: Kalau iklan ready, tampil. Kalau tidak, langsung skip dalam 1 detik.
+     */
     fun requireInterstitialOnStart(activity: Activity, onDone: () -> Unit) {
-        if (isSkipped(activity)) { onDone(); return }
         if (!initialized) { onDone(); return }
 
         var doneCalled = false
         val safeDone = { if (!doneCalled) { doneCalled = true; onDone() } }
 
-        val timeout = Runnable {
-            LogTracker.w(activity, TAG, "Interstitial TIMEOUT")
-            recordFailure(activity, "timeout")
-            safeDone()
-        }
-        handler.postDelayed(timeout, START_INTERSTITIAL_TIMEOUT)
+        // Instant timeout 1s
+        val timeout = Runnable { safeDone() }
+        handler.postDelayed(timeout, TIMEOUT_MS)
 
         try {
             if (IronSource.isInterstitialReady()) {
                 onInterstitialClosed = {
                     handler.removeCallbacks(timeout)
                     onInterstitialClosed = null
-                    recordSuccess(activity)
                     safeDone()
                 }
                 IronSource.showInterstitial()
             } else {
-                try { IronSource.loadInterstitial() } catch (_: Exception) {}
-                var attempts = 0
-                val poll = object : Runnable {
-                    override fun run() {
-                        attempts++
-                        if (doneCalled) return
-                        if (IronSource.isInterstitialReady()) {
-                            handler.removeCallbacks(timeout)
-                            onInterstitialClosed = {
-                                onInterstitialClosed = null
-                                recordSuccess(activity)
-                                safeDone()
-                            }
-                            IronSource.showInterstitial()
-                        } else if (attempts < 10) {
-                            handler.postDelayed(this, 500)
-                        } else {
-                            handler.removeCallbacks(timeout)
-                            recordFailure(activity, "not ready")
-                            safeDone()
-                        }
-                    }
-                }
-                handler.postDelayed(poll, 500)
+                // Not ready → skip immediately (timeout akan panggil safeDone)
+                LogTracker.i(activity, TAG, "Interstitial not ready, skip in 1s")
             }
         } catch (e: Exception) {
             handler.removeCallbacks(timeout)
@@ -183,28 +118,26 @@ object StartIoAds {
         }
     }
 
+    /**
+     * INSTANT: Rewarded dengan 1s timeout.
+     */
     fun requireRewarded(activity: Activity,
                         onEarned: () -> Unit,
                         onFailed: (String) -> Unit) {
-        if (isSkipped(activity)) { onFailed("ADS_SKIPPED"); return }
-        if (!initialized) { onFailed("SDK not init"); return }
+        if (!initialized) { onFailed("SDK_SKIPPED"); return }
 
         var doneCalled = false
         val safeFail = { r: String -> if (!doneCalled) { doneCalled = true; onFailed(r) } }
         val safeEarn = { if (!doneCalled) { doneCalled = true; onEarned() } }
 
-        val timeout = Runnable {
-            recordFailure(activity, "rewarded timeout")
-            safeFail("ADS_TIMEOUT")
-        }
-        handler.postDelayed(timeout, REWARDED_TIMEOUT)
+        val timeout = Runnable { safeFail("TIMEOUT") }
+        handler.postDelayed(timeout, TIMEOUT_MS)
 
         try {
             if (IronSource.isRewardedVideoAvailable()) {
                 onRewardedEarned = {
                     handler.removeCallbacks(timeout)
                     onRewardedEarned = null; onRewardedClosed = null; onRewardedFailed = null
-                    recordSuccess(activity)
                     safeEarn()
                 }
                 onRewardedClosed = {
@@ -221,8 +154,8 @@ object StartIoAds {
                 }
                 IronSource.showRewardedVideo()
             } else {
-                handler.removeCallbacks(timeout)
-                safeFail("NOT_AVAILABLE")
+                // Not ready → skip after timeout
+                LogTracker.i(activity, TAG, "Rewarded not ready, skip in 1s")
             }
         } catch (e: Exception) {
             handler.removeCallbacks(timeout)
@@ -230,9 +163,7 @@ object StartIoAds {
         }
     }
 
-    fun loadBanner(activity: Activity, container: FrameLayout) {
-        LogTracker.i(activity, TAG, "Banner SKIPPED")
-    }
+    fun loadBanner(activity: Activity, container: FrameLayout) {}
 
     fun onResume(activity: Activity) {
         try { IronSource.onResume(activity) } catch (_: Exception) {}

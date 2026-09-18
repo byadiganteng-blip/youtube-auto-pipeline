@@ -22,6 +22,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -35,10 +36,10 @@ import java.util.zip.ZipInputStream
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var tvStatus: TextView
-    private lateinit var tvDurationValue: TextView
-    private lateinit var tvDurationHint: TextView
-    private lateinit var sbDuration: SeekBar
+    private var tvStatus: TextView? = null
+    private var tvDurationValue: TextView? = null
+    private var tvDurationHint: TextView? = null
+    private var sbDuration: SeekBar? = null
     private var videoDurationSec: Int = 0
     private var running = false
     private var pollJob: Job? = null
@@ -51,185 +52,196 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(s: Bundle?) {
         super.onCreate(s)
-        setContentView(R.layout.activity_main)
+        try {
+            setContentView(R.layout.activity_main)
+            LogTracker.i(this, "Main", "onCreate")
 
-            // ═══ INIT Start.io SDK (FIXED) ═══
+            createNotificationChannel()
+
+            tvStatus = findViewById(R.id.tvStatus)
+            tvDurationValue = findViewById(R.id.tvDurationValue)
+            tvDurationHint = findViewById(R.id.tvDurationHint)
+            sbDuration = findViewById(R.id.sbDuration)
+
+            // Init ads
             try {
                 StartIoAds.init(this)
                 LogTracker.i(this, "Main", "StartIoAds.init called")
-                // Banner skipped (no API in 8.11.1)
-                LogTracker.i(this, "Main", "Banner SKIP")
             } catch (e: Exception) {
                 LogTracker.e(this, "Main", "Ads init failed: ${e.message}")
             }
 
+            val etUrl = findViewById<EditText>(R.id.etUrl)
+            val spProcessMode = findViewById<Spinner>(R.id.spProcessMode)
+            val spMethod = findViewById<Spinner>(R.id.spMethod)
+            val spVideoSize = findViewById<Spinner>(R.id.spVideoSize)
+            val spQuality = findViewById<Spinner>(R.id.spQuality)
+            val spType = findViewById<Spinner>(R.id.spType)
+            val btnProcess = findViewById<AppCompatButton>(R.id.btnProcess)
 
-        LogTracker.i(this, "Main", "onCreate")
+            fun mk(items: List<String>) = ArrayAdapter(this,
+                android.R.layout.simple_spinner_dropdown_item, items)
 
-        createNotificationChannel()
+            spProcessMode.adapter = mk(listOf("remove_watermark", "skip_watermark"))
+            spMethod.adapter = mk(listOf("blur", "inpaint"))
+            spVideoSize.adapter = mk(listOf("original", "yt_shorts", "tiktok", "ig_reels",
+                "fb_reels", "whatsapp_status", "ig_feed_square", "ig_feed_portrait",
+                "yt_landscape", "yt_4k", "fb_video", "twitter"))
+            spQuality.adapter = mk(listOf("original", "144p", "240p", "360p", "480p",
+                "720p", "1080p", "1440p", "2160p"))
+            spType.adapter = mk(listOf("video", "reels"))
+            spProcessMode.setSelection(1)
+            spMethod.setSelection(0)
+            spVideoSize.setSelection(1)
+            spQuality.setSelection(0)
+            spType.setSelection(0)
 
-        tvStatus = findViewById(R.id.tvStatus)
-        tvDurationValue = findViewById(R.id.tvDurationValue)
-        tvDurationHint = findViewById(R.id.tvDurationHint)
-        sbDuration = findViewById(R.id.sbDuration)
+            sbDuration?.max = 600
+            sbDuration?.progress = 60
+            updateDurationLabel(60)
 
-        val etUrl = findViewById<EditText>(R.id.etUrl)
-        val spProcessMode = findViewById<Spinner>(R.id.spProcessMode)
-        val spMethod = findViewById<Spinner>(R.id.spMethod)
-        val spVideoSize = findViewById<Spinner>(R.id.spVideoSize)
-        val spQuality = findViewById<Spinner>(R.id.spQuality)
-        val spType = findViewById<Spinner>(R.id.spType)
-        val btnProcess = findViewById<AppCompatButton>(R.id.btnProcess)
+            sbDuration?.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                    val actual = if (progress < 10) 10 else progress
+                    updateDurationLabel(actual)
+                }
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+            })
 
-        fun mk(items: List<String>) = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, items)
-
-        spProcessMode.adapter = mk(listOf("remove_watermark", "skip_watermark"))
-        spMethod.adapter = mk(listOf("blur", "inpaint"))
-        spVideoSize.adapter = mk(listOf("original", "yt_shorts", "tiktok", "ig_reels",
-            "fb_reels", "whatsapp_status", "ig_feed_square", "ig_feed_portrait",
-            "yt_landscape", "yt_4k", "fb_video", "twitter"))
-        spQuality.adapter = mk(listOf("original", "144p", "240p", "360p", "480p",
-            "720p", "1080p", "1440p", "2160p"))
-        spType.adapter = mk(listOf("video", "reels"))
-        spProcessMode.setSelection(1)
-        spMethod.setSelection(0)
-        spVideoSize.setSelection(1)
-        spQuality.setSelection(0)
-        spType.setSelection(0)
-
-        sbDuration.max = 600
-        sbDuration.progress = 60
-        updateDurationLabel(60)
-
-        sbDuration.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                val actual = if (progress < 10) 10 else progress
-                updateDurationLabel(actual)
+            etUrl.setOnFocusChangeListener { _, hasFocus ->
+                if (!hasFocus) {
+                    try {
+                        val url = etUrl.text.toString().trim()
+                        if (url.isNotEmpty() && url.startsWith("http")) detectDuration(url)
+                    } catch (_: Exception) {}
+                }
             }
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
-        })
 
-        etUrl.setOnFocusChangeListener { _, hasFocus ->
-            if (!hasFocus) {
-                val url = etUrl.text.toString().trim()
-                if (url.isNotEmpty() && url.startsWith("http")) detectDuration(url)
-            }
-        }
+            requestPermissionsIfNeeded()
+            requestNotificationPermission()
 
-        requestPermissionsIfNeeded()
-        requestNotificationPermission()
-
-        
-            // ═══ WAJIB: Tampilkan interstitial saat buka app ═══
-            // Tampil setelah 500ms biar layout siap
+            // INTERSTITIAL INSTANT — 1s timeout
             this.window.decorView.postDelayed({
                 try {
                     StartIoAds.requireInterstitialOnStart(this) {
-                        LogTracker.i(this, "Ads", "Start interstitial closed")
+                        LogTracker.i(this, "Ads", "Start interstitial done")
                     }
-                } catch (e: Exception) {
-                    LogTracker.e(this, "Ads", "Start ad err: ${e.message}")
-                }
+                } catch (_: Exception) {}
             }, 500)
 
-
             // Menu handlers
-        findViewById<View>(R.id.menuInstructions).setOnClickListener {
-            startActivity(Intent(this, InstructionsActivity::class.java))
-        }
-        findViewById<View>(R.id.menuResults).setOnClickListener {
-            startActivity(Intent(this, ResultsActivity::class.java))
-        }
-        findViewById<View>(R.id.menuCredit).setOnClickListener {
-            startActivity(Intent(this, CreditActivity::class.java))
-        }
-        findViewById<View>(R.id.menuDonate).setOnClickListener {
-            try {
-                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.saweria_url))))
-            } catch (e: Exception) {
-                Toast.makeText(this, "Tidak bisa buka browser", Toast.LENGTH_SHORT).show()
+            findViewById<View>(R.id.menuInstructions)?.setOnClickListener {
+                try { startActivity(Intent(this, InstructionsActivity::class.java)) } catch (_: Exception) {}
             }
-        }
+            findViewById<View>(R.id.menuResults)?.setOnClickListener {
+                try { startActivity(Intent(this, ResultsActivity::class.java)) } catch (_: Exception) {}
+            }
+            findViewById<View>(R.id.menuCredit)?.setOnClickListener {
+                try { startActivity(Intent(this, CreditActivity::class.java)) } catch (_: Exception) {}
+            }
+            findViewById<View>(R.id.menuDonate)?.setOnClickListener {
+                try {
+                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.saweria_url))))
+                } catch (_: Exception) {}
+            }
 
-        // Notif button
-        val btnNotif = findViewById<View>(R.id.btnNotif)
-        val notifDot = findViewById<View>(R.id.notifDot)
-        lifecycleScope.launch {
-            try {
-                val notifs = NotifFetcher.fetch(this@MainActivity)
-                if (notifs.isNotEmpty()) notifDot.visibility = View.VISIBLE
-                btnNotif.setOnClickListener {
-                    if (notifs.isEmpty()) {
-                        Toast.makeText(this@MainActivity, "Tidak ada notifikasi", Toast.LENGTH_SHORT).show()
-                    } else {
-                        showNotifDialog(notifs)
-                        notifDot.visibility = View.GONE
+            // Notif button
+            val btnNotif = findViewById<View>(R.id.btnNotif)
+            val notifDot = findViewById<View>(R.id.notifDot)
+            lifecycleScope.launch {
+                try {
+                    val notifs = NotifFetcher.fetch(this@MainActivity)
+                    if (notifs.isNotEmpty()) notifDot?.visibility = View.VISIBLE
+                    btnNotif?.setOnClickListener {
+                        try {
+                            if (notifs.isEmpty()) {
+                                Toast.makeText(this@MainActivity, "Tidak ada notifikasi", Toast.LENGTH_SHORT).show()
+                            } else {
+                                showNotifDialog(notifs)
+                                notifDot?.visibility = View.GONE
+                            }
+                        } catch (_: Exception) {}
                     }
-                }
-            } catch (_: Exception) {}
-        }
+                } catch (_: Exception) {}
+            }
 
-        btnProcess.setOnClickListener {
-            if (running) {
-                AlertDialog.Builder(this)
-                    .setTitle("Proses Berjalan")
-                    .setMessage("Proses sedang berjalan.\n\nBatalkan atau tunggu?")
-                    .setPositiveButton("Tunggu", null)
-                    .setNegativeButton("Batalkan") { _, _ -> cancelProcess() }
-                    .show()
-                return@setOnClickListener
+            btnProcess?.setOnClickListener {
+                try {
+                    if (running) {
+                        AlertDialog.Builder(this)
+                            .setTitle("Proses Berjalan")
+                            .setMessage("Batalkan atau tunggu?")
+                            .setPositiveButton("Tunggu", null)
+                            .setNegativeButton("Batalkan") { _, _ -> cancelProcess() }
+                            .show()
+                        return@setOnClickListener
+                    }
+                    val url = etUrl.text.toString().trim()
+                    if (url.isEmpty()) {
+                        Toast.makeText(this, "Tempel link video dulu", Toast.LENGTH_SHORT).show()
+                        return@setOnClickListener
+                    }
+                    if (!canDrawOverlay()) {
+                        askOverlayPermission()
+                        return@setOnClickListener
+                    }
+                    val inputs = mapOf(
+                        "video_url" to url,
+                        "process_mode" to (spProcessMode.selectedItem?.toString() ?: "skip_watermark"),
+                        "method" to (spMethod.selectedItem?.toString() ?: "blur"),
+                        "video_size" to (spVideoSize.selectedItem?.toString() ?: "original"),
+                        "video_quality" to (spQuality.selectedItem?.toString() ?: "original"),
+                        "part_duration" to ((sbDuration?.progress ?: 60).coerceAtLeast(10)).toString(),
+                        "upload_type" to (spType.selectedItem?.toString() ?: "video")
+                    )
+
+                    // INSTANT REWARDED — 1s timeout, auto-skip
+                    StartIoAds.requireRewarded(
+                        activity = this,
+                        onEarned = {
+                            LogTracker.i(this, "Ads", "Reward earned")
+                            processVideo(inputs)
+                        },
+                        onFailed = { err ->
+                            LogTracker.w(this, "Ads", "Reward skipped: $err")
+                            // AUTO-SKIP → langsung proses
+                            processVideo(inputs)
+                        }
+                    )
+                } catch (e: Exception) {
+                    LogTracker.e(this, "Main", "btnProcess err: ${e.message}")
+                }
             }
-            val url = etUrl.text.toString().trim()
-            if (url.isEmpty()) {
-                Toast.makeText(this, "Tempel link video dulu ya 🙏", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            if (!canDrawOverlay()) {
-                askOverlayPermission()
-                return@setOnClickListener
-            }
-            val inputs = mapOf(
-                "video_url" to url,
-                "process_mode" to spProcessMode.selectedItem.toString(),
-                "method" to spMethod.selectedItem.toString(),
-                "video_size" to spVideoSize.selectedItem.toString(),
-                "video_quality" to spQuality.selectedItem.toString(),
-                "part_duration" to sbDuration.progress.coerceAtLeast(10).toString(),
-                "upload_type" to spType.selectedItem.toString()
-            )
-            // WAJIB rewarded sebelum proses
-            showRewardedRequiredDialog { processVideo(inputs) }
+        } catch (e: Exception) {
+            LogTracker.e(this, "Main", "onCreate CRASH: ${e.message}")
+            Toast.makeText(this, "Startup error: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // NOTIFICATION HELPERS
-    // ═══════════════════════════════════════════════════════════
     private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            if (nm.getNotificationChannel(CHANNEL_ID) == null) {
-                val ch = NotificationChannel(
-                    CHANNEL_ID, "Cliper On Progress",
-                    NotificationManager.IMPORTANCE_LOW
-                ).apply {
-                    description = "Progress proses video"
-                    setShowBadge(false)
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                if (nm.getNotificationChannel(CHANNEL_ID) == null) {
+                    nm.createNotificationChannel(
+                        NotificationChannel(CHANNEL_ID, "Cliper On",
+                            NotificationManager.IMPORTANCE_LOW).apply { setShowBadge(false) })
                 }
-                nm.createNotificationChannel(ch)
             }
-        }
+        } catch (_: Exception) {}
     }
 
     private fun requestNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= 33) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-                != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this,
-                    arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1002)
+        try {
+            if (Build.VERSION.SDK_INT >= 33) {
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(this,
+                        arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1002)
+                }
             }
-        }
+        } catch (_: Exception) {}
     }
 
     private fun sendProgressNotif(pct: Int, label: String) {
@@ -265,11 +277,10 @@ class MainActivity : AppCompatActivity() {
             val notif = NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(if (success) android.R.drawable.stat_sys_download_done
                               else android.R.drawable.stat_notify_error)
-                .setContentTitle(if (success) "✅ Cliper On Selesai" else "❌ Cliper On Gagal")
+                .setContentTitle(if (success) "✅ Selesai" else "❌ Gagal")
                 .setContentText(msg)
                 .setAutoCancel(true)
                 .setContentIntent(pi)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .build()
 
             NotificationManagerCompat.from(this).notify(NOTIF_DONE_ID, notif)
@@ -278,104 +289,126 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun cancelNotification() {
-        try {
-            NotificationManagerCompat.from(this).cancel(NOTIF_ID)
-        } catch (_: Exception) {}
+        try { NotificationManagerCompat.from(this).cancel(NOTIF_ID) } catch (_: Exception) {}
     }
 
     private fun cancelProcess() {
-        LogTracker.i(this, "Main", "User cancel")
-        pollJob?.cancel()
-        pollJob = null
-        running = false
-        hideProgress()
-        cancelNotification()
-        tvStatus.text = "Dibatalkan"
-        Toast.makeText(this, "Proses dibatalkan", Toast.LENGTH_SHORT).show()
+        try {
+            pollJob?.cancel()
+            pollJob = null
+            running = false
+            hideProgress()
+            cancelNotification()
+            tvStatus?.text = "Dibatalkan"
+        } catch (_: Exception) {}
     }
 
     private fun showNotifDialog(notifs: List<NotifFetcher.Notif>) {
-        val messages = notifs.joinToString("\n\n") {
-            "${it.icon}  ${it.title}\n${it.message}"
-        }
-        val firstLink = notifs.firstOrNull { it.link.isNotEmpty() }
-        val builder = AlertDialog.Builder(this)
-            .setTitle("🔔 Notifikasi")
-            .setMessage(messages)
-            .setPositiveButton("Tutup", null)
-        if (firstLink != null) {
-            builder.setNeutralButton(firstLink.linkLabel) { _, _ ->
-                try {
-                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(firstLink.link)))
-                } catch (_: Exception) {}
+        try {
+            val messages = notifs.joinToString("\n\n") {
+                "${it.icon}  ${it.title}\n${it.message}"
             }
-        }
-        builder.show()
+            val firstLink = notifs.firstOrNull { it.link.isNotEmpty() }
+            val builder = AlertDialog.Builder(this)
+                .setTitle("🔔 Notifikasi")
+                .setMessage(messages)
+                .setPositiveButton("Tutup", null)
+            if (firstLink != null) {
+                builder.setNeutralButton(firstLink.linkLabel) { _, _ ->
+                    try {
+                        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(firstLink.link)))
+                    } catch (_: Exception) {}
+                }
+            }
+            builder.show()
+        } catch (_: Exception) {}
     }
 
-    private fun canDrawOverlay(): Boolean =
+    private fun canDrawOverlay(): Boolean = try {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) Settings.canDrawOverlays(this) else true
+    } catch (_: Exception) { true }
 
     private fun askOverlayPermission() {
-        AlertDialog.Builder(this)
-            .setTitle("Izin Floating Window")
-            .setMessage("Aktifkan 'Tampil di atas aplikasi lain' supaya progress terlihat.")
-            .setPositiveButton("Buka Pengaturan") { _, _ ->
-                startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                    Uri.parse("package:$packageName")))
-            }
-            .setNegativeButton("Batal", null).show()
+        try {
+            AlertDialog.Builder(this)
+                .setTitle("Izin Floating Window")
+                .setMessage("Aktifkan 'Tampil di atas aplikasi lain' supaya progress terlihat.")
+                .setPositiveButton("Buka Pengaturan") { _, _ ->
+                    try {
+                        startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                            Uri.parse("package:$packageName")))
+                    } catch (_: Exception) {}
+                }
+                .setNegativeButton("Batal", null).show()
+        } catch (_: Exception) {}
     }
 
     private fun updateDurationLabel(sec: Int) {
-        val label = when {
-            sec < 60 -> "${sec} dtk"
-            sec % 60 == 0 -> "${sec / 60} mnt"
-            else -> "${sec / 60}m ${sec % 60}s"
-        }
-        tvDurationValue.text = label
-        if (videoDurationSec > 0) {
-            val parts = (videoDurationSec + sec - 1) / sec
-            tvDurationHint.text = "Video ${videoDurationSec}s → ~${parts} part"
-        }
+        try {
+            val label = when {
+                sec < 60 -> "${sec} dtk"
+                sec % 60 == 0 -> "${sec / 60} mnt"
+                else -> "${sec / 60}m ${sec % 60}s"
+            }
+            tvDurationValue?.text = label
+            if (videoDurationSec > 0) {
+                val parts = (videoDurationSec + sec - 1) / sec
+                tvDurationHint?.text = "Video ${videoDurationSec}s → ~${parts} part"
+            }
+        } catch (_: Exception) {}
     }
 
     private fun detectDuration(url: String) {
-        tvDurationHint.text = "Mendeteksi durasi…"
-        lifecycleScope.launch {
-            val r = ProcessRunner.probeVideoDuration(this@MainActivity, url)
-            if (r != null && r > 0) {
-                videoDurationSec = r
-                tvDurationHint.text = "Video: ${r}s (${r/60}m ${r%60}s)"
-                val suggest = (r / 10).coerceIn(10, 300)
-                sbDuration.progress = suggest
-                updateDurationLabel(suggest)
-            } else {
-                tvDurationHint.text = "Video: tidak diketahui"
+        try {
+            tvDurationHint?.text = "Mendeteksi durasi…"
+            lifecycleScope.launch {
+                try {
+                    val r = ProcessRunner.probeVideoDuration(this@MainActivity, url)
+                    if (r != null && r > 0) {
+                        videoDurationSec = r
+                        tvDurationHint?.text = "Video: ${r}s (${r/60}m ${r%60}s)"
+                        val suggest = (r / 10).coerceIn(10, 300)
+                        sbDuration?.progress = suggest
+                        updateDurationLabel(suggest)
+                    } else {
+                        tvDurationHint?.text = "Video: tidak diketahui"
+                    }
+                } catch (_: Exception) {}
             }
-        }
+        } catch (_: Exception) {}
     }
 
     private fun requestPermissionsIfNeeded() {
-        val perms = mutableListOf<String>()
-        if (Build.VERSION.SDK_INT < 33) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED)
-                perms.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-        }
-        if (perms.isNotEmpty()) ActivityCompat.requestPermissions(this, perms.toTypedArray(), 1001)
+        try {
+            val perms = mutableListOf<String>()
+            if (Build.VERSION.SDK_INT < 33) {
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                    perms.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                }
+            }
+            if (perms.isNotEmpty()) ActivityCompat.requestPermissions(this, perms.toTypedArray(), 1001)
+        } catch (_: Exception) {}
     }
 
     private fun showProgress(pct: Int, label: String, detail: String = "") {
-        FloatingProgressService.show(this, pct, label, detail)
-        tvStatus.text = "$pct% • $label"
-        sendProgressNotif(pct, label)
+        runOnUiThread {
+            try {
+                FloatingProgressService.show(this, pct, label, detail)
+                tvStatus?.text = "$pct% • $label"
+                sendProgressNotif(pct, label)
+            } catch (_: Exception) {}
+        }
     }
 
     private fun updateProgress(pct: Int, label: String, detail: String = "") {
-        FloatingProgressService.update(this, pct, label, detail)
-        tvStatus.text = "$pct% • $label"
-        sendProgressNotif(pct, label)
+        runOnUiThread {
+            try {
+                FloatingProgressService.update(this, pct, label, detail)
+                tvStatus?.text = "$pct% • $label"
+                sendProgressNotif(pct, label)
+            } catch (_: Exception) {}
+        }
     }
 
     private fun hideProgress() {
@@ -384,67 +417,6 @@ class MainActivity : AppCompatActivity() {
                 FloatingProgressService.hide(this)
                 cancelNotification()
             } catch (_: Exception) {}
-        }
-    }
-
-    private fun pollingInterval(elapsedMs: Long): Long = when {
-        elapsedMs < 3 * 60_000L -> 5_000L
-        elapsedMs < 10 * 60_000L -> 15_000L
-        elapsedMs < 20 * 60_000L -> 30_000L
-        else -> 60_000L
-    }
-
-        private fun showRewardedRequiredDialog(onReward: () -> Unit) {
-        try {
-            val builder = AlertDialog.Builder(this)
-                .setTitle("🎁 Tonton Iklan Dulu")
-                .setMessage("Tonton iklan singkat ~15-30 detik.\n\nKalau iklan tidak tersedia, proses akan otomatis lanjut.")
-                .setCancelable(false)
-                .setPositiveButton("Tonton Sekarang") { _, _ ->
-                    val loading = AlertDialog.Builder(this)
-                        .setTitle("Memuat iklan…")
-                        .setMessage("Mohon tunggu")
-                        .setCancelable(false)
-                        .create()
-                    loading.show()
-
-                    StartIoAds.requireRewarded(
-                        activity = this,
-                        onEarned = {
-                            try { loading.dismiss() } catch (_: Exception) {}
-                            LogTracker.i(this, "Ads", "Reward earned")
-                            Toast.makeText(this, "✅ Terima kasih!", Toast.LENGTH_SHORT).show()
-                            onReward()
-                        },
-                        onFailed = { err ->
-                            try { loading.dismiss() } catch (_: Exception) {}
-                            LogTracker.w(this, "Ads", "Reward failed: $err")
-                            val autoSkip = err in listOf("NOT_AVAILABLE", "ADS_TIMEOUT", "ADS_SKIPPED", "CLOSED_EARLY")
-                                || err.contains("network", ignoreCase = true)
-                                || err.contains("timeout", ignoreCase = true)
-                                || err.contains("no fill", ignoreCase = true)
-                            if (autoSkip) {
-                                Toast.makeText(this, "ℹ️ Iklan tidak tersedia, lanjut…", Toast.LENGTH_SHORT).show()
-                                onReward()
-                            } else {
-                                AlertDialog.Builder(this)
-                                    .setTitle("⚠️ Iklan Gagal")
-                                    .setMessage("$err\n\nProses akan dilanjutkan.")
-                                    .setPositiveButton("Lanjut") { _, _ -> onReward() }
-                                    .setNegativeButton("Coba Lagi") { _, _ -> showRewardedRequiredDialog(onReward) }
-                                    .setCancelable(false).show()
-                            }
-                        }
-                    )
-                }
-                .setNegativeButton("Skip Iklan") { _, _ ->
-                    LogTracker.i(this, "Ads", "User skip")
-                    onReward()
-                }
-            builder.show()
-        } catch (e: Exception) {
-            LogTracker.e(this, "Ads", "Dialog err: ${e.message}")
-            onReward()
         }
     }
 
@@ -460,15 +432,17 @@ class MainActivity : AppCompatActivity() {
                 if (!r.ok) {
                     hideProgress()
                     sendDoneNotif(false, "Gagal start (${r.code})")
-                    AlertDialog.Builder(this@MainActivity)
-                        .setTitle("❌ Gagal Memulai")
-                        .setMessage("Kode: ${r.code}\n\n${r.body.take(300)}")
-                        .setPositiveButton("OK", null).show()
+                    try {
+                        AlertDialog.Builder(this@MainActivity)
+                            .setTitle("❌ Gagal")
+                            .setMessage("Kode: ${r.code}")
+                            .setPositiveButton("OK", null).show()
+                    } catch (_: Exception) {}
                     running = false
                     return@launch
                 }
 
-                // Simpan history
+                // Save history
                 val url = inputs["video_url"] ?: ""
                 val folderTs = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
                 val folderName = "clip_$folderTs"
@@ -480,52 +454,173 @@ class MainActivity : AppCompatActivity() {
                         (inputs["part_duration"] ?: "60").toIntOrNull() ?: 60)
                 } catch (_: Exception) {}
 
-                showProgress(10, "Video dikirim", "Menunggu proses di server…")
+                showProgress(10, "Video dikirim", "Menunggu part 1…")
+                LogTracker.i(this@MainActivity, "Main", "STEP: enter polling loop")
 
-                var lastStatus = ""
-                var lastRunId = -1L
+                // ═══ PER-PART STREAMING DOWNLOAD ═══
+                val downloadedParts = mutableSetOf<Int>()
+                val outputDir = File(
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+                    "${YadApp.DOWNLOAD_DIR}/$folderName"
+                )
+                if (!outputDir.exists()) outputDir.mkdirs()
+
+                var lastPartCount = 0
+                var workflowDone = false
 
                 while (isActive) {
                     val elapsed = System.currentTimeMillis() - startTime
-                    val interval = pollingInterval(elapsed)
-                    delay(interval)
-
                     val minutes = (elapsed / 60_000L).toInt()
-                    val pct = minOf(10 + minutes * 2, 75)
-                    val eta = estimateEta(elapsed)
-                    updateProgress(pct, "Memproses video…", "Menit $minutes • ETA $eta")
+                    val basePct = minOf(10 + minutes * 3, 50)
 
-                    val run = ProcessRunner.latestRun(this@MainActivity) ?: continue
-                    val runId = run.optLong("id", -1L)
-                    val status = run.optString("status", "")
-                    val conclusion = run.optString("conclusion", "")
+                    // Cek workflow status
+                    val run = ProcessRunner.latestRun(this@MainActivity)
+                    if (run != null) {
+                        val runId = run.optLong("id", -1L)
+                        val status = run.optString("status", "")
+                        val conclusion = run.optString("conclusion", "")
 
-                    lastStatus = status
-                    lastRunId = runId
+                        // Ambil artifact yang tersedia SEKARANG
+                        try {
+                            val arts = ProcessRunner.runArtifacts(this@MainActivity, runId)
+                            for (art in arts) {
+                                // Deteksi part number
+                                val partNum = ProcessRunner.partNumberFromName(art.name)
+                                if (partNum > 0 && partNum !in downloadedParts) {
+                                    // DOWNLOAD PART SEKARANG
+                                    updateProgress(basePct, "Download part-$partNum…",
+                                        "${downloadedParts.size} part selesai")
+                                    LogTracker.i(this@MainActivity, "Main",
+                                        "Downloading part-$partNum (${art.name})")
 
-                    if (status == "completed") {
-                        LogTracker.i(this@MainActivity, "Main", "Run completed: $conclusion")
-                        if (conclusion == "success") {
-                            updateProgress(80, "Mengambil hasil…", "Menunggu artifact")
-                            downloadResult(runId, url)
-                        } else {
-                            hideProgress()
-                            sendDoneNotif(false, "Proses gagal")
-                            AlertDialog.Builder(this@MainActivity)
-                                .setTitle("Proses Gagal")
-                                .setMessage("Video tidak dapat diproses.\n\nCek menu Instruksi → Log.")
-                                .setPositiveButton("OK", null).show()
+                                    val bytes = ProcessRunner.downloadArtifact(this@MainActivity, art.id)
+                                    if (bytes != null && bytes.isNotEmpty()) {
+                                        try {
+                                            var extracted = 0
+                                            ZipInputStream(bytes.inputStream()).use { zis ->
+                                                var entry = zis.nextEntry
+                                                while (entry != null) {
+                                                    if (!entry.isDirectory) {
+                                                        val rawName = entry.name.substringAfterLast("/")
+                                                        val safeName = if (rawName.isBlank())
+                                                            "video_part${String.format("%03d", partNum)}.mp4"
+                                                            else rawName
+                                                        val outFile = File(outputDir, safeName)
+                                                        FileOutputStream(outFile).use { fos -> zis.copyTo(fos) }
+                                                        extracted++
+                                                        LogTracker.i(this@MainActivity, "Main",
+                                                            "Saved part-$partNum: $safeName")
+                                                    }
+                                                    zis.closeEntry()
+                                                    entry = zis.nextEntry
+                                                }
+                                            }
+
+                                            if (extracted > 0) {
+                                                downloadedParts.add(partNum)
+                                                // Hapus artifact setelah download
+                                                try { ProcessRunner.deleteArtifact(this@MainActivity, art.id) } catch (_: Exception) {}
+                                                // Update history
+                                                try { HistoryManager.markPartDownloaded(this@MainActivity, url, partNum) } catch (_: Exception) {}
+                                                LogTracker.i(this@MainActivity, "Main",
+                                                    "Part-$partNum DONE (total: ${downloadedParts.size})")
+                                            }
+                                        } catch (e: Exception) {
+                                            LogTracker.e(this@MainActivity, "Main",
+                                                "Extract part-$partNum failed: ${e.message}")
+                                        }
+                                    }
+                                }
+                            }
+                        } catch (_: Exception) {}
+
+                        // Update progress berdasarkan part yang didownload
+                        val pct = minOf(10 + downloadedParts.size * 15, 90)
+                        updateProgress(pct, "Memproses video…",
+                            "${downloadedParts.size} part • ${minutes}m")
+
+                        if (status == "completed") {
+                            workflowDone = true
+                            LogTracker.i(this@MainActivity, "Main", "Workflow done: $conclusion")
+
+                            // Tunggu sisa artifact (kalau ada)
+                            delay(3000)
+
+                            if (conclusion == "success" || downloadedParts.isNotEmpty()) {
+                                // Finalize
+                                if (downloadedParts.isEmpty()) {
+                                    // Coba download sisa artifact (bundle)
+                                    try {
+                                        val arts = ProcessRunner.runArtifacts(this@MainActivity, runId)
+                                        for (art in arts) {
+                                            if (art.sizeBytes > 100_000) {
+                                                val bytes = ProcessRunner.downloadArtifact(this@MainActivity, art.id)
+                                                if (bytes != null) {
+                                                    ZipInputStream(bytes.inputStream()).use { zis ->
+                                                        var entry = zis.nextEntry
+                                                        while (entry != null) {
+                                                            if (!entry.isDirectory) {
+                                                                val outFile = File(outputDir, entry.name.substringAfterLast("/"))
+                                                                FileOutputStream(outFile).use { zis.copyTo(it) }
+                                                                downloadedParts.add(90 + downloadedParts.size)
+                                                            }
+                                                            zis.closeEntry()
+                                                            entry = zis.nextEntry
+                                                        }
+                                                    }
+                                                    try { ProcessRunner.deleteArtifact(this@MainActivity, art.id) } catch (_: Exception) {}
+                                                }
+                                            }
+                                        }
+                                    } catch (_: Exception) {}
+                                }
+
+                                updateProgress(100, "Selesai! 🎉",
+                                    "${downloadedParts.size} part tersimpan")
+                                sendDoneNotif(true, "${downloadedParts.size} part siap")
+                                delay(2000)
+                                hideProgress()
+                                tvStatus?.text = "Selesai: ${downloadedParts.size} part"
+
+                                try { HistoryManager.markCompleted(this@MainActivity, url, downloadedParts.size) } catch (_: Exception) {}
+
+                                try {
+                                    AlertDialog.Builder(this@MainActivity)
+                                        .setTitle("✅ Selesai!")
+                                        .setMessage("${downloadedParts.size} video tersimpan di:\nDownloads/${YadApp.DOWNLOAD_DIR}/$folderName/")
+                                        .setPositiveButton("Lihat Hasil") { _, _ ->
+                                            try { startActivity(Intent(this@MainActivity, ResultsActivity::class.java)) } catch (_: Exception) {}
+                                        }
+                                        .setNegativeButton("Tutup", null).show()
+                                } catch (_: Exception) {}
+                            } else {
+                                hideProgress()
+                                sendDoneNotif(false, "Gagal")
+                                try {
+                                    AlertDialog.Builder(this@MainActivity)
+                                        .setTitle("Gagal")
+                                        .setMessage("Cek log di menu Instruksi")
+                                        .setPositiveButton("OK", null).show()
+                                } catch (_: Exception) {}
+                            }
+                            return@launch
                         }
+                    }
+
+                    // Timeout 90 menit
+                    if (elapsed > 90 * 60_000L) {
+                        hideProgress()
+                        sendDoneNotif(false, "Timeout")
                         return@launch
                     }
 
-                    if (elapsed > 60 * 60_000L) {
-                        hideProgress()
-                        sendDoneNotif(false, "Timeout 60 menit")
-                        Toast.makeText(this@MainActivity, "⏱️ Timeout 60 menit.", Toast.LENGTH_LONG).show()
-                        return@launch
-                    }
+                    delay(3000)  // Polling tiap 3 detik
                 }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                LogTracker.e(this@MainActivity, "Main", "CRASH: ${e.message}")
+                try { hideProgress() } catch (_: Exception) {}
             } finally {
                 running = false
                 pollJob = null
@@ -533,125 +628,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun estimateEta(elapsed: Long): String {
-        val avgSec = 90L
-        val remainSec = maxOf(0L, avgSec - elapsed / 1000)
-        return if (remainSec < 60) "${remainSec}s" else "${remainSec / 60}m"
-    }
-
-    // ═══════════════════════════════════════════════════════════
-    // DOWNLOAD RESULT — dengan auto-delete artifact
-    // ═══════════════════════════════════════════════════════════
-    private suspend fun downloadResult(runId: Long, url: String) {
-        LogTracker.i(this, "Main", "downloadResult runId=$runId")
-
-        var arts: List<ProcessRunner.Artifact> = emptyList()
-        for (attempt in 1..6) {
-            arts = ProcessRunner.runArtifacts(this, runId)
-            val valid = arts.filter { it.sizeBytes > 100_000 }
-            if (valid.isNotEmpty()) { arts = valid; break }
-            updateProgress(80 + attempt, "Menunggu artifact…", "Percobaan $attempt/6")
-            delay(5000)
-        }
-
-        if (arts.isEmpty()) {
-            hideProgress()
-            sendDoneNotif(false, "Artifact tidak ditemukan")
-            AlertDialog.Builder(this)
-                .setTitle("⚠️ Hasil Tidak Ditemukan")
-                .setMessage("Workflow selesai tapi artifact tidak ada.")
-                .setPositiveButton("OK", null).show()
-            return
-        }
-
-        val target = arts.first()
-        LogTracker.i(this, "Main", "Downloading: ${target.name} (${target.sizeBytes/1024} KB)")
-        updateProgress(85, "Mengunduh…", "${target.name} (${target.sizeBytes/1024/1024} MB)")
-
-        val bytes = ProcessRunner.downloadArtifact(this, target.id)
-        if (bytes == null || bytes.isEmpty()) {
-            hideProgress()
-            sendDoneNotif(false, "Download gagal")
-            AlertDialog.Builder(this)
-                .setTitle("⚠️ Gagal Unduh")
-                .setMessage("Artifact tidak dapat diunduh.")
-                .setPositiveButton("OK", null).show()
-            return
-        }
-
-        val ts = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-        val uniqueFolder = "clip_$ts"
-
-        updateProgress(92, "Menyimpan…", "Downloads/${YadApp.DOWNLOAD_DIR}/$uniqueFolder")
-        try {
-            val baseDir = File(
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                YadApp.DOWNLOAD_DIR
-            )
-            if (!baseDir.exists()) baseDir.mkdirs()
-            val sessionDir = File(baseDir, uniqueFolder)
-            if (!sessionDir.exists()) sessionDir.mkdirs()
-
-            var extracted = 0
-            var extractedMb = 0L
-            ZipInputStream(bytes.inputStream()).use { zis ->
-                var entry = zis.nextEntry
-                while (entry != null) {
-                    if (!entry.isDirectory) {
-                        val rawName = entry.name.substringAfterLast("/")
-                        val safeName = if (rawName.isBlank()) "video_${System.currentTimeMillis()}.mp4" else rawName
-                        val outFile = File(sessionDir, safeName)
-                        FileOutputStream(outFile).use { fos -> zis.copyTo(fos) }
-                        extracted++
-                        extractedMb += outFile.length()
-                        LogTracker.i(this, "Main", "Saved: $uniqueFolder/$safeName (${outFile.length()/1024/1024} MB)")
-                    }
-                    zis.closeEntry()
-                    entry = zis.nextEntry
-                }
-            }
-
-            if (extracted == 0) {
-                hideProgress()
-                sendDoneNotif(false, "Tidak ada video")
-                return
-            }
-
-            // ═══ AUTO-DELETE artifact dari GitHub ═══
-            updateProgress(98, "Membersihkan server…", "Hapus artifact di GitHub")
-            val deleted = ProcessRunner.deleteArtifact(this, target.id)
-            if (deleted) {
-                LogTracker.i(this, "Main", "✅ Artifact deleted: ${target.name}")
-            }
-            try { ProcessRunner.cleanupRunArtifacts(this, runId) } catch (_: Exception) {}
-
-            // Mark history selesai
-            try { HistoryManager.markCompleted(this@MainActivity, url, extracted) } catch (_: Exception) {}
-
-            updateProgress(100, "Selesai! 🎉", "$extracted file • ${extractedMb/1024/1024} MB")
-            sendDoneNotif(true, "$extracted video siap di Downloads/CliperOn")
-            delay(2500)
-            hideProgress()
-            tvStatus.text = "Selesai: $extracted video"
-
-            AlertDialog.Builder(this)
-                .setTitle("✅ Berhasil!")
-                .setMessage("$extracted video tersimpan di:\nDownloads/${YadApp.DOWNLOAD_DIR}/$uniqueFolder/\n\nArtifact GitHub sudah dihapus otomatis.")
-                .setPositiveButton("Lihat Hasil") { _, _ ->
-                    startActivity(Intent(this, ResultsActivity::class.java))
-                }
-                .setNegativeButton("Tutup", null).show()
-        } catch (e: Exception) {
-            hideProgress()
-            sendDoneNotif(false, "Gagal simpan: ${e.message}")
-            AlertDialog.Builder(this)
-                .setTitle("⚠️ Gagal Menyimpan")
-                .setMessage("${e.message}")
-                .setPositiveButton("OK", null).show()
-        }
-    }
-
-    
     override fun onResume() {
         super.onResume()
         try { StartIoAds.onResume(this) } catch (_: Exception) {}
@@ -664,6 +640,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        LogTracker.i(this, "Main", "onDestroy")
+        try { LogTracker.i(this, "Main", "onDestroy") } catch (_: Exception) {}
     }
 }
