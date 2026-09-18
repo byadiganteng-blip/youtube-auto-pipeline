@@ -1,5 +1,6 @@
 package com.universal.videoeditor
 import android.app.Application
+
 class YadApp : Application() {
     override fun onCreate() {
         super.onCreate()
