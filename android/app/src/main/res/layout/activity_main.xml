@@ -1,337 +1,168 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_width="match_parent" android:layout_height="match_parent"
     android:background="@color/bg">
 
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:padding="16dp"
-        android:clipToPadding="false"
-        android:scrollbars="none">
+    <ScrollView android:layout_width="match_parent" android:layout_height="match_parent"
+        android:padding="16dp" android:clipToPadding="false" android:scrollbars="none">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:paddingBottom="24dp">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingBottom="24dp">
-
-            <!-- HERO HEADER -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:background="@drawable/hero_bg"
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:background="@drawable/hero_bg"
                 android:padding="20dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="🎬  Yad Clipper"
-                    android:textColor="#FFFFFF"
-                    android:textSize="26sp"
-                    android:textStyle="bold"
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="✂️  Cliper On" android:textColor="#FFFFFF"
+                    android:textSize="26sp" android:textStyle="bold"
                     android:fontFamily="sans-serif-black"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                     android:text="Otomatis split, upload &amp; watermark"
-                    android:textColor="#E0F2FE"
-                    android:textSize="13sp"
+                    android:textColor="#E0F2FE" android:textSize="13sp"
                     android:layout_marginTop="4dp"/>
-
-                <TextView
-                    android:id="@+id/tvStatus"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Siap digunakan ✓"
-                    android:textColor="#FFFFFF"
-                    android:textSize="12sp"
-                    android:layout_marginTop="12dp"
+                <TextView android:id="@+id/tvStatus"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Siap digunakan ✓" android:textColor="#FFFFFF"
+                    android:textSize="12sp" android:layout_marginTop="12dp"
                     android:background="#33FFFFFF"
-                    android:paddingStart="10dp"
-                    android:paddingEnd="10dp"
-                    android:paddingTop="4dp"
-                    android:paddingBottom="4dp"/>
+                    android:paddingStart="10dp" android:paddingEnd="10dp"
+                    android:paddingTop="4dp" android:paddingBottom="4dp"/>
             </LinearLayout>
 
-            <!-- INPUT SECTION -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Video URL"
-                android:textColor="@color/text_dim"
-                android:textSize="12sp"
-                android:layout_marginTop="20dp"
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Video URL" android:textColor="@color/text_dim"
+                android:textSize="12sp" android:layout_marginTop="20dp"
                 android:layout_marginStart="4dp"/>
+            <EditText android:id="@+id/etUrl"
+                android:layout_width="match_parent" android:layout_height="52dp"
+                android:hint="Tempel link video di sini…"
+                android:textColorHint="@color/text_dim" android:textColor="@color/text"
+                android:textSize="14sp" android:background="@drawable/card_bg"
+                android:paddingStart="16dp" android:paddingEnd="16dp"
+                android:inputType="textUri" android:layout_marginTop="6dp"/>
 
-            <EditText
-                android:id="@+id/etUrl"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:hint="@string/hint_url"
-                android:textColorHint="@color/text_dim"
-                android:textColor="@color/text"
-                android:textSize="14sp"
-                android:background="@drawable/card_bg"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:inputType="textUri"
-                android:layout_marginTop="6dp"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Durasi per Part"
-                android:textColor="@color/text_dim"
-                android:textSize="12sp"
-                android:layout_marginTop="14dp"
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Durasi per Part" android:textColor="@color/text_dim"
+                android:textSize="12sp" android:layout_marginTop="14dp"
                 android:layout_marginStart="4dp"/>
+            <EditText android:id="@+id/etDuration"
+                android:layout_width="match_parent" android:layout_height="52dp"
+                android:hint="Durasi per part (detik)"
+                android:textColorHint="@color/text_dim" android:textColor="@color/text"
+                android:textSize="14sp" android:background="@drawable/card_bg"
+                android:paddingStart="16dp" android:paddingEnd="16dp"
+                android:inputType="number" android:layout_marginTop="6dp"/>
 
-            <EditText
-                android:id="@+id/etDuration"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:hint="@string/hint_duration"
-                android:textColorHint="@color/text_dim"
-                android:textColor="@color/text"
-                android:textSize="14sp"
-                android:background="@drawable/card_bg"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:inputType="number"
-                android:layout_marginTop="6dp"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/lbl_quality"
-                android:textColor="@color/text_dim"
-                android:textSize="12sp"
-                android:layout_marginTop="14dp"
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Kualitas Video" android:textColor="@color/text_dim"
+                android:textSize="12sp" android:layout_marginTop="14dp"
                 android:layout_marginStart="4dp"/>
-
-            <Spinner
-                android:id="@+id/spQuality"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
+            <Spinner android:id="@+id/spQuality"
+                android:layout_width="match_parent" android:layout_height="52dp"
                 android:background="@drawable/card_bg"
-                android:popupBackground="@color/bg_card"
-                android:layout_marginTop="6dp"/>
+                android:popupBackground="@color/bg_card" android:layout_marginTop="6dp"/>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/lbl_watermark"
-                android:textColor="@color/text_dim"
-                android:textSize="12sp"
-                android:layout_marginTop="14dp"
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Mode Watermark" android:textColor="@color/text_dim"
+                android:textSize="12sp" android:layout_marginTop="14dp"
                 android:layout_marginStart="4dp"/>
-
-            <Spinner
-                android:id="@+id/spWatermark"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
+            <Spinner android:id="@+id/spWatermark"
+                android:layout_width="match_parent" android:layout_height="52dp"
                 android:background="@drawable/card_bg"
-                android:popupBackground="@color/bg_card"
-                android:layout_marginTop="6dp"/>
+                android:popupBackground="@color/bg_card" android:layout_marginTop="6dp"/>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/lbl_type"
-                android:textColor="@color/text_dim"
-                android:textSize="12sp"
-                android:layout_marginTop="14dp"
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Tipe Upload" android:textColor="@color/text_dim"
+                android:textSize="12sp" android:layout_marginTop="14dp"
                 android:layout_marginStart="4dp"/>
-
-            <Spinner
-                android:id="@+id/spType"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
+            <Spinner android:id="@+id/spType"
+                android:layout_width="match_parent" android:layout_height="52dp"
                 android:background="@drawable/card_bg"
-                android:popupBackground="@color/bg_card"
-                android:layout_marginTop="6dp"/>
+                android:popupBackground="@color/bg_card" android:layout_marginTop="6dp"/>
 
-            <!-- MAIN BUTTON -->
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnProcess"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
+                android:layout_width="match_parent" android:layout_height="60dp"
                 android:layout_marginTop="24dp"
-                android:text="@string/btn_process"
-                android:textColor="#FFFFFF"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:background="@drawable/btn_primary"
-                android:stateListAnimator="@null"
-                android:letterSpacing="0.05"/>
+                android:text="🎬  PROSES VIDEO"
+                android:textColor="#FFFFFF" android:textSize="16sp"
+                android:textStyle="bold" android:background="@drawable/hero_bg"
+                android:stateListAnimator="@null" android:letterSpacing="0.05"/>
 
-            <!-- MENU GRID -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="24dp"
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginTop="24dp"
                 android:baselineAligned="false">
 
-                <LinearLayout
-                    android:id="@+id/menuInstructions"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:background="@drawable/menu_icon_bg"
-                    android:padding="16dp"
-                    android:layout_marginEnd="6dp"
-                    android:clickable="true"
-                    android:focusable="true">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="📖"
-                        android:textSize="28sp"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Instruksi"
-                        android:textColor="@color/text"
-                        android:textSize="12sp"
-                        android:layout_marginTop="8dp"/>
+                <LinearLayout android:id="@+id/menuInstructions"
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical"
+                    android:gravity="center" android:background="@drawable/menu_icon_bg"
+                    android:padding="16dp" android:layout_marginEnd="6dp"
+                    android:clickable="true" android:focusable="true">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="📖" android:textSize="28sp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Instruksi" android:textColor="@color/text"
+                        android:textSize="12sp" android:layout_marginTop="8dp"/>
                 </LinearLayout>
 
-                <LinearLayout
-                    android:id="@+id/menuResults"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:background="@drawable/menu_icon_bg"
-                    android:padding="16dp"
-                    android:layout_marginStart="3dp"
+                <LinearLayout android:id="@+id/menuResults"
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical"
+                    android:gravity="center" android:background="@drawable/menu_icon_bg"
+                    android:padding="16dp" android:layout_marginStart="3dp"
                     android:layout_marginEnd="3dp"
-                    android:clickable="true"
-                    android:focusable="true">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="🎞️"
-                        android:textSize="28sp"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Hasil"
-                        android:textColor="@color/text"
-                        android:textSize="12sp"
-                        android:layout_marginTop="8dp"/>
+                    android:clickable="true" android:focusable="true">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="🎞️" android:textSize="28sp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Hasil" android:textColor="@color/text"
+                        android:textSize="12sp" android:layout_marginTop="8dp"/>
                 </LinearLayout>
 
-                <LinearLayout
-                    android:id="@+id/menuCredit"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:background="@drawable/menu_icon_bg"
-                    android:padding="16dp"
-                    android:layout_marginStart="6dp"
-                    android:clickable="true"
-                    android:focusable="true">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="©️"
-                        android:textSize="28sp"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Credit"
-                        android:textColor="@color/text"
-                        android:textSize="12sp"
-                        android:layout_marginTop="8dp"/>
+                <LinearLayout android:id="@+id/menuCredit"
+                    android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical"
+                    android:gravity="center" android:background="@drawable/menu_icon_bg"
+                    android:padding="16dp" android:layout_marginStart="6dp"
+                    android:clickable="true" android:focusable="true">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="©️" android:textSize="28sp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Credit" android:textColor="@color/text"
+                        android:textSize="12sp" android:layout_marginTop="8dp"/>
                 </LinearLayout>
             </LinearLayout>
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="v1.1  •  by Ys Dev"
-                android:textColor="@color/text_dim"
-                android:textSize="11sp"
-                android:gravity="center"
-                android:layout_marginTop="20dp"/>
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Cliper On v3.0  •  by YsDev"
+                android:textColor="@color/text_dim" android:textSize="11sp"
+                android:gravity="center" android:layout_marginTop="20dp"/>
         </LinearLayout>
     </ScrollView>
 
-    <!-- FLOATING PROGRESS OVERLAY -->
-    <LinearLayout
-        android:id="@+id/loadingOverlay"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#CC0B1220"
-        android:gravity="center"
+    <LinearLayout android:id="@+id/loadingOverlay"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:background="#CC0B1220" android:gravity="center"
         android:visibility="gone">
-
-        <LinearLayout
-            android:layout_width="280dp"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@drawable/progress_overlay_bg"
-            android:padding="28dp"
-            android:gravity="center"
-            android:elevation="20dp">
-
-            <ProgressBar
-                android:id="@+id/progressBar"
-                android:layout_width="80dp"
-                android:layout_height="80dp"
+        <LinearLayout android:layout_width="280dp" android:layout_height="wrap_content"
+            android:orientation="vertical" android:background="@drawable/progress_overlay_bg"
+            android:padding="28dp" android:gravity="center" android:elevation="20dp">
+            <ProgressBar android:id="@+id/progressBar"
+                android:layout_width="80dp" android:layout_height="80dp"
                 style="?android:attr/progressBarStyleHorizontal"
-                android:progressDrawable="@android:drawable/progress_horizontal"
-                android:progressTint="@color/accent"
-                android:progress="0"
-                android:max="100"/>
-
-            <TextView
-                android:id="@+id/tvProgress"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0%"
-                android:textColor="@color/accent"
-                android:textSize="28sp"
-                android:textStyle="bold"
-                android:layout_marginTop="16dp"/>
-
-            <TextView
-                android:id="@+id/tvProgressLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Memproses…"
-                android:textColor="@color/text"
-                android:textSize="14sp"
-                android:layout_marginTop="6dp"
-                android:gravity="center"/>
-
-            <TextView
-                android:id="@+id/tvProgressDetail"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Mohon tunggu"
-                android:textColor="@color/text_dim"
-                android:textSize="11sp"
-                android:layout_marginTop="4dp"
-                android:gravity="center"/>
+                android:progressTint="@color/accent" android:progress="0" android:max="100"/>
+            <TextView android:id="@+id/tvProgress"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="0%" android:textColor="@color/accent"
+                android:textSize="28sp" android:textStyle="bold" android:layout_marginTop="16dp"/>
+            <TextView android:id="@+id/tvProgressLabel"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Memproses…" android:textColor="@color/text"
+                android:textSize="14sp" android:layout_marginTop="6dp" android:gravity="center"/>
+            <TextView android:id="@+id/tvProgressDetail"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Mohon tunggu" android:textColor="@color/text_dim"
+                android:textSize="11sp" android:layout_marginTop="4dp" android:gravity="center"/>
         </LinearLayout>
     </LinearLayout>
 </FrameLayout>

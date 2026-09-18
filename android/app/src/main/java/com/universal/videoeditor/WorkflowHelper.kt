@@ -1,4 +1,5 @@
 package com.universal.videoeditor
+
 import android.content.Context
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -9,12 +10,12 @@ import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
 object WorkflowHelper {
+    private const val TAG = "Workflow"
     private val client = OkHttpClient.Builder()
         .connectTimeout(60, TimeUnit.SECONDS)
         .readTimeout(60, TimeUnit.SECONDS).build()
 
     private fun tk(c: Context) = SecureConfig.token(c) ?: BuildConfig.GH_TOKEN
-
     data class R(val ok: Boolean, val code: Int, val body: String)
 
     private suspend fun req(c: Context, m: String, u: String, b: String? = null): R =
@@ -23,15 +24,20 @@ object WorkflowHelper {
                 val rb = Request.Builder().url(u)
                     .header("Authorization", "token ${tk(c)}")
                     .header("Accept", "application/vnd.github+json")
-                    .header("User-Agent", "YadClipper")
+                    .header("User-Agent", "CliperOn")
                 when (m) {
                     "GET" -> rb.get()
                     "POST" -> rb.post((b ?: "{}").toRequestBody("application/json".toMediaType()))
                 }
                 client.newCall(rb.build()).execute().use {
-                    R(it.isSuccessful, it.code, it.body?.string() ?: "")
+                    val body = it.body?.string() ?: ""
+                    LogTracker.d(c, TAG, "$m $u → ${it.code}")
+                    R(it.isSuccessful, it.code, body)
                 }
-            } catch (e: Exception) { R(false, -1, e.message ?: "") }
+            } catch (e: Exception) {
+                LogTracker.e(c, TAG, "Network error: ${e.message}")
+                R(false, -1, e.message ?: "")
+            }
         }
 
     suspend fun startProcess(c: Context, inputs: Map<String, String>): R {
@@ -40,6 +46,7 @@ object WorkflowHelper {
             put("ref", "main")
             put("inputs", JSONObject(inputs as Map<*, *>))
         }.toString()
+        LogTracker.i(c, TAG, "Start workflow with inputs: $inputs")
         return req(c, "POST", url, body)
     }
 
@@ -50,7 +57,10 @@ object WorkflowHelper {
         try {
             val arr = JSONObject(r.body).getJSONArray("workflow_runs")
             if (arr.length() == 0) null else arr.getJSONObject(0)
-        } catch (e: Exception) { null }
+        } catch (e: Exception) {
+            LogTracker.e(c, TAG, "Parse run failed: ${e.message}")
+            null
+        }
     }
 
     suspend fun runArtifacts(c: Context, runId: Long): List<Triple<String, Long, String>> =
@@ -63,24 +73,26 @@ object WorkflowHelper {
                 val arr = JSONObject(r.body).getJSONArray("artifacts")
                 for (i in 0 until arr.length()) {
                     val a = arr.getJSONObject(i)
-                    out.add(Triple(
-                        a.optString("name"),
-                        a.optLong("id"),
-                        a.optString("archive_download_url")
-                    ))
+                    out.add(Triple(a.optString("name"), a.optLong("id"), a.optString("archive_download_url")))
                 }
-            } catch (_: Exception) {}
+            } catch (e: Exception) {
+                LogTracker.e(c, TAG, "Parse artifacts failed: ${e.message}")
+            }
             out
         }
 
     suspend fun downloadArtifact(c: Context, artifactId: Long): ByteArray? =
         withContext(Dispatchers.IO) {
             try {
+                LogTracker.i(c, TAG, "Download artifact $artifactId")
                 val r = Request.Builder()
                     .url("https://api.github.com/repos/${YadApp.OWNER}/${YadApp.REPO}/actions/artifacts/$artifactId/zip")
                     .header("Authorization", "token ${tk(c)}")
-                    .header("User-Agent", "YadClipper").build()
+                    .header("User-Agent", "CliperOn").build()
                 client.newCall(r).execute().use { it.body?.bytes() }
-            } catch (e: Exception) { null }
+            } catch (e: Exception) {
+                LogTracker.e(c, TAG, "Download failed: ${e.message}")
+                null
+            }
         }
 }

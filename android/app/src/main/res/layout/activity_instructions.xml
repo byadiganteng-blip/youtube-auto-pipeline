@@ -1,24 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/bg"
-    android:padding="20dp">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/bg">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+    <ScrollView android:layout_width="match_parent" android:layout_height="0dp"
+        android:layout_weight="1" android:padding="20dp">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="📖  Instruksi"
-            android:textColor="@color/text"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:paddingBottom="20dp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="📖  Instruksi"
+                android:textColor="@color/text" android:textSize="24sp"
+                android:textStyle="bold" android:paddingBottom="6dp"/>
 
-        <include layout="@layout/item_instruction" android:id="@+id/step1"/>
-    </LinearLayout>
-</ScrollView>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Ikuti langkah berikut untuk hasil terbaik"
+                android:textColor="@color/text_dim" android:textSize="13sp"
+                android:paddingBottom="20dp"/>
+
+            <LinearLayout android:id="@+id/stepsContainer"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical"/>
+
+            <!-- LOG SECTION -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:layout_marginTop="24dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="📋  Log Aplikasi"
+                    android:textColor="@color/text" android:textSize="18sp"
+                    android:textStyle="bold"/>
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Log tersimpan otomatis di:\n/Android/data/com.universal.videoeditor/files/logs/"
+                    android:textColor="@color/text_dim" android:textSize="11sp"
+                    android:layout_marginTop="6dp"/>
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:layout_marginTop="12dp"
+                    android:baselineAligned="false">
+
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/btnRefreshLog"
+                        android:layout_width="0dp" android:layout_height="44dp"
+                        android:layout_weight="1" android:text="🔄 Refresh"
+                        android:textColor="@color/text" android:textSize="13sp"
+                        android:background="@drawable/menu_icon_bg"
+                        android:layout_marginEnd="6dp"
+                        android:stateListAnimator="@null"/>
+
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/btnClearLog"
+                        android:layout_width="0dp" android:layout_height="44dp"
+                        android:layout_weight="1" android:text="🗑️ Clear"
+                        android:textColor="#FFFFFF" android:textSize="13sp"
+                        android:background="@drawable/btn_danger"
+                        android:stateListAnimator="@null"/>
+                </LinearLayout>
+
+                <TextView android:id="@+id/tvLogPath"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="" android:textColor="@color/accent"
+                    android:textSize="10sp" android:fontFamily="monospace"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/log_bg"
+                    android:padding="8dp"/>
+
+                <ScrollView android:layout_width="match_parent" android:layout_height="200dp"
+                    android:layout_marginTop="8dp" android:background="@drawable/log_bg"
+                    android:padding="12dp">
+                    <TextView android:id="@+id/tvLogContent"
+                        android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:text="(log kosong)"
+                        android:textColor="#CBD5E1" android:textSize="10sp"
+                        android:fontFamily="monospace" android:lineSpacingExtra="2dp"/>
+                </ScrollView>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

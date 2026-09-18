@@ -3,7 +3,7 @@ import android.content.Context
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 object SecureConfig {
-    private const val FILE = "yad_secure"
+    private const val FILE = "cliper_on_secure"
     private fun p(c: Context) = EncryptedSharedPreferences.create(c, FILE,
         MasterKey.Builder(c).setKeyScheme(MasterKey.KeyScheme.AES256_GCM).build(),
         EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,

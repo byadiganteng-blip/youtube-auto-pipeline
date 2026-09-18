@@ -6,5 +6,6 @@ class CreditActivity : AppCompatActivity() {
     override fun onCreate(s: Bundle?) {
         super.onCreate(s)
         setContentView(R.layout.activity_credit)
+        LogTracker.i(this, "Credit", "onCreate — Credits to YsDev")
     }
 }

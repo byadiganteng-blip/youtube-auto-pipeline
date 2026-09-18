@@ -1,59 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/bg">
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="16dp"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/bg">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:padding="16dp"
         android:gravity="center_vertical">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="🎞️  Hasil Video"
-            android:textColor="@color/text"
-            android:textSize="20sp"
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:text="🎞️  Hasil Video"
+            android:textColor="@color/text" android:textSize="20sp"
             android:textStyle="bold"/>
-
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/btnRefresh"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:text="🔄"
-            android:background="@drawable/btn_secondary"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"/>
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnRefresh"
+            android:layout_width="wrap_content" android:layout_height="40dp"
+            android:text="🔄" android:background="@drawable/menu_icon_bg"
+            android:textColor="@color/text"
+            android:paddingStart="12dp" android:paddingEnd="12dp"
+            android:stateListAnimator="@null"/>
     </LinearLayout>
-
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:padding="16dp">
-
-        <LinearLayout
-            android:id="@+id/listContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+    <ScrollView android:layout_width="match_parent" android:layout_height="0dp"
+        android:layout_weight="1" android:padding="16dp">
+        <LinearLayout android:id="@+id/listContainer"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/tvEmpty"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Belum ada hasil video.
-
-Video yang selesai diproses akan muncul di sini."
-                android:textColor="@color/text_dim"
-                android:textSize="14sp"
-                android:gravity="center"
-                android:paddingTop="60dp"/>
+            <TextView android:id="@+id/tvEmpty"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Belum ada hasil video.\n\nVideo yang selesai diproses akan muncul di sini."
+                android:textColor="@color/text_dim" android:textSize="14sp"
+                android:gravity="center" android:paddingTop="60dp"/>
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

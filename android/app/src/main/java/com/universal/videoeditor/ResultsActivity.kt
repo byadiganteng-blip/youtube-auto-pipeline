@@ -1,6 +1,5 @@
 package com.universal.videoeditor
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.view.View
@@ -16,6 +15,7 @@ class ResultsActivity : AppCompatActivity() {
     override fun onCreate(s: Bundle?) {
         super.onCreate(s)
         setContentView(R.layout.activity_results)
+        LogTracker.i(this, "Results", "onCreate")
         val container = findViewById<LinearLayout>(R.id.listContainer)
         val tvEmpty = findViewById<TextView>(R.id.tvEmpty)
         findViewById<AppCompatButton>(R.id.btnRefresh).setOnClickListener {
@@ -31,9 +31,11 @@ class ResultsActivity : AppCompatActivity() {
         val files = dir.listFiles { f -> f.isFile && (f.name.endsWith(".mp4") || f.name.endsWith(".mkv") || f.name.endsWith(".webm") || f.name.endsWith(".mov")) } ?: emptyArray()
         if (files.isEmpty()) {
             tvEmpty.visibility = View.VISIBLE
+            LogTracker.d(this, "Results", "No videos in ${dir.absolutePath}")
             return
         }
         tvEmpty.visibility = View.GONE
+        LogTracker.i(this, "Results", "Found ${files.size} videos")
         files.sortedByDescending { it.lastModified() }.forEach { f ->
             val card = layoutInflater.inflate(R.layout.item_video, container, false)
             card.findViewById<TextView>(R.id.tvName).text = f.name
@@ -42,14 +44,15 @@ class ResultsActivity : AppCompatActivity() {
                 android.text.format.DateFormat.format("dd MMM yyyy, HH:mm", f.lastModified()))
             card.setOnClickListener {
                 try {
-                    val uri = FileProvider.getUriForFile(this,
-                        "$packageName.fileprovider", f)
+                    val uri = FileProvider.getUriForFile(this, "$packageName.fileprovider", f)
                     val intent = Intent(Intent.ACTION_VIEW).apply {
                         setDataAndType(uri, "video/*")
                         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                     }
+                    LogTracker.i(this, "Results", "Open video: ${f.name}")
                     startActivity(Intent.createChooser(intent, "Buka dengan"))
                 } catch (e: Exception) {
+                    LogTracker.e(this, "Results", "Open failed: ${e.message}")
                     Toast.makeText(this, "⚠️ ${e.message}", Toast.LENGTH_SHORT).show()
                 }
             }
