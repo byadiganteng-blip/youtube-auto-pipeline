@@ -90,31 +90,38 @@ object ProcessRunner {
                 }
             } catch (_: Exception) {}
             val sorted = all.sortedWith(compareBy { art ->
-                partNumberFromName(art.name).takeIf { it > 0 } ?: 999
+                val n = partNumberFromName(art.name)
+                if (n > 0) n else 999
             })
-            LogTracker.i(c, TAG, "Artifacts: ${sorted.map { it.name + " (" + it.sizeBytes/1024 + "KB)" }}")
+            LogTracker.i(c, TAG, "Artifacts: ${sorted.map { it.name }}")
             sorted.filter { it.sizeBytes > 50_000 }
         }
 
     /**
-     * Deteksi part number dari nama artifact (part-01, part-02, dll).
-     * Return 0 kalau bukan part (bundle, dll).
+     * Deteksi part number dari nama artifact.
+     * Pakai substring murni (TANPA regex) supaya tidak ada masalah escape.
+     * "part-01" -> 1, "part-02" -> 2, "parts-bundle" -> 0
      */
     fun partNumberFromName(name: String): Int {
-        val m = Regex("part-(\\d+)").find(name)
-        return m?.groupValues?.get(1)?.toIntOrNull() ?: 0
+        val prefix = "part-"
+        val idx = name.indexOf(prefix)
+        if (idx < 0) return 0
+        val start = idx + prefix.length
+        if (start + 2 > name.length) return 0
+        val digits = name.substring(start, start + 2)
+        for (ch in digits) {
+            if (ch < '0' || ch > '9') return 0
+        }
+        return digits.toIntOrNull() ?: 0
     }
 
-    /**
-     * DELETE artifact dari GitHub setelah berhasil di-download.
-     */
     suspend fun deleteArtifact(c: Context, artifactId: Long): Boolean =
         withContext(Dispatchers.IO) {
             LogTracker.i(c, TAG, "Auto-delete artifact $artifactId")
             val r = req(c, "DELETE",
                 "https://api.github.com/repos/${YadApp.OWNER}/${YadApp.REPO}/actions/artifacts/$artifactId")
             if (r.ok || r.code == 204) {
-                LogTracker.i(c, TAG, "✅ Artifact $artifactId deleted")
+                LogTracker.i(c, TAG, "Artifact $artifactId deleted")
                 true
             } else {
                 LogTracker.w(c, TAG, "Delete failed: HTTP ${r.code}")
@@ -122,9 +129,6 @@ object ProcessRunner {
             }
         }
 
-    /**
-     * Cleanup semua artifacts dari run tertentu.
-     */
     suspend fun cleanupRunArtifacts(c: Context, runId: Long): Int =
         withContext(Dispatchers.IO) {
             val arts = runArtifacts(c, runId)
@@ -136,34 +140,86 @@ object ProcessRunner {
             deleted
         }
 
+    /**
+     * Probe durasi video — pakai substring parsing (TANPA regex).
+     * Cari: "lengthSeconds":"12345"
+     */
     suspend fun probeVideoDuration(c: Context, videoUrl: String): Int? =
         withContext(Dispatchers.IO) {
             try {
-                if (videoUrl.contains("youtube.com") || videoUrl.contains("youtu.be")) {
-                    val htmlReq = Request.Builder()
-                        .url(videoUrl)
-                        .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
-                        .build()
-                    probeClient.newCall(htmlReq).execute().use { resp ->
-                        val html = resp.body?.string() ?: ""
-                        Regex("lengthSeconds" + "\\"" + ":" + "\\"" + "([0-9]+)").find(html)?.let {
-                            val s = it.groupValues[1].toIntOrNull()
-                            if (s != null && s > 0) return@withContext s
+                if (!videoUrl.contains("youtube.com") && !videoUrl.contains("youtu.be")) {
+                    return@withContext null
+                }
+                val htmlReq = Request.Builder()
+                    .url(videoUrl)
+                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+                    .build()
+                probeClient.newCall(htmlReq).execute().use { resp ->
+                    val html = resp.body?.string() ?: ""
+
+                    // Cari "lengthSeconds"
+                    val idx = html.indexOf("lengthSeconds")
+                    if (idx >= 0) {
+                        // Cari angka pertama setelah idx + 13 (panjang "lengthSeconds")
+                        var i = idx + "lengthSeconds".length
+                        var start = -1
+                        while (i < html.length && i < idx + 50) {
+                            val c = html[i]
+                            if (c in '0'..'9') { start = i; break }
+                            if (c == '}') break
+                            i++
                         }
-                        Regex("approxDurationMs" + "\\"" + ":" + "\\"" + "([0-9]+)").find(html)?.let {
-                            val ms = it.groupValues[1].toIntOrNull()
+                        if (start >= 0) {
+                            var end = start
+                            while (end < html.length && html[end] in '0'..'9') end++
+                            val num = html.substring(start, end).toIntOrNull()
+                            if (num != null && num > 0) return@withContext num
+                        }
+                    }
+
+                    // Cari "approxDurationMs"
+                    val idx2 = html.indexOf("approxDurationMs")
+                    if (idx2 >= 0) {
+                        var i = idx2 + "approxDurationMs".length
+                        var start = -1
+                        while (i < html.length && i < idx2 + 50) {
+                            val c = html[i]
+                            if (c in '0'..'9') { start = i; break }
+                            if (c == '}') break
+                            i++
+                        }
+                        if (start >= 0) {
+                            var end = start
+                            while (end < html.length && html[end] in '0'..'9') end++
+                            val ms = html.substring(start, end).toIntOrNull()
                             if (ms != null && ms > 0) return@withContext ms / 1000
                         }
-                        Regex("PT([0-9]+)M([0-9]+)S").find(html)?.let {
-                            val min = it.groupValues[1].toIntOrNull() ?: 0
-                            val sec = it.groupValues[2].toIntOrNull() ?: 0
-                            val total = min * 60 + sec
-                            if (total > 0) return@withContext total
+                    }
+
+                    // Cari PT..M..S (ISO 8601)
+                    val ptIdx = html.indexOf("PT")
+                    if (ptIdx >= 0 && ptIdx < html.length - 5) {
+                        var i = ptIdx + 2
+                        var minutes = 0
+                        var seconds = 0
+                        var numStart = i
+                        while (i < html.length && html[i] in '0'..'9') i++
+                        if (i > numStart) minutes = html.substring(numStart, i).toIntOrNull() ?: 0
+                        if (i < html.length && html[i] == 'M') {
+                            i++
+                            numStart = i
+                            while (i < html.length && html[i] in '0'..'9') i++
+                            if (i > numStart) seconds = html.substring(numStart, i).toIntOrNull() ?: 0
                         }
+                        val total = minutes * 60 + seconds
+                        if (total > 0 && total < 24 * 3600) return@withContext total
                     }
                 }
                 null
-            } catch (e: Exception) { null }
+            } catch (e: Exception) {
+                LogTracker.e(c, TAG, "Probe failed: ${e.message}")
+                null
+            }
         }
 
     suspend fun latestRun(c: Context): JSONObject? = withContext(Dispatchers.IO) {

@@ -108,12 +108,6 @@ class MainActivity : AppCompatActivity() {
         requestPermissionsIfNeeded()
         requestNotificationPermission()
 
-        // Cleanup history lama
-        try {
-            val cleaned = HistoryManager.cleanupOld(this)
-            if (cleaned > 0) LogTracker.i(this, "Main", "Cleaned $cleaned old history")
-        } catch (_: Exception) {}
-
         // Menu handlers
         findViewById<View>(R.id.menuInstructions).setOnClickListener {
             startActivity(Intent(this, InstructionsActivity::class.java))
@@ -547,7 +541,7 @@ class MainActivity : AppCompatActivity() {
             try { ProcessRunner.cleanupRunArtifacts(this, runId) } catch (_: Exception) {}
 
             // Mark history selesai
-            try { HistoryManager.markCompleted(this, url, extracted) } catch (_: Exception) {}
+            try { HistoryManager.markCompleted(this@MainActivity, url, extracted) } catch (_: Exception) {}
 
             updateProgress(100, "Selesai! 🎉", "$extracted file • ${extractedMb/1024/1024} MB")
             sendDoneNotif(true, "$extracted video siap di Downloads/CliperOn")
