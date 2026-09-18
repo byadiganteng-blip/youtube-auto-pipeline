@@ -8,65 +8,96 @@ on:
         required: true
         type: string
       process_mode:
-        description: "Mode"
+        description: "Mode Watermark"
         required: true
         default: "remove_watermark"
         type: choice
-        options: [remove_watermark, skip_watermark]
+        options:
+          - remove_watermark
+          - skip_watermark
+      method:
+        description: "Metode Watermark"
+        required: true
+        default: "blur"
+        type: choice
+        options:
+          - blur
+          - inpaint
       video_size:
         description: "Ukuran Video"
         required: true
         default: "original"
         type: choice
-        options: [original, yt_shorts, tiktok, ig_reels, fb_reels, whatsapp_status,
-                  ig_feed_square, ig_feed_portrait, yt_landscape, yt_4k, fb_video, twitter]
+        options:
+          - original
+          - yt_shorts
+          - tiktok
+          - ig_reels
+          - fb_reels
+          - whatsapp_status
+          - ig_feed_square
+          - ig_feed_portrait
+          - yt_landscape
+          - yt_4k
+          - fb_video
+          - twitter
       video_quality:
         description: "Kualitas Video"
         required: true
         default: "original"
         type: choice
-        options: [original, 144p, 240p, 360p, 480p, 720p, 1080p, 1440p, 2160p]
-      method:
-        description: "Metode Watermark"
-        required: false
-        default: "blur"
-        type: choice
-        options: [blur, inpaint]
+        options:
+          - original
+          - 144p
+          - 240p
+          - 360p
+          - 480p
+          - 720p
+          - 1080p
+          - 1440p
+          - 2160p
       part_duration:
         description: "Durasi per Part (detik)"
         required: true
         default: "300"
         type: string
-      samples:
-        description: "Sample frame"
-        required: false
-        default: "30"
-        type: string
-      privacy:
-        description: "Privacy"
-        required: true
-        default: "public"
-        type: choice
-        options: [public, unlisted, private]
-      auto_upload:
-        description: "Auto Upload?"
-        required: true
-        default: "false"
-        type: choice
-        options: ["true", "false"]
       upload_type:
         description: "Tipe Upload"
         required: true
         default: "video"
         type: choice
-        options: [video, reels]
+        options:
+          - video
+          - reels
+      privacy:
+        description: "Privacy (untuk auto upload)"
+        required: false
+        default: "public"
+        type: choice
+        options:
+          - public
+          - unlisted
+          - private
+      auto_upload:
+        description: "Auto Upload ke YouTube?"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+      samples:
+        description: "Sample frame"
+        required: false
+        default: "30"
+        type: string
       upload_delay:
-        description: "Delay upload"
+        description: "Delay upload (detik)"
         required: false
         default: "60"
         type: string
       start_part:
-        description: "Mulai part"
+        description: "Mulai dari part"
         required: false
         default: "1"
         type: string
@@ -80,6 +111,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -151,7 +183,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: pipeline-result-${{ github.run_number }}
+          name: cliper-on-result-${{ github.run_number }}
           path: output/*.mp4
           retention-days: 30
 

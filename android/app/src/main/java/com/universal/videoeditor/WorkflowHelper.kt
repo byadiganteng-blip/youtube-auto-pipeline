@@ -31,7 +31,7 @@ object WorkflowHelper {
                 }
                 client.newCall(rb.build()).execute().use {
                     val body = it.body?.string() ?: ""
-                    LogTracker.d(c, TAG, "$m → ${it.code}")
+                    LogTracker.d(c, TAG, "$m ${u.takeLast(60)} → ${it.code}")
                     if (!it.isSuccessful) LogTracker.e(c, TAG, "Body: ${body.take(500)}")
                     R(it.isSuccessful, it.code, body)
                 }
@@ -41,21 +41,28 @@ object WorkflowHelper {
             }
         }
 
+    /**
+     * Dispatch workflow pipeline.yml.
+     * Hanya kirim 7 input WAJIB. Sisanya pakai default dari YAML.
+     */
     suspend fun startProcess(c: Context, inputs: Map<String, String>): R {
         val url = "https://api.github.com/repos/${YadApp.OWNER}/${YadApp.REPO}/actions/workflows/${YadApp.WORKFLOW}/dispatches"
-        // Map input app → input workflow
+
         val mapped = mapOf(
-                    "video_url" to (inputs["video_url"] ?: ""),
-                    "part_duration" to (inputs["part_duration"] ?: ""),
-                    "quality" to (inputs["quality"] ?: ""),
-                    "watermark_mode" to (inputs["watermark_mode"] ?: ""),
-                    "type" to (inputs["upload_type"] ?: "")
+            "video_url"     to (inputs["video_url"] ?: ""),
+            "process_mode"  to (inputs["process_mode"] ?: "remove_watermark"),
+            "method"        to (inputs["method"] ?: "blur"),
+            "video_size"    to (inputs["video_size"] ?: "original"),
+            "video_quality" to (inputs["video_quality"] ?: "original"),
+            "part_duration" to (inputs["part_duration"] ?: "300"),
+            "upload_type"   to (inputs["upload_type"] ?: "video")
         )
+
         val body = JSONObject().apply {
             put("ref", "main")
             put("inputs", JSONObject(mapped as Map<*, *>))
         }.toString()
-        LogTracker.i(c, TAG, "Dispatch with: $mapped")
+        LogTracker.i(c, TAG, "Dispatch with ${mapped.size} inputs")
         return req(c, "POST", url, body)
     }
 

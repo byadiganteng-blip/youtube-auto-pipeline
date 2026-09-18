@@ -9,8 +9,8 @@ android {
         applicationId "com.universal.videoeditor"
         minSdk 24
         targetSdk 34
-        versionCode 3
-        versionName "3.0"
+        versionCode 4
+        versionName "3.2"
         def ghToken = project.findProperty("GH_TOKEN") ?: System.getenv("GH_TOKEN") ?: ""
         def ghUser  = project.findProperty("GH_USER")  ?: System.getenv("GH_USER")  ?: ""
         buildConfigField "String", "GH_TOKEN", "\"${ghToken}\""
