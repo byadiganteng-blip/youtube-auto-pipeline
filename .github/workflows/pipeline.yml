@@ -12,17 +12,13 @@ on:
         required: true
         default: "remove_watermark"
         type: choice
-        options:
-          - remove_watermark
-          - skip_watermark
+        options: [remove_watermark, skip_watermark]
       method:
         description: "Metode Watermark"
         required: true
         default: "blur"
         type: choice
-        options:
-          - blur
-          - inpaint
+        options: [blur, inpaint]
       video_size:
         description: "Ukuran Video"
         required: true
@@ -46,16 +42,7 @@ on:
         required: true
         default: "original"
         type: choice
-        options:
-          - original
-          - 144p
-          - 240p
-          - 360p
-          - 480p
-          - 720p
-          - 1080p
-          - 1440p
-          - 2160p
+        options: [original, 144p, 240p, 360p, 480p, 720p, 1080p, 1440p, 2160p]
       part_duration:
         description: "Durasi per Part (detik)"
         required: true
@@ -66,9 +53,24 @@ on:
         required: true
         default: "video"
         type: choice
-        options:
-          - video
-          - reels
+        options: [video, reels]
+      privacy:
+        description: "Privacy"
+        required: false
+        default: "public"
+        type: choice
+        options: [public, unlisted, private]
+      auto_upload:
+        description: "Auto Upload YouTube?"
+        required: false
+        default: "false"
+        type: choice
+        options: ["false", "true"]
+      start_part:
+        description: "Mulai dari part (untuk resume)"
+        required: false
+        default: "1"
+        type: string
 
 jobs:
   pipeline:
@@ -100,10 +102,9 @@ jobs:
             --url "${{ github.event.inputs.video_url }}" \
             --output "input/video.mp4"
           ls -lah input/
-          echo "=== VIDEO INFO ==="
           ffprobe -v error -show_entries format=duration,size -show_entries stream=codec_name,width,height -of default=noprint_wrappers=1 input/video.mp4 || true
 
-      - name: Process Video (Watermark Removal)
+      - name: Process Video (Watermark + Split per Part)
         run: |
           python watermark_remover.py \
             --input "input/video.mp4" \
@@ -113,19 +114,16 @@ jobs:
             --samples "30" \
             --process-mode "${{ github.event.inputs.process_mode }}" \
             --video-size "${{ github.event.inputs.video_size }}" \
-            --video-quality "${{ github.event.inputs.video_quality }}"
+            --video-quality "${{ github.event.inputs.video_quality }}" \
+            --start-part "${{ github.event.inputs.start_part }}"
           ls -lah raw_output/
 
-      - name: FIX VIDEO CODEC (Re-encode to H.264 yuv420p)
+      - name: FIX VIDEO CODEC (H.264 yuv420p)
         run: |
-          echo "=== Re-encoding all videos to H.264 yuv420p (Android compatible) ==="
           for video in raw_output/*.mp4; do
             if [ -f "$video" ]; then
               name=$(basename "$video")
               echo ">>> Processing $name"
-              # Cek codec asli
-              ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,pix_fmt -of default=noprint_wrappers=1 "$video" || true
-              # Re-encode ke H.264 + yuv420p + faststart
               ffmpeg -y -i "$video" \
                 -c:v libx264 -preset fast -crf 23 \
                 -pix_fmt yuv420p \
@@ -133,38 +131,100 @@ jobs:
                 -movflags +faststart \
                 -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" \
                 "output/$name"
-              echo "✅ $name done"
             fi
           done
           ls -lah output/
-          echo "=== VERIFY OUTPUT ==="
-          for video in output/*.mp4; do
-            echo ">>> $video"
-            ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,pix_fmt,width,height -of default=noprint_wrappers=1 "$video" || true
-          done
 
-      - name: Generate Metadata
-        run: |
-          for video in output/*.mp4; do
-            if [ -f "$video" ]; then
-              python auto_hashtag.py "$video" "${{ github.event.inputs.upload_type }}" || true
-            fi
-          done
-
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
+      - name: Upload PART 1 (fast artifact)
         if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: cliper-on-result-${{ github.run_number }}
-          path: output/*.mp4
-          retention-days: 30
+          name: part-01
+          path: output/video_part001*.mp4
+          if-no-files-found: ignore
+          retention-days: 14
 
-      - name: Create Release
-        if: success()
+      - name: Upload PART 2
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: part-02
+          path: output/video_part002*.mp4
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload PART 3
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: part-03
+          path: output/video_part003*.mp4
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload PART 4
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: part-04
+          path: output/video_part004*.mp4
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload PART 5
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: part-05
+          path: output/video_part005*.mp4
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload PART 6-10 (bundled)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: parts-bundle
+          path: |
+            output/video_part006*.mp4
+            output/video_part007*.mp4
+            output/video_part008*.mp4
+            output/video_part009*.mp4
+            output/video_part01*.mp4
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Create Release (untuk direct download link)
+        if: always()
         uses: softprops/action-gh-release@v2
         with:
           files: output/*.mp4
-          tag_name: parts-v${{ github.run_number }}
-          name: "Parts v${{ github.run_number }}"
+          tag_name: pipeline-${{ github.run_number }}
+          name: "Pipeline #${{ github.run_number }}"
+          body: |
+            Hasil proses video dari run #${{ github.run_number }}
+            - Part duration: ${{ github.event.inputs.part_duration }}s
+            - Quality: ${{ github.event.inputs.video_quality }}
+            - Size: ${{ github.event.inputs.video_size }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload YouTube (optional)
+        if: github.event.inputs.auto_upload == 'true'
+        env:
+          YOUTUBE_TOKEN: ${{ secrets.YOUTUBE_TOKEN }}
+          PRIVACY: ${{ github.event.inputs.privacy }}
+          UPLOAD_TYPE: ${{ github.event.inputs.upload_type }}
+          START_PART: ${{ github.event.inputs.start_part }}
+        run: |
+          if [ -z "$YOUTUBE_TOKEN" ]; then
+            echo "⚠️  YOUTUBE_TOKEN tidak ada, skip auto upload"
+            exit 0
+          fi
+          echo "$YOUTUBE_TOKEN" | base64 -d > token.pickle
+          python upload_per_part.py \
+            --input-dir "output" \
+            --privacy "$PRIVACY" \
+            --delay "30" \
+            --start-part "$START_PART" \
+            --upload-type "$UPLOAD_TYPE" || echo "Upload failed, continuing"
