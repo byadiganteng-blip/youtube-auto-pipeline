@@ -1,1 +1,4 @@
-<resources><string name="app_name">YouTube Auto Pipeline</string></resources>
+<resources>
+    <string name="app_name">YouTube Auto Pipeline</string>
+    <string name="app_short_name">YadPipeline</string>
+</resources>
