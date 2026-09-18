@@ -3,9 +3,11 @@ package com.universal.videoeditor
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.provider.Settings
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
@@ -22,15 +24,10 @@ import java.util.zip.ZipInputStream
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var loadingOverlay: View
-    private lateinit var tvProgress: TextView
-    private lateinit var tvProgressLabel: TextView
-    private lateinit var tvProgressDetail: TextView
     private lateinit var tvStatus: TextView
     private lateinit var tvDurationValue: TextView
     private lateinit var tvDurationHint: TextView
     private lateinit var sbDuration: SeekBar
-
     private var videoDurationSec: Int = 0
 
     override fun onCreate(s: Bundle?) {
@@ -38,10 +35,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         LogTracker.i(this, "Main", "onCreate")
 
-        loadingOverlay = findViewById(R.id.loadingOverlay)
-        tvProgress = findViewById(R.id.tvProgress)
-        tvProgressLabel = findViewById(R.id.tvProgressLabel)
-        tvProgressDetail = findViewById(R.id.tvProgressDetail)
         tvStatus = findViewById(R.id.tvStatus)
         tvDurationValue = findViewById(R.id.tvDurationValue)
         tvDurationHint = findViewById(R.id.tvDurationHint)
@@ -65,16 +58,14 @@ class MainActivity : AppCompatActivity() {
         spQuality.adapter = mk(listOf("original", "144p", "240p", "360p", "480p",
             "720p", "1080p", "1440p", "2160p"))
         spType.adapter = mk(listOf("video", "reels"))
-
-        spProcessMode.setSelection(0)
+        spProcessMode.setSelection(1)
         spMethod.setSelection(0)
-        spVideoSize.setSelection(0)
+        spVideoSize.setSelection(1)
         spQuality.setSelection(0)
         spType.setSelection(0)
 
-        // ═══ Duration slider ═══
-        sbDuration.max = 600  // 10 menit max
-        sbDuration.progress = 60  // default 60s
+        sbDuration.max = 600
+        sbDuration.progress = 60
         updateDurationLabel(60)
 
         sbDuration.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -86,28 +77,22 @@ class MainActivity : AppCompatActivity() {
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
 
-        // Auto-detect duration saat URL berubah
         etUrl.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
                 val url = etUrl.text.toString().trim()
-                if (url.isNotEmpty() && url.startsWith("http")) {
-                    detectDuration(url)
-                }
+                if (url.isNotEmpty() && url.startsWith("http")) detectDuration(url)
             }
         }
 
         requestPermissionsIfNeeded()
 
         findViewById<View>(R.id.menuInstructions).setOnClickListener {
-            LogTracker.i(this, "Nav", "Buka Instruksi")
             startActivity(Intent(this, InstructionsActivity::class.java))
         }
         findViewById<View>(R.id.menuResults).setOnClickListener {
-            LogTracker.i(this, "Nav", "Buka Hasil")
             startActivity(Intent(this, ResultsActivity::class.java))
         }
         findViewById<View>(R.id.menuCredit).setOnClickListener {
-            LogTracker.i(this, "Nav", "Buka Credit")
             startActivity(Intent(this, CreditActivity::class.java))
         }
 
@@ -117,18 +102,39 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Tempel link video dulu ya 🙏", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            val dur = sbDuration.progress.coerceAtLeast(10).toString()
+            // Cek izin overlay
+            if (!canDrawOverlay()) {
+                askOverlayPermission()
+                return@setOnClickListener
+            }
             val inputs = mapOf(
                 "video_url" to url,
                 "process_mode" to spProcessMode.selectedItem.toString(),
                 "method" to spMethod.selectedItem.toString(),
                 "video_size" to spVideoSize.selectedItem.toString(),
                 "video_quality" to spQuality.selectedItem.toString(),
-                "part_duration" to dur,
+                "part_duration" to sbDuration.progress.coerceAtLeast(10).toString(),
                 "upload_type" to spType.selectedItem.toString()
             )
             processVideo(inputs)
         }
+    }
+
+    private fun canDrawOverlay(): Boolean =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+            Settings.canDrawOverlays(this)
+        else true
+
+    private fun askOverlayPermission() {
+        AlertDialog.Builder(this)
+            .setTitle("Izin Floating Window")
+            .setMessage("Aktifkan izin 'Tampil di atas aplikasi lain' supaya progres bisa dilihat saat Anda buka app lain.")
+            .setPositiveButton("Buka Pengaturan") { _, _ ->
+                val i = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:$packageName"))
+                startActivity(i)
+            }
+            .setNegativeButton("Batal", null).show()
     }
 
     private fun updateDurationLabel(sec: Int) {
@@ -138,39 +144,23 @@ class MainActivity : AppCompatActivity() {
             else -> "${sec / 60}m ${sec % 60}s"
         }
         tvDurationValue.text = label
-        // Update hint dengan jumlah part yang dihasilkan
         if (videoDurationSec > 0) {
             val parts = (videoDurationSec + sec - 1) / sec
             tvDurationHint.text = "Video ${videoDurationSec}s → ~${parts} part"
         }
     }
 
-    /**
-     * Auto-detect durasi video dari URL.
-     * Pakai yt-dlp untuk download metadata (atau fallback ke HEAD request).
-     */
     private fun detectDuration(url: String) {
         tvDurationHint.text = "Mendeteksi durasi…"
-        LogTracker.i(this, "Detect", "Detecting duration for $url")
-
         lifecycleScope.launch {
-            try {
-                // Coba pakai API GitHub untuk yt-dlp metadata via workflow
-                // Fallback: kirim ke server dan cek via HEAD
-                val r = ProcessRunner.probeVideoDuration(this@MainActivity, url)
-                if (r != null && r > 0) {
-                    videoDurationSec = r
-                    LogTracker.i(this@MainActivity, "Detect", "Duration: ${r}s")
-                    tvDurationHint.text = "Video: ${r}s (${r/60}m ${r%60}s)"
-                    // Auto-set slider ke ~1/10 durasi atau 60s minimal
-                    val suggest = (r / 10).coerceIn(10, 300)
-                    sbDuration.progress = suggest
-                    updateDurationLabel(suggest)
-                } else {
-                    tvDurationHint.text = "Video: tidak diketahui"
-                }
-            } catch (e: Exception) {
-                LogTracker.e(this@MainActivity, "Detect", "Failed: ${e.message}")
+            val r = ProcessRunner.probeVideoDuration(this@MainActivity, url)
+            if (r != null && r > 0) {
+                videoDurationSec = r
+                tvDurationHint.text = "Video: ${r}s (${r/60}m ${r%60}s)"
+                val suggest = (r / 10).coerceIn(10, 300)
+                sbDuration.progress = suggest
+                updateDurationLabel(suggest)
+            } else {
                 tvDurationHint.text = "Video: tidak diketahui"
             }
         }
@@ -191,13 +181,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showProgress(pct: Int, label: String, detail: String = "") {
-        loadingOverlay.visibility = View.VISIBLE
-        tvProgress.text = "$pct%"
-        tvProgressLabel.text = label
-        tvProgressDetail.text = detail
+        FloatingProgressService.show(this, pct, label, detail)
+        tvStatus.text = "$pct% • $label"
     }
 
-    private fun hideProgress() { loadingOverlay.visibility = View.GONE }
+    private fun updateProgress(pct: Int, label: String, detail: String = "") {
+        FloatingProgressService.update(this, pct, label, detail)
+        tvStatus.text = "$pct% • $label"
+    }
+
+    private fun hideProgress() {
+        FloatingProgressService.hide(this)
+    }
 
     private fun processVideo(inputs: Map<String, String>) {
         LogTracker.i(this, "Main", "Process: $inputs")
@@ -206,33 +201,29 @@ class MainActivity : AppCompatActivity() {
             val r = ProcessRunner.startProcess(this@MainActivity, inputs)
             if (!r.ok) {
                 hideProgress()
-                LogTracker.e(this@MainActivity, "Main", "Trigger failed: ${r.code}")
                 AlertDialog.Builder(this@MainActivity)
                     .setTitle("❌ Gagal Memulai")
-                    .setMessage("Kode: ${r.code}\n\n${r.body.take(300)}\n\nCek log di menu Instruksi.")
+                    .setMessage("Kode: ${r.code}\n\n${r.body.take(300)}")
                     .setPositiveButton("OK", null).show()
                 return@launch
             }
-            showProgress(15, "Video dikirim", "Menunggu proses")
-            tvStatus.text = "Sedang memproses…"
+            updateProgress(15, "Video dikirim", "Menunggu proses")
 
             for (i in 0 until 240) {
                 delay(5000)
                 val pct = minOf(15 + i * 2, 70)
-                showProgress(pct, "Memproses video…", "Langkah ${i+1} / 240")
+                updateProgress(pct, "Memproses video…", "Langkah ${i+1} / 240")
                 val run = ProcessRunner.latestRun(this@MainActivity) ?: continue
                 if (run.optString("status") == "completed") {
                     val conclusion = run.optString("conclusion")
-                    LogTracker.i(this@MainActivity, "Main", "Run completed: $conclusion")
                     if (conclusion == "success") {
-                        showProgress(80, "Mengambil hasil…", "Menunggu artifact")
+                        updateProgress(80, "Mengambil hasil…", "Menunggu artifact")
                         downloadResult(run.optLong("id", -1L))
                     } else {
                         hideProgress()
-                        tvStatus.text = "Gagal ❌"
                         AlertDialog.Builder(this@MainActivity)
                             .setTitle("Proses Gagal")
-                            .setMessage("Video tidak dapat diproses. Cek log di menu Instruksi.")
+                            .setMessage("Cek log di menu Instruksi.")
                             .setPositiveButton("OK", null).show()
                     }
                     return@launch
@@ -251,15 +242,15 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, "✅ Selesai! Cek Hasil Video.", Toast.LENGTH_LONG).show()
             return
         }
-        showProgress(85, "Mengunduh…", "Mohon tunggu")
+        updateProgress(85, "Mengunduh…", "Mohon tunggu")
         val (name, id, _) = useArts.first()
         val bytes = ProcessRunner.downloadArtifact(this, id)
         if (bytes == null) {
             hideProgress()
-            Toast.makeText(this, "⚠️ Gagal unduh hasil.", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "⚠️ Gagal unduh.", Toast.LENGTH_LONG).show()
             return
         }
-        showProgress(95, "Menyimpan…", "Downloads/${YadApp.DOWNLOAD_DIR}")
+        updateProgress(95, "Menyimpan…", "Downloads/${YadApp.DOWNLOAD_DIR}")
         try {
             val dir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), YadApp.DOWNLOAD_DIR)
             if (!dir.exists()) dir.mkdirs()
@@ -273,9 +264,8 @@ class MainActivity : AppCompatActivity() {
                     entry = zis.nextEntry
                 }
             }
-            LogTracker.i(this, "Main", "Saved to ${dir.absolutePath}")
-            showProgress(100, "Selesai! 🎉", "Downloads/${YadApp.DOWNLOAD_DIR}")
-            delay(2000)
+            updateProgress(100, "Selesai! 🎉", "Downloads/${YadApp.DOWNLOAD_DIR}")
+            delay(2500)
             hideProgress()
             tvStatus.text = "Terakhir: ${name.take(20)}…"
             AlertDialog.Builder(this)
@@ -287,7 +277,6 @@ class MainActivity : AppCompatActivity() {
                 .setNegativeButton("Tutup", null).show()
         } catch (e: Exception) {
             hideProgress()
-            LogTracker.e(this, "Main", "Save failed: ${e.message}")
             Toast.makeText(this, "⚠️ ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
