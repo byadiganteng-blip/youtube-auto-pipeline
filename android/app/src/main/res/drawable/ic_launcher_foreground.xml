@@ -1,7 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="108dp" android:height="108dp"
-    android:viewportWidth="108" android:viewportHeight="108">
-    <path android:fillColor="#FF9800"
-        android:pathData="M54,30 C67.3,30 78,40.7 78,54 C78,67.3 67.3,78 54,78 C40.7,78 30,67.3 30,54 C30,40.7 40.7,30 54,30 Z"/>
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Lingkaran background -->
+    <path
+        android:fillColor="#10B981"
+        android:pathData="M54,30
+            A24,24 0 1,1 53.99,30 Z" />
+
+    <!-- Play triangle putih -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M48,44 L68,54 L48,64 Z" />
+
+    <!-- Aksen garis film -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:fillColor="#00000000"
+        android:pathData="M30,54 L38,54" />
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:fillColor="#00000000"
+        android:pathData="M70,54 L78,54" />
 </vector>

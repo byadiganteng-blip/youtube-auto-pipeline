@@ -4,48 +4,122 @@
     android:background="@color/bg" android:padding="16dp">
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
         android:orientation="vertical">
+
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:text="🎬 YouTube Auto Pipeline" android:textSize="22sp"
-            android:textStyle="bold" android:textColor="@color/text" android:gravity="center"/>
+            android:text="🎬 YouTube Auto Pipeline" android:textSize="24sp"
+            android:textStyle="bold" android:textColor="@color/accent"
+            android:gravity="center" android:paddingBottom="6dp"/>
+
         <TextView android:id="@+id/tvStatus" android:layout_width="match_parent"
             android:layout_height="wrap_content" android:text="Loading..."
-            android:textColor="@color/accent" android:paddingTop="8dp" android:paddingBottom="8dp"/>
+            android:textColor="@color/accent" android:textSize="14sp"
+            android:gravity="center" android:paddingBottom="16dp"/>
+
         <EditText android:id="@+id/etUrl" android:layout_width="match_parent"
             android:layout_height="wrap_content" android:hint="Video URL"
-            android:textColorHint="#88FFFFFF" android:textColor="@color/text"
-            android:background="@drawable/card_bg" android:padding="12dp"/>
+            android:textColorHint="@color/text_dim" android:textColor="@color/text"
+            android:background="@drawable/card_bg" android:padding="14dp"
+            android:inputType="textUri"/>
+
         <EditText android:id="@+id/etDuration" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:hint="Durasi per part"
-            android:inputType="number" android:textColorHint="#88FFFFFF"
-            android:textColor="@color/text" android:layout_marginTop="8dp"
-            android:background="@drawable/card_bg" android:padding="12dp"/>
+            android:layout_height="wrap_content" android:hint="Durasi per part (detik)"
+            android:inputType="number" android:textColorHint="@color/text_dim"
+            android:textColor="@color/text" android:layout_marginTop="10dp"
+            android:background="@drawable/card_bg" android:padding="14dp"/>
+
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Kualitas Video" android:textColor="@color/text_dim"
+            android:textSize="12sp" android:layout_marginTop="12dp"/>
+
         <Spinner android:id="@+id/spQuality" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:layout_marginTop="8dp"
-            android:background="@drawable/card_bg"/>
+            android:layout_height="52dp" android:layout_marginTop="4dp"
+            android:background="@drawable/card_bg"
+            android:popupBackground="@color/card"
+            android:theme="@style/Theme.YadPipeline"/>
+
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Mode Watermark" android:textColor="@color/text_dim"
+            android:textSize="12sp" android:layout_marginTop="10dp"/>
+
         <Spinner android:id="@+id/spWatermark" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:layout_marginTop="8dp"
-            android:background="@drawable/card_bg"/>
+            android:layout_height="52dp" android:layout_marginTop="4dp"
+            android:background="@drawable/card_bg"
+            android:popupBackground="@color/card"
+            android:theme="@style/Theme.YadPipeline"/>
+
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Tipe Upload" android:textColor="@color/text_dim"
+            android:textSize="12sp" android:layout_marginTop="10dp"/>
+
         <Spinner android:id="@+id/spType" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:layout_marginTop="8dp"
-            android:background="@drawable/card_bg"/>
+            android:layout_height="52dp" android:layout_marginTop="4dp"
+            android:background="@drawable/card_bg"
+            android:popupBackground="@color/card"
+            android:theme="@style/Theme.YadPipeline"/>
+
         <com.google.android.material.button.MaterialButton android:id="@+id/btnRun"
-            android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_marginTop="12dp" android:text="🚀 Run Workflow"/>
+            android:layout_width="match_parent" android:layout_height="56dp"
+            android:layout_marginTop="20dp" android:text="🚀 RUN WORKFLOW"
+            android:textSize="15sp" android:textStyle="bold"
+            android:backgroundTint="@color/accent"
+            app:cornerRadius="12dp"
+            xmlns:app="http://schemas.android.com/apk/res-auto"/>
+
         <com.google.android.material.button.MaterialButton android:id="@+id/btnAdmin"
-            android:layout_width="match_parent" android:layout_height="wrap_content" android:text="🔐 Token"/>
+            android:layout_width="match_parent" android:layout_height="48dp"
+            android:layout_marginTop="8dp" android:text="🔐 TOKEN"
+            android:backgroundTint="@color/accent_dark"
+            app:cornerRadius="10dp"
+            xmlns:app="http://schemas.android.com/apk/res-auto"/>
+
         <com.google.android.material.button.MaterialButton android:id="@+id/btnActions"
-            android:layout_width="match_parent" android:layout_height="wrap_content" android:text="📊 Actions"/>
+            android:layout_width="match_parent" android:layout_height="48dp"
+            android:layout_marginTop="8dp" android:text="📊 ACTIONS"
+            android:backgroundTint="@color/accent_dark"
+            app:cornerRadius="10dp"
+            xmlns:app="http://schemas.android.com/apk/res-auto"/>
+
         <com.google.android.material.button.MaterialButton android:id="@+id/btnFiles"
-            android:layout_width="match_parent" android:layout_height="wrap_content" android:text="📁 Files"/>
+            android:layout_width="match_parent" android:layout_height="48dp"
+            android:layout_marginTop="8dp" android:text="📁 FILES"
+            android:backgroundTint="@color/accent_dark"
+            app:cornerRadius="10dp"
+            xmlns:app="http://schemas.android.com/apk/res-auto"/>
+
         <com.google.android.material.button.MaterialButton android:id="@+id/btnSettings"
-            android:layout_width="match_parent" android:layout_height="wrap_content" android:text="⚙️ Settings"/>
+            android:layout_width="match_parent" android:layout_height="48dp"
+            android:layout_marginTop="8dp" android:text="⚙️ SETTINGS"
+            android:backgroundTint="@color/accent_dark"
+            app:cornerRadius="10dp"
+            xmlns:app="http://schemas.android.com/apk/res-auto"/>
+
         <com.google.android.material.button.MaterialButton android:id="@+id/btnStatistics"
-            android:layout_width="match_parent" android:layout_height="wrap_content" android:text="📈 Statistics"/>
+            android:layout_width="match_parent" android:layout_height="48dp"
+            android:layout_marginTop="8dp" android:text="📈 STATISTICS"
+            android:backgroundTint="@color/accent_dark"
+            app:cornerRadius="10dp"
+            xmlns:app="http://schemas.android.com/apk/res-auto"/>
+
         <com.google.android.material.button.MaterialButton android:id="@+id/btnEditor"
-            android:layout_width="match_parent" android:layout_height="wrap_content" android:text="🎞️ Video Editor"/>
+            android:layout_width="match_parent" android:layout_height="48dp"
+            android:layout_marginTop="8dp" android:text="🎞️ VIDEO EDITOR"
+            android:backgroundTint="@color/accent_dark"
+            app:cornerRadius="10dp"
+            xmlns:app="http://schemas.android.com/apk/res-auto"/>
+
         <com.google.android.material.button.MaterialButton android:id="@+id/btnCredit"
-            android:layout_width="match_parent" android:layout_height="wrap_content" android:text="©️ Credit"/>
+            android:layout_width="match_parent" android:layout_height="48dp"
+            android:layout_marginTop="8dp" android:text="©️ CREDIT"
+            android:backgroundTint="@color/accent_dark"
+            app:cornerRadius="10dp"
+            xmlns:app="http://schemas.android.com/apk/res-auto"/>
+
         <com.google.android.material.button.MaterialButton android:id="@+id/btnInstructions"
-            android:layout_width="match_parent" android:layout_height="wrap_content" android:text="📖 Instructions"/>
+            android:layout_width="match_parent" android:layout_height="48dp"
+            android:layout_marginTop="8dp" android:layout_marginBottom="16dp"
+            android:text="📖 INSTRUCTIONS"
+            android:backgroundTint="@color/accent_dark"
+            app:cornerRadius="10dp"
+            xmlns:app="http://schemas.android.com/apk/res-auto"/>
     </LinearLayout>
 </ScrollView>
