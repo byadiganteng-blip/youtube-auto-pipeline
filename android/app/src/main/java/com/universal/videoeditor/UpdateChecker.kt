@@ -58,7 +58,15 @@ object UpdateChecker {
                     notes = json.optString("releaseNotes", ""),
                     forceUpdate = json.optBoolean("forceUpdate", false)
                 )
-                val currentVc = c.packageManager.getPackageInfo(c.packageName, 0).versionCode
+                val currentVc = try {
+                    if (android.os.Build.VERSION.SDK_INT >= 33) {
+                        c.packageManager.getPackageInfo(c.packageName,
+                            android.content.pm.PackageManager.PackageInfoFlags.of(0)).longVersionCode.toInt()
+                    } else {
+                        @Suppress("DEPRECATION")
+                        c.packageManager.getPackageInfo(c.packageName, 0).versionCode
+                    }
+                } catch (_: Exception) { 0 }
                 LogTracker.i(c, TAG, "Server vc=${info.versionCode} current vc=$currentVc")
                 if (info.versionCode > currentVc) info else null
             }

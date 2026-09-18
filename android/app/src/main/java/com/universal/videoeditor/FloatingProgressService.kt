@@ -46,8 +46,11 @@ class FloatingProgressService : Service() {
                     putExtra(EXTRA_LABEL, label)
                     putExtra(EXTRA_DETAIL, detail)
                 }
-                if (Build.VERSION.SDK_INT >= 26) c.startForegroundService(i)
-                else c.startService(i)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    c.startForegroundService(i)
+                } else {
+                    c.startService(i)
+                }
             } catch (e: Exception) {
                 LogTracker.e(c, "Float", "show err: ${e.message}")
             }
@@ -84,16 +87,29 @@ class FloatingProgressService : Service() {
     override fun onCreate() {
         super.onCreate()
         instance = this
-        createChannel()
-        // WAJIB: panggil startForeground() segera setelah onCreate
-        // untuk memenuhi syarat Android 8+
         try {
-            val notif = buildNotification(0, "Memulai…")
-            startForeground(NOTIF_ID, notif)
-            foregroundStarted = true
-            LogTracker.i(this, "Float", "startForeground OK")
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                createChannel()
+                // WAJIB Android 8+: panggil startForeground dalam 5 detik
+                val notif = buildNotification(0, "Memulai…")
+                startForeground(NOTIF_ID, notif)
+                foregroundStarted = true
+                LogTracker.i(this, "Float", "startForeground OK (Android 8+)")
+            } else {
+                // Android 6-7: foreground service opsional
+                // Tetap tampilkan notifikasi biar user tahu
+                try {
+                    val notif = buildNotification(0, "Memulai…")
+                    val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                    nm.notify(NOTIF_ID, notif)
+                    foregroundStarted = true
+                    LogTracker.i(this, "Float", "Notification shown (Android 6-7)")
+                } catch (e: Exception) {
+                    LogTracker.w(this, "Float", "notif err: ${e.message}")
+                }
+            }
         } catch (e: Exception) {
-            LogTracker.e(this, "Float", "startForeground err: ${e.message}")
+            LogTracker.e(this, "Float", "onCreate err: ${e.message}")
         }
     }
 
@@ -112,18 +128,19 @@ class FloatingProgressService : Service() {
                     nm.createNotificationChannel(ch)
                 }
             }
-        } catch (e: Exception) {
-            LogTracker.e(this, "Float", "channel err: ${e.message}")
-        }
+        } catch (_: Exception) {}
     }
 
     private fun buildNotification(pct: Int, label: String): Notification {
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
         }
-        val pi = PendingIntent.getActivity(this, 0, intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or
-                (if (Build.VERSION.SDK_INT >= 23) PendingIntent.FLAG_IMMUTABLE else 0))
+        val flags = if (Build.VERSION.SDK_INT >= 23) {
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        } else {
+            PendingIntent.FLAG_UPDATE_CURRENT
+        }
+        val pi = PendingIntent.getActivity(this, 0, intent, flags)
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.stat_sys_download)
@@ -141,7 +158,12 @@ class FloatingProgressService : Service() {
         if (!foregroundStarted) return
         try {
             val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            nm.notify(NOTIF_ID, buildNotification(pct, label))
+            val notif = buildNotification(pct, label)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                nm.notify(NOTIF_ID, notif)
+            } else {
+                nm.notify(NOTIF_ID, notif)
+            }
         } catch (_: Exception) {}
     }
 
@@ -181,11 +203,14 @@ class FloatingProgressService : Service() {
             windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
             floatView = LayoutInflater.from(this).inflate(R.layout.floating_progress, null)
 
-            val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+            // Android 6-7 (API 23-25): TYPE_PHONE
+            // Android 8+ (API 26+): TYPE_APPLICATION_OVERLAY
+            val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-            else
+            } else {
                 @Suppress("DEPRECATION")
                 WindowManager.LayoutParams.TYPE_PHONE
+            }
 
             layoutParams = WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
@@ -257,10 +282,13 @@ class FloatingProgressService : Service() {
         } catch (_: Exception) {}
         floatView = null
         try {
-            if (foregroundStarted) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && foregroundStarted) {
                 stopForeground(true)
-                foregroundStarted = false
+            } else {
+                val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                nm.cancel(NOTIF_ID)
             }
+            foregroundStarted = false
         } catch (_: Exception) {}
         stopSelf()
     }

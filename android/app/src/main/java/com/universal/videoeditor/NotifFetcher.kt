@@ -72,7 +72,15 @@ object NotifFetcher {
             val root = JSONObject(json)
             val arr = root.optJSONArray("notifications") ?: return emptyList()
             val out = mutableListOf<Notif>()
-            val currentVc = c.packageManager.getPackageInfo(c.packageName, 0).versionCode
+            val currentVc = try {
+                    if (android.os.Build.VERSION.SDK_INT >= 33) {
+                        c.packageManager.getPackageInfo(c.packageName,
+                            android.content.pm.PackageManager.PackageInfoFlags.of(0)).longVersionCode.toInt()
+                    } else {
+                        @Suppress("DEPRECATION")
+                        c.packageManager.getPackageInfo(c.packageName, 0).versionCode
+                    }
+                } catch (_: Exception) { 0 }
             for (i in 0 until arr.length()) {
                 val o = arr.getJSONObject(i)
                 val active = o.optBoolean("active", true)
