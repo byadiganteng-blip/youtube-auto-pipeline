@@ -16,7 +16,7 @@
   1. INVENTARIS FILE
 ==============================================================================
   Kotlin      : 8
-  XML (res/)  : 31
+  XML (res/)  : 33
   Gradle      : 3
   Manifest    : OK
 
@@ -61,7 +61,7 @@
 ==============================================================================
   4. KOTLIN - DEEP ANALYSIS
 ==============================================================================
-  Total Kotlin LOC  : 625
+  Total Kotlin LOC  : 741
   Classes declared  : 10
   Files w/ findViewById: 3
   Files w/ setContentView: 4
@@ -69,8 +69,8 @@
   Intent targets: 3
 
 -- Intent reference check --------------------------------------------------
-  OK ResultsActivity
   OK CreditActivity
+  OK ResultsActivity
   OK InstructionsActivity
 
 ==============================================================================
@@ -80,7 +80,7 @@
   Strings    : 6
   Dimens     : 0
   Styles     : 1
-  Drawables  : 47 (incl. built-in)
+  Drawables  : 49 (incl. built-in)
   Layouts    : 30 (incl. built-in)
 
 ==============================================================================
