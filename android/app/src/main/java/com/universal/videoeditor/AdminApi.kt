@@ -42,12 +42,4 @@ object AdminApi {
         "https://api.github.com/repos/${YadApp.REPO_OWNER}/${YadApp.REPO_NAME}/actions/runs/$id/artifacts")
     suspend fun listReleases(c: Context): R = req(c,"GET",
         "https://api.github.com/repos/${YadApp.REPO_OWNER}/${YadApp.REPO_NAME}/releases")
-    suspend fun downloadArtifact(c: Context, id: Long): ByteArray? = withContext(Dispatchers.IO) {
-        try {
-            val r = Request.Builder()
-                .url("https://api.github.com/repos/${YadApp.REPO_OWNER}/${YadApp.REPO_NAME}/actions/artifacts/$id/zip")
-                .header("Authorization","token ${tk(c)}").header("User-Agent","YadAPK").build()
-            client.newCall(r).execute().use { it.body?.bytes() }
-        } catch (e: Exception) { null }
-    }
 }

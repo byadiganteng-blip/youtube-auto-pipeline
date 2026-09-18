@@ -16,13 +16,12 @@ class MainActivity : AppCompatActivity() {
         val spW = findViewById<Spinner>(R.id.spWatermark)
         val spT = findViewById<Spinner>(R.id.spType)
         val tv = findViewById<TextView>(R.id.tvStatus)
-        val btnRun = findViewById<MaterialButton>(R.id.btnRun)
         spQ.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item,
             listOf("144p","240p","360p","480p","720p","1080p","1440p","2160p"))
         spW.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, listOf("remove","skip"))
         spT.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, listOf("video","reels"))
         tv.text = "✅ Login: ${SecureConfig.user(this) ?: BuildConfig.GH_USER}"
-        btnRun.setOnClickListener {
+        findViewById<MaterialButton>(R.id.btnRun).setOnClickListener {
             val u = etUrl.text.toString().trim()
             if (u.isEmpty()) { Toast.makeText(this,"URL kosong",Toast.LENGTH_SHORT).show(); return@setOnClickListener }
             tv.text = "🚀 Triggering..."

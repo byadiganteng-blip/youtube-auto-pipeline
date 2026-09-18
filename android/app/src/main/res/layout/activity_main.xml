@@ -15,7 +15,7 @@
             android:textColorHint="#88FFFFFF" android:textColor="@color/text"
             android:background="@drawable/card_bg" android:padding="12dp"/>
         <EditText android:id="@+id/etDuration" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:hint="Durasi per part (detik)"
+            android:layout_height="wrap_content" android:hint="Durasi per part"
             android:inputType="number" android:textColorHint="#88FFFFFF"
             android:textColor="@color/text" android:layout_marginTop="8dp"
             android:background="@drawable/card_bg" android:padding="12dp"/>
