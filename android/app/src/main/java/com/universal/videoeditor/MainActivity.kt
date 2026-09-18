@@ -52,6 +52,20 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(s: Bundle?) {
         super.onCreate(s)
         setContentView(R.layout.activity_main)
+
+            // ═══ INIT Start.io SDK (FIXED) ═══
+            try {
+                StartIoAds.init(this)
+                LogTracker.i(this, "Main", "StartIoAds.init called")
+                findViewById<android.widget.FrameLayout>(R.id.adBannerContainer)?.let { container ->
+                    StartIoAds.loadBanner(this, container)
+                    LogTracker.i(this, "Main", "Banner load requested")
+                }
+            } catch (e: Exception) {
+                LogTracker.e(this, "Main", "Ads init failed: ${e.message}")
+            }
+
+
         LogTracker.i(this, "Main", "onCreate")
 
         createNotificationChannel()
@@ -380,6 +394,60 @@ class MainActivity : AppCompatActivity() {
         elapsedMs < 10 * 60_000L -> 15_000L
         elapsedMs < 20 * 60_000L -> 30_000L
         else -> 60_000L
+    }
+
+        private fun showRewardedRequiredDialog(onReward: () -> Unit) {
+        try {
+            val builder = AlertDialog.Builder(this)
+                .setTitle("🎁 Tonton Iklan Dulu")
+                .setMessage("Tonton iklan singkat ~15-30 detik.\n\nKalau iklan tidak tersedia, proses akan otomatis lanjut.")
+                .setCancelable(false)
+                .setPositiveButton("Tonton Sekarang") { _, _ ->
+                    val loading = AlertDialog.Builder(this)
+                        .setTitle("Memuat iklan…")
+                        .setMessage("Mohon tunggu")
+                        .setCancelable(false)
+                        .create()
+                    loading.show()
+
+                    StartIoAds.requireRewarded(
+                        activity = this,
+                        onEarned = {
+                            try { loading.dismiss() } catch (_: Exception) {}
+                            LogTracker.i(this, "Ads", "Reward earned")
+                            Toast.makeText(this, "✅ Terima kasih!", Toast.LENGTH_SHORT).show()
+                            onReward()
+                        },
+                        onFailed = { err ->
+                            try { loading.dismiss() } catch (_: Exception) {}
+                            LogTracker.w(this, "Ads", "Reward failed: $err")
+                            val autoSkip = err in listOf("NOT_AVAILABLE", "ADS_TIMEOUT", "ADS_SKIPPED", "CLOSED_EARLY")
+                                || err.contains("network", ignoreCase = true)
+                                || err.contains("timeout", ignoreCase = true)
+                                || err.contains("no fill", ignoreCase = true)
+                            if (autoSkip) {
+                                Toast.makeText(this, "ℹ️ Iklan tidak tersedia, lanjut…", Toast.LENGTH_SHORT).show()
+                                onReward()
+                            } else {
+                                AlertDialog.Builder(this)
+                                    .setTitle("⚠️ Iklan Gagal")
+                                    .setMessage("$err\n\nProses akan dilanjutkan.")
+                                    .setPositiveButton("Lanjut") { _, _ -> onReward() }
+                                    .setNegativeButton("Coba Lagi") { _, _ -> showRewardedRequiredDialog(onReward) }
+                                    .setCancelable(false).show()
+                            }
+                        }
+                    )
+                }
+                .setNegativeButton("Skip Iklan") { _, _ ->
+                    LogTracker.i(this, "Ads", "User skip")
+                    onReward()
+                }
+            builder.show()
+        } catch (e: Exception) {
+            LogTracker.e(this, "Ads", "Dialog err: ${e.message}")
+            onReward()
+        }
     }
 
     private fun processVideo(inputs: Map<String, String>) {

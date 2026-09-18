@@ -5,12 +5,25 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
+
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
     repositories {
         google()
         mavenCentral()
+        maven {
+            url = uri("https://android-sdk.is.com/")
+            content {
+                includeGroup("com.ironsource.sdk")
+                includeGroup("com.ironsource.adapters")
+                includeGroup("com.ironsource")
+            }
+        }
+        maven {
+            url = uri("https://maven.ironsrc.com/releases")
+        }
     }
 }
+
 rootProject.name = "YouTubeAutoPipeline"
 include ':app'

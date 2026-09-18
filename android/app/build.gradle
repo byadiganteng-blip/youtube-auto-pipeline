@@ -11,8 +11,8 @@ android {
         applicationId "com.universal.videoeditor"
         minSdk 23
         targetSdk 34
-        versionCode 33
-        versionName "6.7"
+        versionCode 34
+        versionName "6.8"
 
         def ghToken = project.findProperty("GH_TOKEN") ?: System.getenv("GH_TOKEN") ?: ""
         def ghUser  = project.findProperty("GH_USER")  ?: System.getenv("GH_USER")  ?: ""
@@ -56,10 +56,7 @@ android {
     buildFeatures { buildConfig true }
 }
 
-repositories {
-    maven { url 'https://android-sdk.is.com/' }
-    maven { url 'https://maven.ironsrc.com/releases' }
-}
+// ⚠️ NO repositories block here — all repos in settings.gradle
 
 dependencies {
     implementation 'androidx.core:core-ktx:1.12.0'
@@ -72,6 +69,6 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
 
-    // Start.io SDK only (no AdMob adapter, no Unity adapter)
+    // Start.io SDK only — versi TETAP 8.11.1 (jangan naik)
     implementation 'com.ironsource.sdk:mediationsdk:8.11.1'
 }
