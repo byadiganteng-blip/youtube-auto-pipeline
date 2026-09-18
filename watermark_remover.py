@@ -129,7 +129,7 @@ def remove_and_split(inp, outd, wms, method='blur', pd=300, preset='original', q
         if not ret: break
         if fip == 0:
             tv = tempfile.mktemp(suffix='_na.mp4')
-            out = cv2.VideoWriter(tv, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w,h))
+            out = cv2.VideoWriter(tv, cv2.VideoWriter_fourcc(*'avc1'), fps, (w,h))
         if method == 'blur':
             for wm in wms:
                 x1,y1,x2,y2 = wm['bbox']

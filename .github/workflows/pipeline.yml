@@ -59,7 +59,7 @@ on:
       part_duration:
         description: "Durasi per Part (detik)"
         required: true
-        default: "300"
+        default: "60"
         type: string
       upload_type:
         description: "Tipe Upload"
@@ -69,38 +69,6 @@ on:
         options:
           - video
           - reels
-      privacy:
-        description: "Privacy (untuk auto upload)"
-        required: false
-        default: "public"
-        type: choice
-        options:
-          - public
-          - unlisted
-          - private
-      auto_upload:
-        description: "Auto Upload ke YouTube?"
-        required: false
-        default: "false"
-        type: choice
-        options:
-          - "false"
-          - "true"
-      samples:
-        description: "Sample frame"
-        required: false
-        default: "30"
-        type: string
-      upload_delay:
-        description: "Delay upload (detik)"
-        required: false
-        default: "60"
-        type: string
-      start_part:
-        description: "Mulai dari part"
-        required: false
-        default: "1"
-        type: string
 
 jobs:
   pipeline:
@@ -127,24 +95,53 @@ jobs:
 
       - name: Download Video
         run: |
-          mkdir -p input output
+          mkdir -p input output raw_output
           python universal_downloader.py \
             --url "${{ github.event.inputs.video_url }}" \
             --output "input/video.mp4"
           ls -lah input/
+          echo "=== VIDEO INFO ==="
+          ffprobe -v error -show_entries format=duration,size -show_entries stream=codec_name,width,height -of default=noprint_wrappers=1 input/video.mp4 || true
 
-      - name: Process Video
+      - name: Process Video (Watermark Removal)
         run: |
           python watermark_remover.py \
             --input "input/video.mp4" \
-            --output-dir "output" \
+            --output-dir "raw_output" \
             --method "${{ github.event.inputs.method }}" \
             --part-duration "${{ github.event.inputs.part_duration }}" \
-            --samples "${{ github.event.inputs.samples }}" \
+            --samples "30" \
             --process-mode "${{ github.event.inputs.process_mode }}" \
             --video-size "${{ github.event.inputs.video_size }}" \
             --video-quality "${{ github.event.inputs.video_quality }}"
+          ls -lah raw_output/
+
+      - name: FIX VIDEO CODEC (Re-encode to H.264 yuv420p)
+        run: |
+          echo "=== Re-encoding all videos to H.264 yuv420p (Android compatible) ==="
+          for video in raw_output/*.mp4; do
+            if [ -f "$video" ]; then
+              name=$(basename "$video")
+              echo ">>> Processing $name"
+              # Cek codec asli
+              ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,pix_fmt -of default=noprint_wrappers=1 "$video" || true
+              # Re-encode ke H.264 + yuv420p + faststart
+              ffmpeg -y -i "$video" \
+                -c:v libx264 -preset fast -crf 23 \
+                -pix_fmt yuv420p \
+                -c:a aac -b:a 128k -ar 44100 -ac 2 \
+                -movflags +faststart \
+                -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" \
+                "output/$name"
+              echo "✅ $name done"
+            fi
+          done
           ls -lah output/
+          echo "=== VERIFY OUTPUT ==="
+          for video in output/*.mp4; do
+            echo ">>> $video"
+            ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,pix_fmt,width,height -of default=noprint_wrappers=1 "$video" || true
+          done
 
       - name: Generate Metadata
         run: |
@@ -153,31 +150,6 @@ jobs:
               python auto_hashtag.py "$video" "${{ github.event.inputs.upload_type }}" || true
             fi
           done
-
-      - name: Check Token
-        id: check_token
-        if: github.event.inputs.auto_upload == 'true'
-        env:
-          YOUTUBE_TOKEN: ${{ secrets.YOUTUBE_TOKEN }}
-        run: |
-          if [ -z "$YOUTUBE_TOKEN" ]; then
-            echo "available=false" >> $GITHUB_OUTPUT
-          else
-            echo "available=true" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Upload to YouTube
-        if: github.event.inputs.auto_upload == 'true' && steps.check_token.outputs.available == 'true'
-        env:
-          YOUTUBE_TOKEN: ${{ secrets.YOUTUBE_TOKEN }}
-        run: |
-          echo "$YOUTUBE_TOKEN" | base64 -d > token.pickle
-          python upload_per_part.py \
-            --input-dir "output" \
-            --privacy "${{ github.event.inputs.privacy }}" \
-            --delay "${{ github.event.inputs.upload_delay }}" \
-            --start-part "${{ github.event.inputs.start_part }}" \
-            --upload-type "${{ github.event.inputs.upload_type }}"
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4

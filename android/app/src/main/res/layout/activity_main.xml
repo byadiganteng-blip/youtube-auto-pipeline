@@ -30,8 +30,7 @@
 
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:text="Video URL" android:textColor="@color/text_dim"
-                android:textSize="12sp" android:layout_marginTop="20dp"
-                android:layout_marginStart="4dp"/>
+                android:textSize="12sp" android:layout_marginTop="20dp" android:layout_marginStart="4dp"/>
             <EditText android:id="@+id/etUrl"
                 android:layout_width="match_parent" android:layout_height="52dp"
                 android:hint="Tempel link video di sini…"
@@ -42,8 +41,7 @@
 
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:text="Mode Watermark" android:textColor="@color/text_dim"
-                android:textSize="12sp" android:layout_marginTop="14dp"
-                android:layout_marginStart="4dp"/>
+                android:textSize="12sp" android:layout_marginTop="14dp" android:layout_marginStart="4dp"/>
             <Spinner android:id="@+id/spProcessMode"
                 android:layout_width="match_parent" android:layout_height="52dp"
                 android:background="@drawable/card_bg"
@@ -51,8 +49,7 @@
 
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:text="Metode Watermark" android:textColor="@color/text_dim"
-                android:textSize="12sp" android:layout_marginTop="14dp"
-                android:layout_marginStart="4dp"/>
+                android:textSize="12sp" android:layout_marginTop="14dp" android:layout_marginStart="4dp"/>
             <Spinner android:id="@+id/spMethod"
                 android:layout_width="match_parent" android:layout_height="52dp"
                 android:background="@drawable/card_bg"
@@ -60,8 +57,7 @@
 
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:text="Ukuran Video" android:textColor="@color/text_dim"
-                android:textSize="12sp" android:layout_marginTop="14dp"
-                android:layout_marginStart="4dp"/>
+                android:textSize="12sp" android:layout_marginTop="14dp" android:layout_marginStart="4dp"/>
             <Spinner android:id="@+id/spVideoSize"
                 android:layout_width="match_parent" android:layout_height="52dp"
                 android:background="@drawable/card_bg"
@@ -69,29 +65,56 @@
 
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:text="Kualitas Video" android:textColor="@color/text_dim"
-                android:textSize="12sp" android:layout_marginTop="14dp"
-                android:layout_marginStart="4dp"/>
+                android:textSize="12sp" android:layout_marginTop="14dp" android:layout_marginStart="4dp"/>
             <Spinner android:id="@+id/spQuality"
                 android:layout_width="match_parent" android:layout_height="52dp"
                 android:background="@drawable/card_bg"
                 android:popupBackground="@color/bg_card" android:layout_marginTop="6dp"/>
 
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="Durasi per Part (detik)" android:textColor="@color/text_dim"
-                android:textSize="12sp" android:layout_marginTop="14dp"
-                android:layout_marginStart="4dp"/>
-            <EditText android:id="@+id/etDuration"
-                android:layout_width="match_parent" android:layout_height="52dp"
-                android:hint="300"
-                android:textColorHint="@color/text_dim" android:textColor="@color/text"
-                android:textSize="14sp" android:background="@drawable/card_bg"
-                android:paddingStart="16dp" android:paddingEnd="16dp"
-                android:inputType="number" android:layout_marginTop="6dp"/>
+            <!-- ═══ DURATION SLIDER ═══ -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginTop="14dp"
+                android:layout_marginStart="4dp" android:layout_marginEnd="4dp">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:text="Durasi per Part"
+                    android:textColor="@color/text_dim" android:textSize="12sp"/>
+                <TextView android:id="@+id/tvDurationValue"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="60 dtk"
+                    android:textColor="@color/accent" android:textSize="13sp"
+                    android:textStyle="bold"/>
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:background="@drawable/card_bg"
+                android:padding="12dp" android:layout_marginTop="6dp">
+
+                <SeekBar android:id="@+id/sbDuration"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:max="600"
+                    android:progress="60"
+                    android:progressTint="@color/accent"
+                    android:thumbTint="@color/accent_light"/>
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:layout_marginTop="2dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="10s" android:textColor="@color/text_dim"
+                        android:textSize="10sp"/>
+                    <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1"/>
+                    <TextView android:id="@+id/tvDurationHint"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Video: --"
+                        android:textColor="@color/text_dim" android:textSize="10sp"/>
+                    <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="10m" android:textColor="@color/text_dim" android:textSize="10sp"/>
+                </LinearLayout>
+            </LinearLayout>
 
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:text="Tipe Upload" android:textColor="@color/text_dim"
-                android:textSize="12sp" android:layout_marginTop="14dp"
-                android:layout_marginStart="4dp"/>
+                android:textSize="12sp" android:layout_marginTop="14dp" android:layout_marginStart="4dp"/>
             <Spinner android:id="@+id/spType"
                 android:layout_width="match_parent" android:layout_height="52dp"
                 android:background="@drawable/card_bg"
@@ -125,8 +148,7 @@
                     android:layout_width="0dp" android:layout_height="wrap_content"
                     android:layout_weight="1" android:orientation="vertical"
                     android:gravity="center" android:background="@drawable/menu_icon_bg"
-                    android:padding="16dp" android:layout_marginStart="3dp"
-                    android:layout_marginEnd="3dp"
+                    android:padding="16dp" android:layout_marginStart="3dp" android:layout_marginEnd="3dp"
                     android:clickable="true" android:focusable="true">
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                         android:text="🎞️" android:textSize="28sp"/>
@@ -149,35 +171,75 @@
             </LinearLayout>
 
             <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:text="Cliper On v3.2  •  by YsDev"
+                android:text="Cliper On v3.3  •  by YsDev"
                 android:textColor="@color/text_dim" android:textSize="11sp"
                 android:gravity="center" android:layout_marginTop="20dp"/>
         </LinearLayout>
     </ScrollView>
 
-    <LinearLayout android:id="@+id/loadingOverlay"
+    <!-- ═══ FLOATING CIRCLE PROGRESS ═══ -->
+    <FrameLayout android:id="@+id/loadingOverlay"
         android:layout_width="match_parent" android:layout_height="match_parent"
-        android:background="#CC0B1220" android:gravity="center"
+        android:background="#99000000"
         android:visibility="gone">
-        <LinearLayout android:layout_width="280dp" android:layout_height="wrap_content"
-            android:orientation="vertical" android:background="@drawable/progress_overlay_bg"
-            android:padding="28dp" android:gravity="center" android:elevation="20dp">
-            <ProgressBar android:id="@+id/progressBar"
-                android:layout_width="80dp" android:layout_height="80dp"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:progressTint="@color/accent" android:progress="0" android:max="100"/>
-            <TextView android:id="@+id/tvProgress"
-                android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="0%" android:textColor="@color/accent"
-                android:textSize="28sp" android:textStyle="bold" android:layout_marginTop="16dp"/>
-            <TextView android:id="@+id/tvProgressLabel"
-                android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="Memproses…" android:textColor="@color/text"
-                android:textSize="14sp" android:layout_marginTop="6dp" android:gravity="center"/>
-            <TextView android:id="@+id/tvProgressDetail"
-                android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="Mohon tunggu" android:textColor="@color/text_dim"
-                android:textSize="11sp" android:layout_marginTop="4dp" android:gravity="center"/>
+
+        <LinearLayout
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:layout_gravity="center"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="@drawable/float_card_bg"
+            android:elevation="24dp">
+
+            <!-- Outer ring: rotating spinner -->
+            <ProgressBar
+                android:id="@+id/spinnerRing"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:indeterminate="true"
+                android:indeterminateTint="@color/accent"
+                android:indeterminateTintMode="src_atop"/>
+
+            <!-- Center percentage overlay -->
+            <FrameLayout
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:layout_marginTop="-52dp">
+                <TextView
+                    android:id="@+id/tvProgress"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="5%"
+                    android:textColor="@color/accent"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:gravity="center"/>
+            </FrameLayout>
+
+            <TextView
+                android:id="@+id/tvProgressLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Memproses…"
+                android:textColor="@color/text"
+                android:textSize="11sp"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:maxLines="1"
+                android:ellipsize="end"/>
+
+            <TextView
+                android:id="@+id/tvProgressDetail"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mohon tunggu"
+                android:textColor="@color/text_dim"
+                android:textSize="9sp"
+                android:layout_marginTop="2dp"
+                android:gravity="center"
+                android:maxLines="1"
+                android:ellipsize="end"/>
         </LinearLayout>
-    </LinearLayout>
+    </FrameLayout>
 </FrameLayout>

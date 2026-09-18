@@ -23,11 +23,15 @@ import java.util.zip.ZipInputStream
 class MainActivity : AppCompatActivity() {
 
     private lateinit var loadingOverlay: View
-    private lateinit var progressBar: ProgressBar
     private lateinit var tvProgress: TextView
     private lateinit var tvProgressLabel: TextView
     private lateinit var tvProgressDetail: TextView
     private lateinit var tvStatus: TextView
+    private lateinit var tvDurationValue: TextView
+    private lateinit var tvDurationHint: TextView
+    private lateinit var sbDuration: SeekBar
+
+    private var videoDurationSec: Int = 0
 
     override fun onCreate(s: Bundle?) {
         super.onCreate(s)
@@ -35,14 +39,15 @@ class MainActivity : AppCompatActivity() {
         LogTracker.i(this, "Main", "onCreate")
 
         loadingOverlay = findViewById(R.id.loadingOverlay)
-        progressBar = findViewById(R.id.progressBar)
         tvProgress = findViewById(R.id.tvProgress)
         tvProgressLabel = findViewById(R.id.tvProgressLabel)
         tvProgressDetail = findViewById(R.id.tvProgressDetail)
         tvStatus = findViewById(R.id.tvStatus)
+        tvDurationValue = findViewById(R.id.tvDurationValue)
+        tvDurationHint = findViewById(R.id.tvDurationHint)
+        sbDuration = findViewById(R.id.sbDuration)
 
         val etUrl = findViewById<EditText>(R.id.etUrl)
-        val etDur = findViewById<EditText>(R.id.etDuration)
         val spProcessMode = findViewById<Spinner>(R.id.spProcessMode)
         val spMethod = findViewById<Spinner>(R.id.spMethod)
         val spVideoSize = findViewById<Spinner>(R.id.spVideoSize)
@@ -66,7 +71,30 @@ class MainActivity : AppCompatActivity() {
         spVideoSize.setSelection(0)
         spQuality.setSelection(0)
         spType.setSelection(0)
-        etDur.setText("300")
+
+        // ═══ Duration slider ═══
+        sbDuration.max = 600  // 10 menit max
+        sbDuration.progress = 60  // default 60s
+        updateDurationLabel(60)
+
+        sbDuration.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                val actual = if (progress < 10) 10 else progress
+                updateDurationLabel(actual)
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
+
+        // Auto-detect duration saat URL berubah
+        etUrl.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                val url = etUrl.text.toString().trim()
+                if (url.isNotEmpty() && url.startsWith("http")) {
+                    detectDuration(url)
+                }
+            }
+        }
 
         requestPermissionsIfNeeded()
 
@@ -87,19 +115,64 @@ class MainActivity : AppCompatActivity() {
             val url = etUrl.text.toString().trim()
             if (url.isEmpty()) {
                 Toast.makeText(this, "Tempel link video dulu ya 🙏", Toast.LENGTH_SHORT).show()
-                LogTracker.w(this, "Main", "URL kosong")
                 return@setOnClickListener
             }
+            val dur = sbDuration.progress.coerceAtLeast(10).toString()
             val inputs = mapOf(
                 "video_url" to url,
                 "process_mode" to spProcessMode.selectedItem.toString(),
                 "method" to spMethod.selectedItem.toString(),
                 "video_size" to spVideoSize.selectedItem.toString(),
                 "video_quality" to spQuality.selectedItem.toString(),
-                "part_duration" to etDur.text.toString().ifBlank { "300" },
+                "part_duration" to dur,
                 "upload_type" to spType.selectedItem.toString()
             )
             processVideo(inputs)
+        }
+    }
+
+    private fun updateDurationLabel(sec: Int) {
+        val label = when {
+            sec < 60 -> "${sec} dtk"
+            sec % 60 == 0 -> "${sec / 60} mnt"
+            else -> "${sec / 60}m ${sec % 60}s"
+        }
+        tvDurationValue.text = label
+        // Update hint dengan jumlah part yang dihasilkan
+        if (videoDurationSec > 0) {
+            val parts = (videoDurationSec + sec - 1) / sec
+            tvDurationHint.text = "Video ${videoDurationSec}s → ~${parts} part"
+        }
+    }
+
+    /**
+     * Auto-detect durasi video dari URL.
+     * Pakai yt-dlp untuk download metadata (atau fallback ke HEAD request).
+     */
+    private fun detectDuration(url: String) {
+        tvDurationHint.text = "Mendeteksi durasi…"
+        LogTracker.i(this, "Detect", "Detecting duration for $url")
+
+        lifecycleScope.launch {
+            try {
+                // Coba pakai API GitHub untuk yt-dlp metadata via workflow
+                // Fallback: kirim ke server dan cek via HEAD
+                val r = WorkflowHelper.probeVideoDuration(this@MainActivity, url)
+                if (r != null && r > 0) {
+                    videoDurationSec = r
+                    LogTracker.i(this@MainActivity, "Detect", "Duration: ${r}s")
+                    tvDurationHint.text = "Video: ${r}s (${r/60}m ${r%60}s)"
+                    // Auto-set slider ke ~1/10 durasi atau 60s minimal
+                    val suggest = (r / 10).coerceIn(10, 300)
+                    sbDuration.progress = suggest
+                    updateDurationLabel(suggest)
+                } else {
+                    tvDurationHint.text = "Video: tidak diketahui"
+                }
+            } catch (e: Exception) {
+                LogTracker.e(this@MainActivity, "Detect", "Failed: ${e.message}")
+                tvDurationHint.text = "Video: tidak diketahui"
+            }
         }
     }
 
@@ -113,19 +186,12 @@ class MainActivity : AppCompatActivity() {
                 perms.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
         }
         if (perms.isNotEmpty()) {
-            LogTracker.i(this, "Perm", "Request: $perms")
             ActivityCompat.requestPermissions(this, perms.toTypedArray(), 1001)
         }
     }
 
-    override fun onRequestPermissionsResult(req: Int, p: Array<out String>, g: IntArray) {
-        super.onRequestPermissionsResult(req, p, g)
-        LogTracker.i(this, "Perm", "Result: ${p.zip(g.toList()).joinToString()}")
-    }
-
     private fun showProgress(pct: Int, label: String, detail: String = "") {
         loadingOverlay.visibility = View.VISIBLE
-        progressBar.progress = pct
         tvProgress.text = "$pct%"
         tvProgressLabel.text = label
         tvProgressDetail.text = detail
@@ -134,7 +200,7 @@ class MainActivity : AppCompatActivity() {
     private fun hideProgress() { loadingOverlay.visibility = View.GONE }
 
     private fun processVideo(inputs: Map<String, String>) {
-        LogTracker.i(this, "Main", "Process with ${inputs.size} inputs")
+        LogTracker.i(this, "Main", "Process: $inputs")
         showProgress(5, "Memulai…", "Menghubungi server")
         lifecycleScope.launch {
             val r = WorkflowHelper.startProcess(this@MainActivity, inputs)
@@ -147,7 +213,7 @@ class MainActivity : AppCompatActivity() {
                     .setPositiveButton("OK", null).show()
                 return@launch
             }
-            showProgress(15, "Video dikirim", "Menunggu proses di server")
+            showProgress(15, "Video dikirim", "Menunggu proses")
             tvStatus.text = "Sedang memproses…"
 
             for (i in 0 until 240) {
@@ -155,9 +221,8 @@ class MainActivity : AppCompatActivity() {
                 val pct = minOf(15 + i * 2, 70)
                 showProgress(pct, "Memproses video…", "Langkah ${i+1} / 240")
                 val run = WorkflowHelper.latestRun(this@MainActivity) ?: continue
-                val status = run.optString("status", "")
-                val conclusion = run.optString("conclusion", "")
-                if (status == "completed") {
+                if (run.optString("status") == "completed") {
+                    val conclusion = run.optString("conclusion")
                     LogTracker.i(this@MainActivity, "Main", "Run completed: $conclusion")
                     if (conclusion == "success") {
                         showProgress(80, "Mengambil hasil…", "Menunggu artifact")
@@ -167,7 +232,7 @@ class MainActivity : AppCompatActivity() {
                         tvStatus.text = "Gagal ❌"
                         AlertDialog.Builder(this@MainActivity)
                             .setTitle("Proses Gagal")
-                            .setMessage("Video tidak dapat diproses.\n\nLihat log di menu Instruksi.")
+                            .setMessage("Video tidak dapat diproses. Cek log di menu Instruksi.")
                             .setPositiveButton("OK", null).show()
                     }
                     return@launch
@@ -183,7 +248,7 @@ class MainActivity : AppCompatActivity() {
         val useArts = if (arts.isEmpty()) { delay(5000); WorkflowHelper.runArtifacts(this, runId) } else arts
         if (useArts.isEmpty()) {
             hideProgress()
-            Toast.makeText(this, "✅ Selesai! Cek menu Hasil.", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "✅ Selesai! Cek Hasil Video.", Toast.LENGTH_LONG).show()
             return
         }
         showProgress(85, "Mengunduh…", "Mohon tunggu")
@@ -225,10 +290,5 @@ class MainActivity : AppCompatActivity() {
             LogTracker.e(this, "Main", "Save failed: ${e.message}")
             Toast.makeText(this, "⚠️ ${e.message}", Toast.LENGTH_LONG).show()
         }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        LogTracker.i(this, "Main", "onDestroy")
     }
 }
