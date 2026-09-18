@@ -1,18 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:padding="12dp"
-    android:layout_width="match_parent" android:layout_height="match_parent">
-
-    <Button android:id="@+id/btnRefresh" android:text="Refresh"
-        android:layout_width="match_parent" android:layout_height="wrap_content"/>
-
-    <ProgressBar android:id="@+id/progressBar"
-        android:visibility="gone"
-        android:layout_marginTop="8dp"
-        android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-
-    <androidx.recyclerview.widget.RecyclerView android:id="@+id/recyclerRuns"
-        android:layout_marginTop="8dp"
-        android:layout_width="match_parent" android:layout_height="0dp"
-        android:layout_weight="1"/>
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/bg" android:padding="16dp">
+    <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+        <TextView android:id="@+id/tvActionsOutput" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:textColor="@color/text"/>
+    </ScrollView>
+    <com.google.android.material.button.MaterialButton android:id="@+id/btnRefreshRuns"
+        android:layout_width="match_parent" android:layout_height="wrap_content" android:text="🔄 Refresh"/>
+    <com.google.android.material.button.MaterialButton android:id="@+id/btnBackActions"
+        android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Back"/>
 </LinearLayout>

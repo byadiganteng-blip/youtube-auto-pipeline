@@ -1,32 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="match_parent">
-    <LinearLayout android:orientation="vertical" android:padding="16dp"
-        android:layout_width="match_parent" android:layout_height="wrap_content">
-
-        <TextView android:id="@+id/tvAdminEmail" android:text="Email: -"
-            android:layout_width="match_parent" android:layout_height="wrap_content"/>
-        <TextView android:id="@+id/tvAdminLogin" android:text="Login: -"
-            android:layout_marginBottom="16dp"
-            android:layout_width="match_parent" android:layout_height="wrap_content"/>
-
-        <Button android:id="@+id/btnPushUpdate" android:text="Push Update"
-            android:layout_marginBottom="8dp"
-            android:layout_width="match_parent" android:layout_height="wrap_content"/>
-        <Button android:id="@+id/btnForceUpdate" android:text="Force Update"
-            android:layout_marginBottom="8dp"
-            android:layout_width="match_parent" android:layout_height="wrap_content"/>
-        <Button android:id="@+id/btnManageTokens" android:text="Manage Tokens"
-            android:layout_marginBottom="8dp"
-            android:layout_width="match_parent" android:layout_height="wrap_content"/>
-        <Button android:id="@+id/btnViewLogs" android:text="View Logs"
-            android:layout_marginBottom="8dp"
-            android:layout_width="match_parent" android:layout_height="wrap_content"/>
-        <Button android:id="@+id/btnViewDevices" android:text="View Devices"
-            android:layout_marginBottom="8dp"
-            android:layout_width="match_parent" android:layout_height="wrap_content"/>
-        <Button android:id="@+id/btnLogout" android:text="Logout"
-            android:layout_marginTop="16dp"
-            android:layout_width="match_parent" android:layout_height="wrap_content"/>
-    </LinearLayout>
-</ScrollView>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/bg" android:padding="16dp">
+    <TextView android:id="@+id/tvAdminUser" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:text="Login" android:textColor="@color/text" android:textSize="16sp"/>
+    <EditText android:id="@+id/etManualToken" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:layout_marginTop="12dp"
+        android:textColor="@color/text" android:background="@drawable/card_bg" android:padding="12dp"/>
+    <com.google.android.material.button.MaterialButton android:id="@+id/btnSaveToken"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginTop="12dp" android:text="Simpan"/>
+    <com.google.android.material.button.MaterialButton android:id="@+id/btnLogout"
+        android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Logout"/>
+</LinearLayout>

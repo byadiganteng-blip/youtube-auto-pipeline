@@ -1,69 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#F5F5F5">
-
-    <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <LinearLayout
-            android:orientation="vertical"
-            android:background="#1A237E"
-            android:padding="24dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <TextView
-                android:text="Universal Video Editor"
-                android:textColor="#FFFFFF"
-                android:textSize="22sp"
-                android:textStyle="bold"
-                android:layout_gravity="center"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-            <TextView
-                android:id="@+id/tvCredit"
-                android:text="Created by KARYADI"
-                android:textColor="#FFD54F"
-                android:textSize="12sp"
-                android:layout_gravity="center"
-                android:layout_marginTop="4dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:orientation="vertical"
-            android:padding="16dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <Button android:id="@+id/btnFiles" android:text="Files"
-                android:layout_marginBottom="8dp"
-                android:layout_width="match_parent" android:layout_height="wrap_content"/>
-            <Button android:id="@+id/btnActions" android:text="Actions"
-                android:layout_marginBottom="8dp"
-                android:layout_width="match_parent" android:layout_height="wrap_content"/>
-            <Button android:id="@+id/btnAdmin" android:text="Admin Panel"
-                android:layout_marginBottom="8dp"
-                android:layout_width="match_parent" android:layout_height="wrap_content"/>
-            <Button android:id="@+id/btnEditor" android:text="Video Editor"
-                android:layout_marginBottom="8dp"
-                android:layout_width="match_parent" android:layout_height="wrap_content"/>
-            <Button android:id="@+id/btnInstructions" android:text="Instructions"
-                android:layout_marginBottom="8dp"
-                android:layout_width="match_parent" android:layout_height="wrap_content"/>
-            <Button android:id="@+id/btnCredit" android:text="Credit"
-                android:layout_marginBottom="8dp"
-                android:layout_width="match_parent" android:layout_height="wrap_content"/>
-            <Button android:id="@+id/btnStatistics" android:text="Statistics"
-                android:layout_marginBottom="8dp"
-                android:layout_width="match_parent" android:layout_height="wrap_content"/>
-            <Button android:id="@+id/btnSettings" android:text="Settings"
-                android:layout_marginBottom="8dp"
-                android:layout_width="match_parent" android:layout_height="wrap_content"/>
-        </LinearLayout>
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="@color/bg" android:padding="16dp">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="🎬 YouTube Auto Pipeline" android:textSize="22sp"
+            android:textStyle="bold" android:textColor="@color/text" android:gravity="center"/>
+        <TextView android:id="@+id/tvStatus" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="Loading..."
+            android:textColor="@color/accent" android:paddingTop="8dp" android:paddingBottom="8dp"/>
+        <EditText android:id="@+id/etUrl" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:hint="Video URL"
+            android:textColorHint="#88FFFFFF" android:textColor="@color/text"
+            android:background="@drawable/card_bg" android:padding="12dp"/>
+        <EditText android:id="@+id/etDuration" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:hint="Durasi per part (detik)"
+            android:inputType="number" android:textColorHint="#88FFFFFF"
+            android:textColor="@color/text" android:layout_marginTop="8dp"
+            android:background="@drawable/card_bg" android:padding="12dp"/>
+        <Spinner android:id="@+id/spQuality" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="8dp"
+            android:background="@drawable/card_bg"/>
+        <Spinner android:id="@+id/spWatermark" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="8dp"
+            android:background="@drawable/card_bg"/>
+        <Spinner android:id="@+id/spType" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="8dp"
+            android:background="@drawable/card_bg"/>
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnRun"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="12dp" android:text="🚀 Run Workflow"/>
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnAdmin"
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:text="🔐 Token"/>
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnActions"
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:text="📊 Actions"/>
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnFiles"
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:text="📁 Files"/>
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnSettings"
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:text="⚙️ Settings"/>
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnStatistics"
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:text="📈 Statistics"/>
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnEditor"
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:text="🎞️ Video Editor"/>
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnCredit"
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:text="©️ Credit"/>
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnInstructions"
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:text="📖 Instructions"/>
     </LinearLayout>
 </ScrollView>

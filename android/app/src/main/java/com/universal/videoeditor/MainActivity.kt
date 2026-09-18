@@ -1,108 +1,49 @@
 package com.universal.videoeditor
-
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
-import android.widget.EditText
-import android.widget.TextView
-import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-
-/**
- * Main Activity - menu utama
- * Created by KARYADI, Coding by KARYADI
- */
+import androidx.lifecycle.lifecycleScope
+import com.google.android.material.button.MaterialButton
+import kotlinx.coroutines.launch
 class MainActivity : AppCompatActivity() {
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        try {
-            setContentView(R.layout.activity_main)
-        } catch (e: Exception) {
-            Toast.makeText(this, "Layout error: ${e.message}", Toast.LENGTH_LONG).show()
-            finish()
-            return
-        }
-
-        // Cek login admin
-        if (!SecureConfig.isAdminLoggedIn()) {
-            showLoginDialog()
-        }
-
-        // Setup tombol menu
-        setupButton("btnFiles", FilesActivity::class.java)
-        setupButton("btnActions", ActionsActivity::class.java)
-        setupButton("btnAdmin", AdminActivity::class.java)
-        setupButton("btnEditor", VideoEditorActivity::class.java)
-        setupButton("btnInstructions", InstructionsActivity::class.java)
-        setupButton("btnCredit", CreditActivity::class.java)
-        setupButton("btnStatistics", StatisticsActivity::class.java)
-        setupButton("btnSettings", SettingsActivity::class.java)
-
-        // Tampilkan credit
-        try {
-            val tvCredit = findViewById<TextView>(R.id.tvCredit)
-            tvCredit?.text = "Created by KARYADI, Coding by KARYADI"
-        } catch (_: Exception) {}
-    }
-
-    private fun setupButton(idName: String, activityClass: Class<*>) {
-        try {
-            val resId = resources.getIdentifier(idName, "id", packageName)
-            if (resId != 0) {
-                findViewById<Button>(resId)?.setOnClickListener {
-                    try {
-                        startActivity(Intent(this, activityClass))
-                    } catch (e: Exception) {
-                        Toast.makeText(this,
-                            "Buka ${activityClass.simpleName} gagal: ${e.message}",
-                            Toast.LENGTH_LONG).show()
-                    }
-                }
+    override fun onCreate(s: Bundle?) {
+        super.onCreate(s)
+        setContentView(R.layout.activity_main)
+        val etUrl = findViewById<EditText>(R.id.etUrl)
+        val etDur = findViewById<EditText>(R.id.etDuration)
+        val spQ = findViewById<Spinner>(R.id.spQuality)
+        val spW = findViewById<Spinner>(R.id.spWatermark)
+        val spT = findViewById<Spinner>(R.id.spType)
+        val tv = findViewById<TextView>(R.id.tvStatus)
+        val btnRun = findViewById<MaterialButton>(R.id.btnRun)
+        spQ.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item,
+            listOf("144p","240p","360p","480p","720p","1080p","1440p","2160p"))
+        spW.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, listOf("remove","skip"))
+        spT.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, listOf("video","reels"))
+        tv.text = "✅ Login: ${SecureConfig.user(this) ?: BuildConfig.GH_USER}"
+        btnRun.setOnClickListener {
+            val u = etUrl.text.toString().trim()
+            if (u.isEmpty()) { Toast.makeText(this,"URL kosong",Toast.LENGTH_SHORT).show(); return@setOnClickListener }
+            tv.text = "🚀 Triggering..."
+            lifecycleScope.launch {
+                val r = AdminApi.trigger(this@MainActivity, mapOf(
+                    "video_url" to u,
+                    "part_duration" to etDur.text.toString().ifBlank { "60" },
+                    "quality" to spQ.selectedItem.toString(),
+                    "watermark_mode" to spW.selectedItem.toString(),
+                    "upload_type" to spT.selectedItem.toString()
+                ))
+                tv.text = if (r.ok) "✅ Triggered!" else "❌ ${r.code}"
             }
-        } catch (_: Exception) {}
-    }
-
-    private fun showLoginDialog() {
-        try {
-            val view = layoutInflater.inflate(R.layout.dialog_admin_login, null)
-            val etEmail = view.findViewById<EditText>(R.id.etEmail)
-            val etToken = view.findViewById<EditText>(R.id.etToken)
-
-            AlertDialog.Builder(this)
-                .setTitle("Login Admin")
-                .setView(view)
-                .setCancelable(false)
-                .setPositiveButton("Login") { _, _ ->
-                    val email = etEmail.text.toString().trim()
-                    val token = etToken.text.toString().trim()
-                    if (email.isNotEmpty() && token.isNotEmpty()) {
-                        SecureConfig.setAdminEmail(email)
-                        SecureConfig.setGithubToken(token)
-                        Toast.makeText(this, "Login berhasil", Toast.LENGTH_SHORT).show()
-                    } else {
-                        Toast.makeText(this, "Email & token wajib diisi", Toast.LENGTH_SHORT).show()
-                        showLoginDialog()
-                    }
-                }
-                .show()
-        } catch (e: Exception) {
-            // Skip dialog kalau layout tidak ada
         }
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        try {
-            AlertDialog.Builder(this)
-                .setTitle("Keluar?")
-                .setMessage("Tutup aplikasi?")
-                .setPositiveButton("Ya") { _, _ -> finish() }
-                .setNegativeButton("Batal", null)
-                .show()
-        } catch (_: Exception) {
-            super.onBackPressed()
-        }
+        findViewById<MaterialButton>(R.id.btnAdmin).setOnClickListener { startActivity(Intent(this, AdminActivity::class.java)) }
+        findViewById<MaterialButton>(R.id.btnActions).setOnClickListener { startActivity(Intent(this, ActionsActivity::class.java)) }
+        findViewById<MaterialButton>(R.id.btnFiles).setOnClickListener { startActivity(Intent(this, FilesActivity::class.java)) }
+        findViewById<MaterialButton>(R.id.btnSettings).setOnClickListener { startActivity(Intent(this, SettingsActivity::class.java)) }
+        findViewById<MaterialButton>(R.id.btnStatistics).setOnClickListener { startActivity(Intent(this, StatisticsActivity::class.java)) }
+        findViewById<MaterialButton>(R.id.btnEditor).setOnClickListener { startActivity(Intent(this, VideoEditorActivity::class.java)) }
+        findViewById<MaterialButton>(R.id.btnCredit).setOnClickListener { startActivity(Intent(this, CreditActivity::class.java)) }
+        findViewById<MaterialButton>(R.id.btnInstructions).setOnClickListener { startActivity(Intent(this, InstructionsActivity::class.java)) }
     }
 }
