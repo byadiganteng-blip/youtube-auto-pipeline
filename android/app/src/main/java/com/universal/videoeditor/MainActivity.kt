@@ -108,6 +108,29 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Tidak bisa buka browser", Toast.LENGTH_SHORT).show()
             }
         }
+        // ═══ NOTIFIKASI ═══
+        val btnNotif = findViewById<android.view.View>(R.id.btnNotif)
+        val notifDot = findViewById<android.view.View>(R.id.notifDot)
+        lifecycleScope.launch {
+            try {
+                val notifs = NotifFetcher.fetch(this@MainActivity)
+                if (notifs.isNotEmpty()) {
+                    notifDot.visibility = android.view.View.VISIBLE
+                    LogTracker.i(this@MainActivity, "Main", "Notif loaded: ${notifs.size}")
+                }
+                btnNotif.setOnClickListener {
+                    if (notifs.isEmpty()) {
+                        Toast.makeText(this@MainActivity, "Tidak ada notifikasi baru", Toast.LENGTH_SHORT).show()
+                    } else {
+                        showNotifDialog(notifs)
+                        notifDot.visibility = android.view.View.GONE
+                    }
+                }
+            } catch (e: Exception) {
+                LogTracker.e(this@MainActivity, "Main", "Notif fetch error: ${e.message}")
+            }
+        }
+
 
 
         btnProcess.setOnClickListener {

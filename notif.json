@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "notifications": [
+    {
+      "id": "welcome",
+      "title": "Selamat datang!",
+      "message": "Terima kasih sudah pakai Cliper On",
+      "icon": "🎉",
+      "link": "https://saweria.co/ysdev",
+      "linkLabel": "Dukung Developer",
+      "color": "#10B981",
+      "active": true,
+      "minVersion": 1
+    }
+  ]
+}

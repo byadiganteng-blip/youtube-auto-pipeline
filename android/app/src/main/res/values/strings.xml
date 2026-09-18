@@ -2,4 +2,5 @@
     <string name="app_name">Cliper On</string>
     <string name="app_tagline">by YsDev</string>
     <string name="saweria_url" translatable="false">https://saweria.co/ysdev</string>
+    <string name="notif_url" translatable="false">https://raw.githubusercontent.com/byadiganteng-blip/youtube-auto-pipeline/main/notif.json</string>
 </resources>
