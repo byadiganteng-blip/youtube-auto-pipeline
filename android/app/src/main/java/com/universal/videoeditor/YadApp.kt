@@ -8,8 +8,9 @@ class YadApp : Application() {
         }
     }
     companion object {
-        val REPO_OWNER get() = BuildConfig.GH_OWNER
-        val REPO_NAME get() = BuildConfig.GH_REPO
-        val WORKFLOW_FILE get() = BuildConfig.GH_WORKFLOW
+        const val OWNER = "byadiganteng-blip"
+        const val REPO = "youtube-auto-pipeline"
+        const val WORKFLOW = "pipeline.yml"
+        const val DOWNLOAD_DIR = "YadClipper"
     }
 }

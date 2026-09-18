@@ -1,4 +1,20 @@
 <resources>
-    <string name="app_name">YouTube Auto Pipeline</string>
-    <string name="app_short_name">YadPipeline</string>
+    <string name="app_name">Yad Clipper</string>
+    <string name="app_tagline">by Ys Dev</string>
+    <string name="btn_process">🎬  PROSES VIDEO</string>
+    <string name="btn_instructions">📖  Instruksi</string>
+    <string name="btn_results">🎞️  Hasil Video</string>
+    <string name="btn_credit">©️  Credit</string>
+    <string name="hint_url">Tempel link video di sini…</string>
+    <string name="hint_duration">Durasi per part (detik)</string>
+    <string name="lbl_quality">Kualitas Video</string>
+    <string name="lbl_watermark">Mode Watermark</string>
+    <string name="lbl_type">Tipe Upload</string>
+    <string name="progress_starting">Memulai proses…</string>
+    <string name="progress_uploading">Mengunggah video…</string>
+    <string name="progress_processing">Memproses video…</string>
+    <string name="progress_downloading">Mengunduh hasil…</string>
+    <string name="progress_done">Selesai! 🎉</string>
+    <string name="credit_title">Ys Dev</string>
+    <string name="credit_subtitle">Android Developer</string>
 </resources>
