@@ -2,5 +2,8 @@ package com.universal.videoeditor
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 class InstructionsActivity : AppCompatActivity() {
-    override fun onCreate(s: Bundle?) { super.onCreate(s); setContentView(R.layout.activity_instructions) }
+    override fun onCreate(s: Bundle?) {
+        super.onCreate(s)
+        setContentView(R.layout.activity_instructions)
+    }
 }
