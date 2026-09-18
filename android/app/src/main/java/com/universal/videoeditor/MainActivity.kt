@@ -352,8 +352,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun hideProgress() {
-        FloatingProgressService.hide(this)
-        cancelNotification()
+        runOnUiThread {
+            try {
+                FloatingProgressService.hide(this)
+                cancelNotification()
+            } catch (_: Exception) {}
+        }
     }
 
     private fun pollingInterval(elapsedMs: Long): Long = when {

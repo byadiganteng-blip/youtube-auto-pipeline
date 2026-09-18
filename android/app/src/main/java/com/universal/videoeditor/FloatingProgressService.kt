@@ -5,7 +5,9 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.PixelFormat
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -28,24 +30,42 @@ class FloatingProgressService : Service() {
         @Volatile private var instance: FloatingProgressService? = null
 
         fun show(c: Context, pct: Int, label: String, detail: String) {
-            val i = Intent(c, FloatingProgressService::class.java).apply {
-                action = ACTION_SHOW
-                putExtra(EXTRA_PCT, pct); putExtra(EXTRA_LABEL, label); putExtra(EXTRA_DETAIL, detail)
+            try {
+                val i = Intent(c, FloatingProgressService::class.java).apply {
+                    action = ACTION_SHOW
+                    putExtra(EXTRA_PCT, pct)
+                    putExtra(EXTRA_LABEL, label)
+                    putExtra(EXTRA_DETAIL, detail)
+                }
+                if (Build.VERSION.SDK_INT >= 26) c.startForegroundService(i)
+                else c.startService(i)
+            } catch (e: Exception) {
+                LogTracker.e(c, "Float", "show err: ${e.message}")
             }
-            if (Build.VERSION.SDK_INT >= 26) c.startForegroundService(i) else c.startService(i)
         }
+
         fun update(c: Context, pct: Int, label: String, detail: String) {
-            val i = Intent(c, FloatingProgressService::class.java).apply {
-                action = ACTION_UPDATE
-                putExtra(EXTRA_PCT, pct); putExtra(EXTRA_LABEL, label); putExtra(EXTRA_DETAIL, detail)
+            try {
+                val i = Intent(c, FloatingProgressService::class.java).apply {
+                    action = ACTION_UPDATE
+                    putExtra(EXTRA_PCT, pct)
+                    putExtra(EXTRA_LABEL, label)
+                    putExtra(EXTRA_DETAIL, detail)
+                }
+                c.startService(i)
+            } catch (e: Exception) {
+                LogTracker.e(c, "Float", "update err: ${e.message}")
             }
-            c.startService(i)
         }
+
         fun hide(c: Context) {
-            c.startService(Intent(c, FloatingProgressService::class.java).apply { action = ACTION_HIDE })
+            try {
+                c.startService(Intent(c, FloatingProgressService::class.java).apply { action = ACTION_HIDE })
+            } catch (_: Exception) {}
         }
     }
 
+    private val mainHandler = Handler(Looper.getMainLooper())
     private var windowManager: WindowManager? = null
     private var floatView: View? = null
     private var layoutParams: WindowManager.LayoutParams? = null
@@ -55,97 +75,127 @@ class FloatingProgressService : Service() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        try {
+            val nm = getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+            if (Build.VERSION.SDK_INT >= 26 && nm.getNotificationChannel("float_service") == null) {
+                nm.createNotificationChannel(
+                    android.app.NotificationChannel(
+                        "float_service", "Cliper On Floating",
+                        android.app.NotificationManager.IMPORTANCE_LOW
+                    ).apply { setShowBadge(false) })
+            }
+        } catch (_: Exception) {}
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        when (intent?.action) {
-            ACTION_SHOW -> showFloating(
-                intent.getIntExtra(EXTRA_PCT, 0),
-                intent.getStringExtra(EXTRA_LABEL) ?: "",
-                intent.getStringExtra(EXTRA_DETAIL) ?: ""
-            )
-            ACTION_UPDATE -> updateFloating(
-                intent.getIntExtra(EXTRA_PCT, 0),
-                intent.getStringExtra(EXTRA_LABEL) ?: "",
-                intent.getStringExtra(EXTRA_DETAIL) ?: ""
-            )
-            ACTION_HIDE -> hideFloating()
+        // Semua aksi di main thread
+        mainHandler.post {
+            try {
+                when (intent?.action) {
+                    ACTION_SHOW -> showFloating(
+                        intent.getIntExtra(EXTRA_PCT, 0),
+                        intent.getStringExtra(EXTRA_LABEL) ?: "",
+                        intent.getStringExtra(EXTRA_DETAIL) ?: ""
+                    )
+                    ACTION_UPDATE -> updateFloating(
+                        intent.getIntExtra(EXTRA_PCT, 0),
+                        intent.getStringExtra(EXTRA_LABEL) ?: "",
+                        intent.getStringExtra(EXTRA_DETAIL) ?: ""
+                    )
+                    ACTION_HIDE -> hideFloating()
+                }
+            } catch (e: Exception) {
+                LogTracker.e(this, "Float", "onStartCommand err: ${e.message}")
+            }
         }
-        return START_STICKY  // ← restart kalau killed
+        return START_STICKY
     }
 
     private fun showFloating(pct: Int, label: String, detail: String) {
-        if (floatView != null) { updateFloating(pct, label, detail); return }
-        windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        floatView = LayoutInflater.from(this).inflate(R.layout.floating_progress, null)
-
-        val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-        else
-            @Suppress("DEPRECATION")
-            WindowManager.LayoutParams.TYPE_PHONE
-
-        layoutParams = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            type,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
-                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
-            PixelFormat.TRANSLUCENT
-        ).apply {
-            gravity = Gravity.TOP or Gravity.START
-            x = 30
-            y = 200
+        if (floatView != null) {
+            updateFloating(pct, label, detail)
+            return
         }
-
-        var initX = 0
-        var initY = 0
-        var touchX = 0f
-        var touchY = 0f
-
-        floatView?.setOnTouchListener { _, event ->
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    initX = layoutParams!!.x; initY = layoutParams!!.y
-                    touchX = event.rawX; touchY = event.rawY
-                    true
-                }
-                MotionEvent.ACTION_MOVE -> {
-                    layoutParams!!.x = initX + (event.rawX - touchX).toInt()
-                    layoutParams!!.y = initY + (event.rawY - touchY).toInt()
-                    try { windowManager?.updateViewLayout(floatView, layoutParams) } catch (_: Exception) {}
-                    true
-                }
-                MotionEvent.ACTION_UP -> {
-                    abs(event.rawX - touchX) < 10 && abs(event.rawY - touchY) < 10
-                }
-                else -> false
-            }
-        }
-
         try {
+            windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
+            floatView = LayoutInflater.from(this).inflate(R.layout.floating_progress, null)
+
+            val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+            else
+                @Suppress("DEPRECATION")
+                WindowManager.LayoutParams.TYPE_PHONE
+
+            layoutParams = WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                type,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                        WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
+                        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+                PixelFormat.TRANSLUCENT
+            ).apply {
+                gravity = Gravity.TOP or Gravity.START
+                x = 30
+                y = 200
+            }
+
+            var initX = 0
+            var initY = 0
+            var touchX = 0f
+            var touchY = 0f
+
+            floatView?.setOnTouchListener { _, event ->
+                try {
+                    when (event.action) {
+                        MotionEvent.ACTION_DOWN -> {
+                            initX = layoutParams!!.x
+                            initY = layoutParams!!.y
+                            touchX = event.rawX
+                            touchY = event.rawY
+                            true
+                        }
+                        MotionEvent.ACTION_MOVE -> {
+                            layoutParams!!.x = initX + (event.rawX - touchX).toInt()
+                            layoutParams!!.y = initY + (event.rawY - touchY).toInt()
+                            windowManager?.updateViewLayout(floatView, layoutParams)
+                            true
+                        }
+                        MotionEvent.ACTION_UP -> {
+                            abs(event.rawX - touchX) < 10 && abs(event.rawY - touchY) < 10
+                        }
+                        else -> false
+                    }
+                } catch (_: Exception) { false }
+            }
+
             windowManager?.addView(floatView, layoutParams)
             LogTracker.i(this, "Float", "addView OK — view attached")
+            updateFloating(pct, label, detail)
         } catch (e: Exception) {
             LogTracker.e(this, "Float", "addView failed: ${e.message}")
+            floatView = null
         }
-        updateFloating(pct, label, detail)
     }
 
     private fun updateFloating(pct: Int, label: String, detail: String) {
-        floatView?.let { v ->
+        try {
+            val v = floatView ?: return
             v.findViewById<ProgressBar>(R.id.fpProgress)?.progress = pct
             v.findViewById<TextView>(R.id.fpPercent)?.text = "$pct%"
             v.findViewById<TextView>(R.id.fpLabel)?.text = label
             v.findViewById<TextView>(R.id.fpDetail)?.text = detail
+        } catch (e: Exception) {
+            LogTracker.e(this, "Float", "update err: ${e.message}")
         }
     }
 
     private fun hideFloating() {
-        floatView?.let {
-            try { windowManager?.removeView(it) } catch (_: Exception) {}
-        }
+        try {
+            floatView?.let {
+                try { windowManager?.removeView(it) } catch (_: Exception) {}
+            }
+        } catch (_: Exception) {}
         floatView = null
         stopSelf()
     }
@@ -153,6 +203,6 @@ class FloatingProgressService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         instance = null
-        hideFloating()
+        try { hideFloating() } catch (_: Exception) {}
     }
 }
