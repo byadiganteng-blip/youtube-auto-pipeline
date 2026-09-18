@@ -26,17 +26,15 @@
 
 -- app/build.gradle --------------------------------------------------------
   OK Curly brace balance
-  Dependencies: 10
+  Dependencies: 8
     - androidx.core:core-ktx:1.12.0
     - androidx.appcompat:appcompat:1.6.1
     - com.google.android.material:material:1.11.0
     - androidx.constraintlayout:constraintlayout:2.1.4
     - androidx.recyclerview:recyclerview:1.3.2
-    - androidx.cardview:cardview:1.0.0
-    - org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3
+    - androidx.security:security-crypto:1.1.0-alpha06
     - com.squareup.okhttp3:okhttp:4.12.0
-    - org.json:json:20231013
-    - androidx.multidex:multidex:2.0.1
+    - org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3
   Gradle version: 8.2
 
 ==============================================================================
@@ -45,39 +43,46 @@
 
 -- Components --------------------------------------------------------------
     [activity ] .MainActivity
-    [activity ] .FilesActivity
-    [activity ] .ActionsActivity
     [activity ] .AdminActivity
-    [activity ] .VideoEditorActivity
-    [activity ] .InstructionsActivity
-    [activity ] .CreditActivity
-    [activity ] .StatisticsActivity
+    [activity ] .ActionsActivity
+    [activity ] .FilesActivity
     [activity ] .SettingsActivity
+    [activity ] .StatisticsActivity
+    [activity ] .VideoEditorActivity
+    [activity ] .CreditActivity
+    [activity ] .InstructionsActivity
 
--- Permissions (4) ---------------------------------------------------------
+-- Permissions (3) ---------------------------------------------------------
     [normal] android.permission.INTERNET
     [normal] android.permission.ACCESS_NETWORK_STATE
-    [normal] android.permission.READ_EXTERNAL_STORAGE
-    [normal] android.permission.WRITE_EXTERNAL_STORAGE
+    [normal] android.permission.POST_NOTIFICATIONS
   Application name: .YadApp
 
 ==============================================================================
   4. KOTLIN - DEEP ANALYSIS
 ==============================================================================
-  Total Kotlin LOC  : 586
-  Classes declared  : 15
+  Total Kotlin LOC  : 259
+  Classes declared  : 13
   Files w/ findViewById: 4
   Files w/ setContentView: 9
-  Item layouts: ['dialog_admin_login', 'item_run']
-  Intent targets: 0
+  Item layouts: []
+  Intent targets: 8
 
 -- Intent reference check --------------------------------------------------
+  OK InstructionsActivity
+  OK ActionsActivity
+  OK FilesActivity
+  OK VideoEditorActivity
+  OK CreditActivity
+  OK SettingsActivity
+  OK AdminActivity
+  OK StatisticsActivity
 
 ==============================================================================
   5. RESOURCES (DEEP)
 ==============================================================================
-  Colors     : 9
-  Strings    : 2
+  Colors     : 5
+  Strings    : 1
   Dimens     : 0
   Styles     : 1
   Drawables  : 38 (incl. built-in)
@@ -87,18 +92,19 @@
   6. CROSS-CHECK RESOURCES
 ==============================================================================
 
+  [!] @layout unresolved (1):
+     android/app/src/main/java/com/universal/videoeditor/VideoEditorActivity.kt -> @layout/activity_videoeditor
+  [X] @layout/activity_videoeditor tidak ada (dari android/app/src/main/java/com/universal/videoeditor/VideoEditorActivity.kt) [android/app/src/main/java/com/universal/videoeditor/VideoEditorActivity.kt:None]
+
 ==============================================================================
   7. KOTLIN + LAYOUT MATCHING (SMART)
 ==============================================================================
-  Item layout IDs: ['etEmail', 'etToken', 'tvName', 'tvStatus', 'tvTime']
+  Item layout IDs: []
   OK android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt -> activity_instructions.xml
-  OK android/app/src/main/java/com/universal/videoeditor/VideoEditorActivity.kt -> activity_video_editor.xml
+  [X] android/app/src/main/java/com/universal/videoeditor/VideoEditorActivity.kt: R.layout.activity_videoeditor tidak ada [android/app/src/main/java/com/universal/videoeditor/VideoEditorActivity.kt:None]
   OK android/app/src/main/java/com/universal/videoeditor/StatisticsActivity.kt -> activity_statistics.xml
-  [!] android/app/src/main/java/com/universal/videoeditor/MainActivity.kt -> activity_main.xml - ID hilang: ['etEmail', 'etToken']
-  [X] android/app/src/main/java/com/universal/videoeditor/MainActivity.kt: R.id.etEmail tidak ada [android/app/src/main/java/com/universal/videoeditor/MainActivity.kt:None]
-  [X] android/app/src/main/java/com/universal/videoeditor/MainActivity.kt: R.id.etToken tidak ada [android/app/src/main/java/com/universal/videoeditor/MainActivity.kt:None]
-  [!] android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt -> activity_actions.xml - ID hilang: ['cardRun']
-  [X] android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt: R.id.cardRun tidak ada [android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt:None]
+  OK android/app/src/main/java/com/universal/videoeditor/MainActivity.kt -> activity_main.xml
+  OK android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt -> activity_actions.xml
   OK android/app/src/main/java/com/universal/videoeditor/SettingsActivity.kt -> activity_settings.xml
   OK android/app/src/main/java/com/universal/videoeditor/FilesActivity.kt -> activity_files.xml
   OK android/app/src/main/java/com/universal/videoeditor/CreditActivity.kt -> activity_credit.xml
@@ -108,14 +114,14 @@
   8. MANIFEST + KOTLIN
 ==============================================================================
   OK [activity] MainActivity
-  OK [activity] FilesActivity
-  OK [activity] ActionsActivity
   OK [activity] AdminActivity
-  OK [activity] VideoEditorActivity
-  OK [activity] InstructionsActivity
-  OK [activity] CreditActivity
-  OK [activity] StatisticsActivity
+  OK [activity] ActionsActivity
+  OK [activity] FilesActivity
   OK [activity] SettingsActivity
+  OK [activity] StatisticsActivity
+  OK [activity] VideoEditorActivity
+  OK [activity] CreditActivity
+  OK [activity] InstructionsActivity
 
 ==============================================================================
   9. DUPLICATE DETECTION
@@ -130,6 +136,7 @@
 ==============================================================================
   11. SECURITY ANALYSIS
 ==============================================================================
+  [!] Manifest: allowBackup=true [AndroidManifest.xml:None]
   OK Tidak ada isu keamanan
 
 ==============================================================================
@@ -155,14 +162,16 @@
 ==============================================================================
   16. RINGKASAN
 ==============================================================================
-  Errors   : 3
-  Warnings : 1
+  Errors   : 2
+  Warnings : 2
   Info     : 0
   Fixes    : 0
   Predictions: 0
 
   Per kategori:
-    layout: 3
+    resource: 1
+    layout: 1
+    security: 1
     performance: 1
 
 ==============================================================================
