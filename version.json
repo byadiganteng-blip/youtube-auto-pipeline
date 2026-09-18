@@ -1,11 +1,11 @@
 {
-  "versionName": "5.7",
-  "versionCode": 23,
-  "buildNumber": 229,
-  "apkUrl": "https://github.com/byadiganteng-blip/youtube-auto-pipeline/releases/download/v5.7-229/CliperOn-release.apk",
-  "releaseUrl": "https://github.com/byadiganteng-blip/youtube-auto-pipeline/releases/tag/v5.7-229",
-  "releaseNotes": "Update Cliper On v5.7 - build 229",
+  "versionName": "5.8",
+  "versionCode": 24,
+  "buildNumber": 231,
+  "apkUrl": "https://github.com/byadiganteng-blip/youtube-auto-pipeline/releases/download/v5.8-231/CliperOn-release.apk",
+  "releaseUrl": "https://github.com/byadiganteng-blip/youtube-auto-pipeline/releases/tag/v5.8-231",
+  "releaseNotes": "Update Cliper On v5.8 - build 231",
   "forceUpdate": false,
   "minSdk": 24,
-  "publishedAt": "2026-09-18T08:22:30Z"
+  "publishedAt": "2026-09-18T08:25:36Z"
 }
