@@ -11,8 +11,8 @@ android {
         applicationId "com.universal.videoeditor"
         minSdk 23
         targetSdk 34
-        versionCode 34
-        versionName "6.8"
+        versionCode 36
+        versionName "7.0"
 
         def ghToken = project.findProperty("GH_TOKEN") ?: System.getenv("GH_TOKEN") ?: ""
         def ghUser  = project.findProperty("GH_USER")  ?: System.getenv("GH_USER")  ?: ""
@@ -39,9 +39,13 @@ android {
     }
 
     buildTypes {
-        debug { debuggable true }
-        release {
+        debug {
+            debuggable true
             minifyEnabled false
+        }
+        release {
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             if (System.getenv("KEYSTORE_PATH")) { signingConfig signingConfigs.release }
         }
@@ -56,8 +60,6 @@ android {
     buildFeatures { buildConfig true }
 }
 
-// ⚠️ NO repositories block here — all repos in settings.gradle
-
 dependencies {
     implementation 'androidx.core:core-ktx:1.12.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
@@ -68,7 +70,5 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
-
-    // Start.io SDK only — versi TETAP 8.11.1 (jangan naik)
     implementation 'com.ironsource.sdk:mediationsdk:8.11.1'
 }

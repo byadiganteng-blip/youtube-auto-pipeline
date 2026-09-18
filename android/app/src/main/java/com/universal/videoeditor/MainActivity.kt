@@ -57,10 +57,8 @@ class MainActivity : AppCompatActivity() {
             try {
                 StartIoAds.init(this)
                 LogTracker.i(this, "Main", "StartIoAds.init called")
-                findViewById<android.widget.FrameLayout>(R.id.adBannerContainer)?.let { container ->
-                    StartIoAds.loadBanner(this, container)
-                    LogTracker.i(this, "Main", "Banner load requested")
-                }
+                // Banner skipped (no API in 8.11.1)
+                LogTracker.i(this, "Main", "Banner SKIP")
             } catch (e: Exception) {
                 LogTracker.e(this, "Main", "Ads init failed: ${e.message}")
             }
