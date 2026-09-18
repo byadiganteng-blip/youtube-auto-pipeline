@@ -69,13 +69,13 @@
   Intent targets: 8
 
 -- Intent reference check --------------------------------------------------
-  OK ActionsActivity
-  OK AdminActivity
   OK InstructionsActivity
-  OK VideoEditorActivity
-  OK CreditActivity
-  OK FilesActivity
   OK SettingsActivity
+  OK FilesActivity
+  OK AdminActivity
+  OK VideoEditorActivity
+  OK ActionsActivity
+  OK CreditActivity
   OK StatisticsActivity
 
 ==============================================================================
