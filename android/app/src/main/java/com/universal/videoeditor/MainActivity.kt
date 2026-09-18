@@ -46,6 +46,7 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val CHANNEL_ID = "cliper_progress"
         private const val NOTIF_ID = 1001
+        private const val NOTIF_DONE_ID = 1002
     }
 
     override fun onCreate(s: Bundle?) {
@@ -107,6 +108,13 @@ class MainActivity : AppCompatActivity() {
         requestPermissionsIfNeeded()
         requestNotificationPermission()
 
+        // Cleanup history lama
+        try {
+            val cleaned = HistoryManager.cleanupOld(this)
+            if (cleaned > 0) LogTracker.i(this, "Main", "Cleaned $cleaned old history")
+        } catch (_: Exception) {}
+
+        // Menu handlers
         findViewById<View>(R.id.menuInstructions).setOnClickListener {
             startActivity(Intent(this, InstructionsActivity::class.java))
         }
@@ -144,7 +152,6 @@ class MainActivity : AppCompatActivity() {
 
         btnProcess.setOnClickListener {
             if (running) {
-                // Tawarkan cancel
                 AlertDialog.Builder(this)
                     .setTitle("Proses Berjalan")
                     .setMessage("Proses sedang berjalan.\n\nBatalkan atau tunggu?")
@@ -175,6 +182,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // ═══════════════════════════════════════════════════════════
+    // NOTIFICATION HELPERS
+    // ═══════════════════════════════════════════════════════════
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -241,7 +251,7 @@ class MainActivity : AppCompatActivity() {
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .build()
 
-            NotificationManagerCompat.from(this).notify(NOTIF_ID + 1, notif)
+            NotificationManagerCompat.from(this).notify(NOTIF_DONE_ID, notif)
             NotificationManagerCompat.from(this).cancel(NOTIF_ID)
         } catch (_: Exception) {}
     }
@@ -253,7 +263,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun cancelProcess() {
-        LogTracker.i(this, "Main", "User cancel process")
+        LogTracker.i(this, "Main", "User cancel")
         pollJob?.cancel()
         pollJob = null
         running = false
@@ -352,13 +362,6 @@ class MainActivity : AppCompatActivity() {
         cancelNotification()
     }
 
-    /**
-     * Polling ADAPTIF:
-     *  - 0-3 menit: setiap 5 detik
-     *  - 3-10 menit: setiap 15 detik
-     *  - 10-20 menit: setiap 30 detik
-     *  - >20 menit: setiap 60 detik
-     */
     private fun pollingInterval(elapsedMs: Long): Long = when {
         elapsedMs < 3 * 60_000L -> 5_000L
         elapsedMs < 10 * 60_000L -> 15_000L
@@ -377,7 +380,7 @@ class MainActivity : AppCompatActivity() {
                 val r = ProcessRunner.startProcess(this@MainActivity, inputs)
                 if (!r.ok) {
                     hideProgress()
-                    showDoneNotif(false, "Gagal start (${r.code})")
+                    sendDoneNotif(false, "Gagal start (${r.code})")
                     AlertDialog.Builder(this@MainActivity)
                         .setTitle("❌ Gagal Memulai")
                         .setMessage("Kode: ${r.code}\n\n${r.body.take(300)}")
@@ -386,11 +389,22 @@ class MainActivity : AppCompatActivity() {
                     return@launch
                 }
 
+                // Simpan history
+                val url = inputs["video_url"] ?: ""
+                val folderTs = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+                val folderName = "clip_$folderTs"
+                try {
+                    HistoryManager.startProcess(this@MainActivity, url, -1L, folderName,
+                        inputs["upload_type"] ?: "video",
+                        inputs["video_quality"] ?: "original",
+                        inputs["video_size"] ?: "original",
+                        (inputs["part_duration"] ?: "60").toIntOrNull() ?: 60)
+                } catch (_: Exception) {}
+
                 showProgress(10, "Video dikirim", "Menunggu proses di server…")
 
-                var lastRunId = -1L
                 var lastStatus = ""
-                var stuckMinutes = 0
+                var lastRunId = -1L
 
                 while (isActive) {
                     val elapsed = System.currentTimeMillis() - startTime
@@ -407,29 +421,14 @@ class MainActivity : AppCompatActivity() {
                     val status = run.optString("status", "")
                     val conclusion = run.optString("conclusion", "")
 
-                    // Reset stuck timer kalau status berubah
-                    if (status != lastStatus || runId != lastRunId) {
-                        lastStatus = status
-                        lastRunId = runId
-                        stuckMinutes = 0
-                    } else {
-                        stuckMinutes++
-                    }
-
-                    // Detect stuck > 30 menit
-                    if (minutes >= 30 && status == "in_progress") {
-                        AlertDialog.Builder(this@MainActivity)
-                            .setTitle("⏱️ Proses Lambat")
-                            .setMessage("Server sedang sibuk.\n\nProses akan tetap lanjut di background. Anda bisa keluar app, nanti notif akan muncul.")
-                            .setPositiveButton("OK", null).show()
-                        // Tetap lanjut polling dengan interval 60s
-                    }
+                    lastStatus = status
+                    lastRunId = runId
 
                     if (status == "completed") {
                         LogTracker.i(this@MainActivity, "Main", "Run completed: $conclusion")
                         if (conclusion == "success") {
                             updateProgress(80, "Mengambil hasil…", "Menunggu artifact")
-                            downloadResult(runId)
+                            downloadResult(runId, url)
                         } else {
                             hideProgress()
                             sendDoneNotif(false, "Proses gagal")
@@ -441,7 +440,6 @@ class MainActivity : AppCompatActivity() {
                         return@launch
                     }
 
-                    // Timeout total 60 menit
                     if (elapsed > 60 * 60_000L) {
                         hideProgress()
                         sendDoneNotif(false, "Timeout 60 menit")
@@ -457,12 +455,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun estimateEta(elapsed: Long): String {
-        val avgSec = 90L  // rata-rata proses
+        val avgSec = 90L
         val remainSec = maxOf(0L, avgSec - elapsed / 1000)
         return if (remainSec < 60) "${remainSec}s" else "${remainSec / 60}m"
     }
 
-    private suspend fun downloadResult(runId: Long) {
+    // ═══════════════════════════════════════════════════════════
+    // DOWNLOAD RESULT — dengan auto-delete artifact
+    // ═══════════════════════════════════════════════════════════
+    private suspend fun downloadResult(runId: Long, url: String) {
+        LogTracker.i(this, "Main", "downloadResult runId=$runId")
+
         var arts: List<ProcessRunner.Artifact> = emptyList()
         for (attempt in 1..6) {
             arts = ProcessRunner.runArtifacts(this, runId)
@@ -483,6 +486,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         val target = arts.first()
+        LogTracker.i(this, "Main", "Downloading: ${target.name} (${target.sizeBytes/1024} KB)")
         updateProgress(85, "Mengunduh…", "${target.name} (${target.sizeBytes/1024/1024} MB)")
 
         val bytes = ProcessRunner.downloadArtifact(this, target.id)
@@ -534,6 +538,17 @@ class MainActivity : AppCompatActivity() {
                 return
             }
 
+            // ═══ AUTO-DELETE artifact dari GitHub ═══
+            updateProgress(98, "Membersihkan server…", "Hapus artifact di GitHub")
+            val deleted = ProcessRunner.deleteArtifact(this, target.id)
+            if (deleted) {
+                LogTracker.i(this, "Main", "✅ Artifact deleted: ${target.name}")
+            }
+            try { ProcessRunner.cleanupRunArtifacts(this, runId) } catch (_: Exception) {}
+
+            // Mark history selesai
+            try { HistoryManager.markCompleted(this, url, extracted) } catch (_: Exception) {}
+
             updateProgress(100, "Selesai! 🎉", "$extracted file • ${extractedMb/1024/1024} MB")
             sendDoneNotif(true, "$extracted video siap di Downloads/CliperOn")
             delay(2500)
@@ -542,7 +557,7 @@ class MainActivity : AppCompatActivity() {
 
             AlertDialog.Builder(this)
                 .setTitle("✅ Berhasil!")
-                .setMessage("$extracted video tersimpan di:\nDownloads/${YadApp.DOWNLOAD_DIR}/$uniqueFolder/")
+                .setMessage("$extracted video tersimpan di:\nDownloads/${YadApp.DOWNLOAD_DIR}/$uniqueFolder/\n\nArtifact GitHub sudah dihapus otomatis.")
                 .setPositiveButton("Lihat Hasil") { _, _ ->
                     startActivity(Intent(this, ResultsActivity::class.java))
                 }

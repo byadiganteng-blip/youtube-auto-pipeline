@@ -36,6 +36,7 @@ object ProcessRunner {
                 when (m) {
                     "GET" -> rb.get()
                     "POST" -> rb.post((b ?: "{}").toRequestBody("application/json".toMediaType()))
+                    "DELETE" -> rb.delete()
                 }
                 client.newCall(rb.build()).execute().use {
                     val body = it.body?.string() ?: ""
@@ -57,7 +58,10 @@ object ProcessRunner {
             "video_size"    to (inputs["video_size"] ?: "original"),
             "video_quality" to (inputs["video_quality"] ?: "original"),
             "part_duration" to (inputs["part_duration"] ?: "60"),
-            "upload_type"   to (inputs["upload_type"] ?: "video")
+            "upload_type"   to (inputs["upload_type"] ?: "video"),
+            "privacy"       to (inputs["privacy"] ?: "public"),
+            "auto_upload"   to (inputs["auto_upload"] ?: "false"),
+            "start_part"    to (inputs["start_part"] ?: "1")
         )
         val body = JSONObject().apply {
             put("ref", "main")
@@ -66,6 +70,71 @@ object ProcessRunner {
         LogTracker.i(c, TAG, "Dispatch ${mapped.size} inputs")
         return req(c, "POST", url, body)
     }
+
+    suspend fun runArtifacts(c: Context, runId: Long): List<Artifact> =
+        withContext(Dispatchers.IO) {
+            val r = req(c, "GET",
+                "https://api.github.com/repos/${YadApp.OWNER}/${YadApp.REPO}/actions/runs/$runId/artifacts")
+            if (!r.ok) return@withContext emptyList()
+            val all = mutableListOf<Artifact>()
+            try {
+                val arr = JSONObject(r.body).getJSONArray("artifacts")
+                for (i in 0 until arr.length()) {
+                    val a = arr.getJSONObject(i)
+                    all.add(Artifact(
+                        name = a.optString("name"),
+                        id = a.optLong("id"),
+                        sizeBytes = a.optLong("size_in_bytes"),
+                        url = a.optString("archive_download_url")
+                    ))
+                }
+            } catch (_: Exception) {}
+            val sorted = all.sortedWith(compareBy { art ->
+                partNumberFromName(art.name).takeIf { it > 0 } ?: 999
+            })
+            LogTracker.i(c, TAG, "Artifacts: ${sorted.map { it.name + " (" + it.sizeBytes/1024 + "KB)" }}")
+            sorted.filter { it.sizeBytes > 50_000 }
+        }
+
+    /**
+     * Deteksi part number dari nama artifact (part-01, part-02, dll).
+     * Return 0 kalau bukan part (bundle, dll).
+     */
+    fun partNumberFromName(name: String): Int {
+        val m = Regex("part-(\\d+)").find(name)
+        return m?.groupValues?.get(1)?.toIntOrNull() ?: 0
+    }
+
+    /**
+     * DELETE artifact dari GitHub setelah berhasil di-download.
+     */
+    suspend fun deleteArtifact(c: Context, artifactId: Long): Boolean =
+        withContext(Dispatchers.IO) {
+            LogTracker.i(c, TAG, "Auto-delete artifact $artifactId")
+            val r = req(c, "DELETE",
+                "https://api.github.com/repos/${YadApp.OWNER}/${YadApp.REPO}/actions/artifacts/$artifactId")
+            if (r.ok || r.code == 204) {
+                LogTracker.i(c, TAG, "✅ Artifact $artifactId deleted")
+                true
+            } else {
+                LogTracker.w(c, TAG, "Delete failed: HTTP ${r.code}")
+                false
+            }
+        }
+
+    /**
+     * Cleanup semua artifacts dari run tertentu.
+     */
+    suspend fun cleanupRunArtifacts(c: Context, runId: Long): Int =
+        withContext(Dispatchers.IO) {
+            val arts = runArtifacts(c, runId)
+            var deleted = 0
+            for (art in arts) {
+                if (deleteArtifact(c, art.id)) deleted++
+            }
+            LogTracker.i(c, TAG, "Cleanup run $runId: $deleted artifacts deleted")
+            deleted
+        }
 
     suspend fun probeVideoDuration(c: Context, videoUrl: String): Int? =
         withContext(Dispatchers.IO) {
@@ -77,11 +146,11 @@ object ProcessRunner {
                         .build()
                     probeClient.newCall(htmlReq).execute().use { resp ->
                         val html = resp.body?.string() ?: ""
-                        Regex("lengthSeconds" + "\"" + ":" + "\"" + "([0-9]+)").find(html)?.let {
+                        Regex("lengthSeconds" + "\\"" + ":" + "\\"" + "([0-9]+)").find(html)?.let {
                             val s = it.groupValues[1].toIntOrNull()
                             if (s != null && s > 0) return@withContext s
                         }
-                        Regex("approxDurationMs" + "\"" + ":" + "\"" + "([0-9]+)").find(html)?.let {
+                        Regex("approxDurationMs" + "\\"" + ":" + "\\"" + "([0-9]+)").find(html)?.let {
                             val ms = it.groupValues[1].toIntOrNull()
                             if (ms != null && ms > 0) return@withContext ms / 1000
                         }
@@ -106,45 +175,6 @@ object ProcessRunner {
             if (arr.length() == 0) null else arr.getJSONObject(0)
         } catch (e: Exception) { null }
     }
-
-    /**
-     * Ambil semua artifact dari run, tapi PRIORITASKAN yang namanya mengandung "cliper" atau "pipeline".
-     * Skip artifact "build-log" / "analyzer".
-     */
-    suspend fun runArtifacts(c: Context, runId: Long): List<Artifact> =
-        withContext(Dispatchers.IO) {
-            val r = req(c, "GET",
-                "https://api.github.com/repos/${YadApp.OWNER}/${YadApp.REPO}/actions/runs/$runId/artifacts")
-            if (!r.ok) return@withContext emptyList()
-            val all = mutableListOf<Artifact>()
-            try {
-                val arr = JSONObject(r.body).getJSONArray("artifacts")
-                for (i in 0 until arr.length()) {
-                    val a = arr.getJSONObject(i)
-                    all.add(Artifact(
-                        name = a.optString("name"),
-                        id = a.optLong("id"),
-                        sizeBytes = a.optLong("size_in_bytes"),
-                        url = a.optString("archive_download_url")
-                    ))
-                }
-            } catch (_: Exception) {}
-            // Sort: prioritize yang punya kata "cliper" atau "pipeline", skip yang "log"
-            val prioritized = all.sortedByDescending { art ->
-                val n = art.name.lowercase()
-                when {
-                    n.contains("cliper") -> 100
-                    n.contains("pipeline") -> 90
-                    n.contains("result") -> 80
-                    n.contains("apk") -> 70
-                    n.contains("log") -> -50
-                    n.contains("analyzer") -> -100
-                    else -> 0
-                }
-            }
-            LogTracker.i(c, TAG, "Artifacts found: ${all.map { it.name + " (" + it.sizeBytes/1024 + "KB)" }}")
-            prioritized.filter { it.sizeBytes > 50_000 }  // skip artifact < 50KB (log kecil)
-        }
 
     suspend fun downloadArtifact(c: Context, artifactId: Long): ByteArray? =
         withContext(Dispatchers.IO) {
