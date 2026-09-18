@@ -97,11 +97,6 @@ object ProcessRunner {
             sorted.filter { it.sizeBytes > 50_000 }
         }
 
-    /**
-     * Deteksi part number dari nama artifact.
-     * Pakai substring murni (TANPA regex) supaya tidak ada masalah escape.
-     * "part-01" -> 1, "part-02" -> 2, "parts-bundle" -> 0
-     */
     fun partNumberFromName(name: String): Int {
         val prefix = "part-"
         val idx = name.indexOf(prefix)
@@ -140,10 +135,6 @@ object ProcessRunner {
             deleted
         }
 
-    /**
-     * Probe durasi video — pakai substring parsing (TANPA regex).
-     * Cari: "lengthSeconds":"12345"
-     */
     suspend fun probeVideoDuration(c: Context, videoUrl: String): Int? =
         withContext(Dispatchers.IO) {
             try {
@@ -157,10 +148,8 @@ object ProcessRunner {
                 probeClient.newCall(htmlReq).execute().use { resp ->
                     val html = resp.body?.string() ?: ""
 
-                    // Cari "lengthSeconds"
                     val idx = html.indexOf("lengthSeconds")
                     if (idx >= 0) {
-                        // Cari angka pertama setelah idx + 13 (panjang "lengthSeconds")
                         var i = idx + "lengthSeconds".length
                         var start = -1
                         while (i < html.length && i < idx + 50) {
@@ -177,7 +166,6 @@ object ProcessRunner {
                         }
                     }
 
-                    // Cari "approxDurationMs"
                     val idx2 = html.indexOf("approxDurationMs")
                     if (idx2 >= 0) {
                         var i = idx2 + "approxDurationMs".length
@@ -196,7 +184,6 @@ object ProcessRunner {
                         }
                     }
 
-                    // Cari PT..M..S (ISO 8601)
                     val ptIdx = html.indexOf("PT")
                     if (ptIdx >= 0 && ptIdx < html.length - 5) {
                         var i = ptIdx + 2
