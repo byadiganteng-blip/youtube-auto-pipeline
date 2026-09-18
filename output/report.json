@@ -1,10 +1,46 @@
 {
   "issues": [
     {
+      "msg": "android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt: R.id.content tidak ada",
+      "severity": "error",
+      "category": "layout",
+      "file": "android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt"
+    },
+    {
+      "msg": "android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt: R.id.tvNumber tidak ada",
+      "severity": "error",
+      "category": "layout",
+      "file": "android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt"
+    },
+    {
+      "msg": "android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt: R.id.tvText tidak ada",
+      "severity": "error",
+      "category": "layout",
+      "file": "android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt"
+    },
+    {
+      "msg": "android/app/src/main/java/com/universal/videoeditor/ResultsActivity.kt: R.id.tvName tidak ada",
+      "severity": "error",
+      "category": "layout",
+      "file": "android/app/src/main/java/com/universal/videoeditor/ResultsActivity.kt"
+    },
+    {
+      "msg": "android/app/src/main/java/com/universal/videoeditor/ResultsActivity.kt: R.id.tvSize tidak ada",
+      "severity": "error",
+      "category": "layout",
+      "file": "android/app/src/main/java/com/universal/videoeditor/ResultsActivity.kt"
+    },
+    {
       "msg": "Manifest: allowBackup=true",
       "severity": "warning",
       "category": "security",
       "file": "AndroidManifest.xml"
+    },
+    {
+      "msg": "android/app/src/main/java/com/universal/videoeditor/WorkflowHelper.kt: network call di main thread?",
+      "severity": "warning",
+      "category": "performance",
+      "file": "android/app/src/main/java/com/universal/videoeditor/WorkflowHelper.kt"
     },
     {
       "msg": "android/app/src/main/java/com/universal/videoeditor/AdminApi.kt: network call di main thread?",
@@ -16,14 +52,15 @@
   "fixes": [],
   "predictions": [],
   "summary": {
-    "errors": 0,
-    "warnings": 2,
+    "errors": 5,
+    "warnings": 3,
     "infos": 0,
     "fixes": 0
   },
   "categories": {
+    "layout": 5,
     "security": 1,
-    "performance": 1
+    "performance": 2
   },
-  "timestamp": "2026-09-18T03:01:23.024709"
+  "timestamp": "2026-09-18T03:16:42.397917"
 }

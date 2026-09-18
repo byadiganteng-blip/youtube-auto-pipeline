@@ -1,24 +1,16 @@
-android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt:
-
-android/app/src/main/java/com/universal/videoeditor/AdminActivity.kt:
-
 android/app/src/main/java/com/universal/videoeditor/AdminApi.kt:
 
 android/app/src/main/java/com/universal/videoeditor/CreditActivity.kt:
-
-android/app/src/main/java/com/universal/videoeditor/FilesActivity.kt:
 
 android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt:
 
 android/app/src/main/java/com/universal/videoeditor/MainActivity.kt:
 
+android/app/src/main/java/com/universal/videoeditor/ResultsActivity.kt:
+
 android/app/src/main/java/com/universal/videoeditor/SecureConfig.kt:
 
-android/app/src/main/java/com/universal/videoeditor/SettingsActivity.kt:
-
-android/app/src/main/java/com/universal/videoeditor/StatisticsActivity.kt:
-
-android/app/src/main/java/com/universal/videoeditor/VideoEditorActivity.kt:
+android/app/src/main/java/com/universal/videoeditor/WorkflowHelper.kt:
 
 android/app/src/main/java/com/universal/videoeditor/YadApp.kt:
 

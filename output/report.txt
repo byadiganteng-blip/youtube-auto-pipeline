@@ -15,8 +15,8 @@
 ==============================================================================
   1. INVENTARIS FILE
 ==============================================================================
-  Kotlin      : 12
-  XML (res/)  : 26
+  Kotlin      : 8
+  XML (res/)  : 29
   Gradle      : 3
   Manifest    : OK
 
@@ -43,50 +43,45 @@
 
 -- Components --------------------------------------------------------------
     [activity ] .MainActivity
-    [activity ] .AdminActivity
-    [activity ] .ActionsActivity
-    [activity ] .FilesActivity
-    [activity ] .SettingsActivity
-    [activity ] .StatisticsActivity
-    [activity ] .VideoEditorActivity
-    [activity ] .CreditActivity
+    [activity ] .ResultsActivity
     [activity ] .InstructionsActivity
+    [activity ] .CreditActivity
+    [provider ] androidx.core.content.FileProvider
 
--- Permissions (3) ---------------------------------------------------------
+-- Permissions (7) ---------------------------------------------------------
     [normal] android.permission.INTERNET
     [normal] android.permission.ACCESS_NETWORK_STATE
     [normal] android.permission.POST_NOTIFICATIONS
+    [normal] android.permission.READ_MEDIA_VIDEO
+    [normal] android.permission.READ_MEDIA_IMAGES
+    [normal] android.permission.READ_EXTERNAL_STORAGE
+    [normal] android.permission.WRITE_EXTERNAL_STORAGE
   Application name: .YadApp
 
 ==============================================================================
   4. KOTLIN - DEEP ANALYSIS
 ==============================================================================
-  Total Kotlin LOC  : 287
-  Classes declared  : 13
-  Files w/ findViewById: 4
-  Files w/ setContentView: 9
-  Item layouts: []
-  Intent targets: 8
+  Total Kotlin LOC  : 495
+  Classes declared  : 9
+  Files w/ findViewById: 3
+  Files w/ setContentView: 4
+  Item layouts: ['item_instruction', 'item_video']
+  Intent targets: 3
 
 -- Intent reference check --------------------------------------------------
   OK InstructionsActivity
-  OK SettingsActivity
-  OK FilesActivity
-  OK AdminActivity
-  OK VideoEditorActivity
-  OK ActionsActivity
+  OK ResultsActivity
   OK CreditActivity
-  OK StatisticsActivity
 
 ==============================================================================
   5. RESOURCES (DEEP)
 ==============================================================================
-  Colors     : 11
-  Strings    : 2
+  Colors     : 12
+  Strings    : 18
   Dimens     : 0
-  Styles     : 2
-  Drawables  : 39 (incl. built-in)
-  Layouts    : 33 (incl. built-in)
+  Styles     : 1
+  Drawables  : 45 (incl. built-in)
+  Layouts    : 30 (incl. built-in)
 
 ==============================================================================
   6. CROSS-CHECK RESOURCES
@@ -95,29 +90,25 @@
 ==============================================================================
   7. KOTLIN + LAYOUT MATCHING (SMART)
 ==============================================================================
-  Item layout IDs: []
-  OK android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt -> activity_instructions.xml
-  OK android/app/src/main/java/com/universal/videoeditor/VideoEditorActivity.kt -> activity_video_editor.xml
-  OK android/app/src/main/java/com/universal/videoeditor/StatisticsActivity.kt -> activity_statistics.xml
+  Item layout IDs: ['tvName', 'tvNumber', 'tvSize', 'tvText']
+  [!] android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt -> activity_instructions.xml - ID hilang: ['content', 'tvNumber', 'tvText']
+  [X] android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt: R.id.content tidak ada [android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt:None]
+  [X] android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt: R.id.tvNumber tidak ada [android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt:None]
+  [X] android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt: R.id.tvText tidak ada [android/app/src/main/java/com/universal/videoeditor/InstructionsActivity.kt:None]
   OK android/app/src/main/java/com/universal/videoeditor/MainActivity.kt -> activity_main.xml
-  OK android/app/src/main/java/com/universal/videoeditor/ActionsActivity.kt -> activity_actions.xml
-  OK android/app/src/main/java/com/universal/videoeditor/SettingsActivity.kt -> activity_settings.xml
-  OK android/app/src/main/java/com/universal/videoeditor/FilesActivity.kt -> activity_files.xml
+  [!] android/app/src/main/java/com/universal/videoeditor/ResultsActivity.kt -> activity_results.xml - ID hilang: ['tvName', 'tvSize']
+  [X] android/app/src/main/java/com/universal/videoeditor/ResultsActivity.kt: R.id.tvName tidak ada [android/app/src/main/java/com/universal/videoeditor/ResultsActivity.kt:None]
+  [X] android/app/src/main/java/com/universal/videoeditor/ResultsActivity.kt: R.id.tvSize tidak ada [android/app/src/main/java/com/universal/videoeditor/ResultsActivity.kt:None]
   OK android/app/src/main/java/com/universal/videoeditor/CreditActivity.kt -> activity_credit.xml
-  OK android/app/src/main/java/com/universal/videoeditor/AdminActivity.kt -> activity_admin.xml
 
 ==============================================================================
   8. MANIFEST + KOTLIN
 ==============================================================================
   OK [activity] MainActivity
-  OK [activity] AdminActivity
-  OK [activity] ActionsActivity
-  OK [activity] FilesActivity
-  OK [activity] SettingsActivity
-  OK [activity] StatisticsActivity
-  OK [activity] VideoEditorActivity
-  OK [activity] CreditActivity
+  OK [activity] ResultsActivity
   OK [activity] InstructionsActivity
+  OK [activity] CreditActivity
+  [i] [provider] FileProvider - library class (skip)
 
 ==============================================================================
   9. DUPLICATE DETECTION
@@ -127,7 +118,8 @@
 ==============================================================================
   10. DEAD CODE DETECTION
 ==============================================================================
-  OK Tidak ada dead code
+  [!] 1 kandidat dead code:
+     AdminApi (android/app/src/main/java/com/universal/videoeditor/AdminApi.kt)
 
 ==============================================================================
   11. SECURITY ANALYSIS
@@ -138,12 +130,13 @@
 ==============================================================================
   12. PERFORMANCE ANALYSIS
 ==============================================================================
+  [!] android/app/src/main/java/com/universal/videoeditor/WorkflowHelper.kt: network call di main thread? [android/app/src/main/java/com/universal/videoeditor/WorkflowHelper.kt:None]
   [!] android/app/src/main/java/com/universal/videoeditor/AdminApi.kt: network call di main thread? [android/app/src/main/java/com/universal/videoeditor/AdminApi.kt:None]
 
 ==============================================================================
   13. DEPENDENCY GRAPH
 ==============================================================================
-  Files dalam graph: 12
+  Files dalam graph: 8
 
 ==============================================================================
   14. BUILD PREDICTIONS
@@ -158,15 +151,16 @@
 ==============================================================================
   16. RINGKASAN
 ==============================================================================
-  Errors   : 0
-  Warnings : 2
+  Errors   : 5
+  Warnings : 3
   Info     : 0
   Fixes    : 0
   Predictions: 0
 
   Per kategori:
+    layout: 5
+    performance: 2
     security: 1
-    performance: 1
 
 ==============================================================================
   Analisis v3 selesai
